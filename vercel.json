@@ -1,6 +1,6 @@
 {
   "installCommand": "pnpm install",
-  "buildCommand": "pnpm --filter @workspace/softworks run build",
+  "buildCommand": "pnpm --filter @workspace/api-server run build && pnpm --filter @workspace/softworks run build",
   "outputDirectory": "artifacts/softworks/dist/public",
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api" }
@@ -8,7 +8,8 @@
   "functions": {
     "api/index.ts": {
       "memory": 1024,
-      "maxDuration": 30
+      "maxDuration": 30,
+      "includeFiles": "artifacts/api-server/dist/**"
     }
   },
   "headers": [
