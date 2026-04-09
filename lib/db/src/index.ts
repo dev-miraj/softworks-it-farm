@@ -7,48 +7,45 @@ import * as schema from "./schema";
 const { Pool } = pg;
 
 function getConnectionUrl(): string {
-  // Priority — UNPOOLED first:
-  //   Vercel Neon integration automatically sets DATABASE_URL_UNPOOLED (direct, no PgBouncer).
-  //   PgBouncer (pooled) hangs on Vercel serverless even with channel_binding stripped,
-  //   so we must use the direct/unpooled connection in production.
-  // Locally:
-  //   DATABASE_URL_UNPOOLED is not set → falls through to NEON_DATABASE_URL which works fine.
   const url =
     process.env.DATABASE_URL_UNPOOLED ||        // Vercel Neon: direct, no PgBouncer ✓
-    process.env.POSTGRES_URL_NON_POOLING ||     // Alternate unpooled alias
+    process.env.POSTGRES_URL_NON_POOLING ||     // Vercel Neon integration alias
     process.env.NEON_DATABASE_URL ||            // Local dev / manual secret
+    process.env.POSTGRES_URL ||                 // Vercel Neon integration (pooled)
     process.env.DATABASE_URL;                   // Last resort
 
   if (!url) throw new Error("No database URL found in environment variables.");
 
-  // Strip channel_binding — not supported by PgBouncer; safe to remove everywhere.
   try {
     const u = new URL(url);
     u.searchParams.delete("channel_binding");
+    u.searchParams.delete("sslmode");
     return u.toString();
   } catch {
     return url;
   }
 }
 
-// Detect serverless (Vercel / AWS Lambda / etc.)
-const isServerless =
-  !!process.env.VERCEL ||
-  !!process.env.AWS_LAMBDA_FUNCTION_NAME ||
-  process.env.NODE_ENV === "production" && !process.env.LOCAL_DEV;
+// Detect serverless runtime (evaluated at module load — process.env is runtime on Vercel)
+function checkServerless(): boolean {
+  return (
+    process.env.VERCEL === "1" ||
+    !!process.env.AWS_LAMBDA_FUNCTION_NAME ||
+    !!process.env.NETLIFY
+  );
+}
 
 let _pool: pg.Pool | null = null;
 let _db: ReturnType<typeof drizzlePg<typeof schema>> | ReturnType<typeof drizzleHttp<typeof schema>> | null = null;
 
 function createPool(): pg.Pool {
   const url = getConnectionUrl();
-  const isNeon = url.includes("neon.tech");
   return new Pool({
     connectionString: url,
-    ssl: isNeon ? { rejectUnauthorized: false } : undefined,
-    max: 2,
-    idleTimeoutMillis: 10000,
-    connectionTimeoutMillis: 10000,
+    ssl: { rejectUnauthorized: false },
+    max: 1,
+    idleTimeoutMillis: 0,
+    connectionTimeoutMillis: 8000,
     allowExitOnIdle: true,
   });
 }
@@ -61,19 +58,23 @@ export function getPool(): pg.Pool {
 export function getDb() {
   if (_db) return _db;
 
-  if (isServerless) {
-    // On Vercel: use Neon's HTTP driver — no TCP pool, instant cold start
+  if (checkServerless()) {
+    // On Vercel/Lambda: Neon HTTP driver — no TCP pool, no hanging connections
+    // Adds 10-second AbortSignal timeout so fetch won't hang forever
     const url = getConnectionUrl();
-    const sql = neon(url);
+    const sql = neon(url, {
+      fetchOptions: () => ({
+        signal: AbortSignal.timeout(10_000),
+      }),
+    });
     _db = drizzleHttp(sql, { schema });
   } else {
-    // Locally: use standard pg Pool
+    // Locally: standard pg Pool
     _db = drizzlePg(getPool(), { schema });
   }
   return _db;
 }
 
-// Proxy with correct `this` binding so pool/db methods work correctly
 export const pool = new Proxy({} as pg.Pool, {
   get(_t, prop) {
     const p = getPool();

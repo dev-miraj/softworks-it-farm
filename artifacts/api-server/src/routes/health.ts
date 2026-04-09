@@ -15,4 +15,27 @@ router.get("/healthz", async (_req, res) => {
   }
 });
 
+// Debug endpoint — shows which env vars are present (not their values)
+router.get("/api-debug", (_req, res) => {
+  const vars = [
+    "DATABASE_URL_UNPOOLED",
+    "POSTGRES_URL_NON_POOLING",
+    "NEON_DATABASE_URL",
+    "DATABASE_URL",
+    "POSTGRES_URL",
+    "VERCEL",
+    "NODE_ENV",
+  ];
+  const found: Record<string, string | boolean> = {};
+  for (const v of vars) {
+    const val = process.env[v];
+    if (v === "VERCEL" || v === "NODE_ENV") {
+      found[v] = val ?? "(not set)";
+    } else {
+      found[v] = val ? `SET (${val.length} chars)` : "(not set)";
+    }
+  }
+  res.json({ env: found });
+});
+
 export default router;
