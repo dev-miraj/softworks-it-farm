@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link } from "wouter";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import { CalendarDays, User, Clock, Tag } from "lucide-react";
 import { useListBlogPosts } from "@workspace/api-client-react";
 import { useGsapReveal } from "@/hooks/useGsapReveal";
@@ -9,7 +8,7 @@ import { STATIC_BLOG } from "@/lib/staticData";
 
 export function BlogPage() {
   const ref = useGsapReveal();
-  const { data: apiPosts, isLoading } = useListBlogPosts({ query: { staleTime: 60000 } });
+  const { data: apiPosts } = useListBlogPosts({ query: { staleTime: 60000 } });
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const rawPosts = (apiPosts && apiPosts.length > 0) ? apiPosts : STATIC_BLOG;
   const publishedPosts = rawPosts.filter((p) => p.isPublished);
@@ -55,14 +54,7 @@ export function BlogPage() {
           ))}
         </div>
 
-        {isLoading ? (
-          <div className="space-y-6">
-            <Skeleton className="h-72 rounded-2xl w-full" />
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-64 rounded-xl" />)}
-            </div>
-          </div>
-        ) : filtered.length === 0 ? (
+        {filtered.length === 0 ? (
           <div className="text-center py-24">
             <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
               <Tag className="w-8 h-8 text-muted-foreground" />

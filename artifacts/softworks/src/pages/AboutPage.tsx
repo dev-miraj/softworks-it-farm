@@ -1,5 +1,4 @@
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useListTeamMembers } from "@workspace/api-client-react";
 import { Target, Eye, Heart, Linkedin, Award, Clock, Users, Briefcase } from "lucide-react";
 import { useGsapReveal } from "@/hooks/useGsapReveal";
@@ -14,7 +13,7 @@ const values = [
 
 export function AboutPage() {
   const ref = useGsapReveal();
-  const { data: apiTeam, isLoading } = useListTeamMembers({ query: { staleTime: 60000 } });
+  const { data: apiTeam } = useListTeamMembers({ query: { staleTime: 60000 } });
   const team = (apiTeam && apiTeam.length > 0) ? apiTeam : STATIC_TEAM;
   const activeTeam = team.filter((t) => t.isActive);
 
@@ -102,14 +101,7 @@ export function AboutPage() {
           <p className="text-muted-foreground">The people who make it happen</p>
         </div>
 
-        {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <Skeleton key={i} className="h-64 rounded-xl" />
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 reveal-cards">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 reveal-cards">
             {activeTeam.map((member) => (
               <div key={member.id} className="group gradient-border rounded-xl p-6 text-center hover:shadow-lg hover:shadow-primary/10 transition-all duration-300">
                 <div className="w-20 h-20 rounded-full overflow-hidden mx-auto mb-4 ring-2 ring-primary/20 group-hover:ring-primary/50 transition-all duration-300 group-hover:scale-105">
@@ -137,8 +129,7 @@ export function AboutPage() {
               </div>
             ))}
           </div>
-        )}
-        {!isLoading && activeTeam.length === 0 && (
+        {activeTeam.length === 0 && (
           <p className="text-center text-muted-foreground py-20">Team information coming soon.</p>
         )}
       </section>

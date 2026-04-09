@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import { ExternalLink } from "lucide-react";
 import { useListPortfolio } from "@workspace/api-client-react";
 import { useGsapReveal } from "@/hooks/useGsapReveal";
@@ -9,7 +8,7 @@ import { STATIC_PORTFOLIO } from "@/lib/staticData";
 export function PortfolioPage() {
   const ref = useGsapReveal();
   const [activeCategory, setActiveCategory] = useState<string>("all");
-  const { data: apiPortfolio, isLoading } = useListPortfolio({
+  const { data: apiPortfolio } = useListPortfolio({
     params: activeCategory !== "all" ? { category: activeCategory } : {},
     query: { staleTime: 60000 },
   });
@@ -54,14 +53,7 @@ export function PortfolioPage() {
           ))}
         </div>
 
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <Skeleton key={i} className="h-80 rounded-xl" />
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 reveal-cards">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 reveal-cards">
             {portfolio.map((item) => (
               <div
                 key={item.id}
@@ -109,9 +101,8 @@ export function PortfolioPage() {
                 </div>
               </div>
             ))}
-          </div>
-        )}
-        {!isLoading && portfolio.length === 0 && (
+        </div>
+        {portfolio.length === 0 && (
           <p className="text-center text-muted-foreground py-20">No portfolio items found.</p>
         )}
       </section>

@@ -1,6 +1,5 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { CheckCircle, ArrowRight, Zap, Package } from "lucide-react";
 import { useListSaasProducts } from "@workspace/api-client-react";
 import { useGsapReveal } from "@/hooks/useGsapReveal";
@@ -15,7 +14,7 @@ const statusStyles: Record<string, { dot: string; pill: string }> = {
 
 export function SaasPage() {
   const ref = useGsapReveal();
-  const { data: apiProducts, isLoading } = useListSaasProducts({ query: { staleTime: 60000 } });
+  const { data: apiProducts } = useListSaasProducts({ query: { staleTime: 60000 } });
   const products = (apiProducts && apiProducts.length > 0) ? apiProducts : STATIC_SAAS;
   const activeProducts = products.filter((p) => p.isActive);
 
@@ -48,12 +47,7 @@ export function SaasPage() {
       </section>
 
       <section className="pb-24 max-w-7xl mx-auto px-4">
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
-            {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-80 rounded-2xl" />)}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 reveal-cards">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 reveal-cards">
             {activeProducts.map((product) => {
               const status = statusStyles[product.status] ?? statusStyles.active;
               return (
@@ -124,18 +118,7 @@ export function SaasPage() {
                 </div>
               );
             })}
-          </div>
-        )}
-
-        {!isLoading && activeProducts.length === 0 && (
-          <div className="text-center py-24">
-            <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
-              <Package className="w-8 h-8 text-muted-foreground" />
-            </div>
-            <h3 className="font-bold text-foreground mb-2">Coming Soon</h3>
-            <p className="text-muted-foreground text-sm">Our SaaS products are in development. Check back soon!</p>
-          </div>
-        )}
+        </div>
       </section>
     </div>
   );
