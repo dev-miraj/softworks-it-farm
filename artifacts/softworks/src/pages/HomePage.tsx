@@ -121,14 +121,13 @@ export function HomePage() {
 
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-12 sm:mb-16">
             <Link href="/contact">
-              <Button size="lg" className="w-full sm:w-auto text-sm sm:text-base px-6 sm:px-8 py-5 sm:py-6 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/30 glow-primary group relative overflow-hidden">
-                <span className="absolute inset-0 animate-shimmer opacity-0 group-hover:opacity-100 transition-opacity" />
+              <Button size="lg" className="btn-shimmer btn-ripple w-full sm:w-auto text-sm sm:text-base px-6 sm:px-8 py-5 sm:py-6 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/30 group">
                 Start Your Project
                 <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
             <Link href="/portfolio">
-              <Button size="lg" variant="outline" className="w-full sm:w-auto text-sm sm:text-base px-6 sm:px-8 py-5 sm:py-6 border-border hover:border-primary/50 hover:bg-primary/5 backdrop-blur-sm group">
+              <Button size="lg" variant="outline" className="btn-outline-glow w-full sm:w-auto text-sm sm:text-base px-6 sm:px-8 py-5 sm:py-6 backdrop-blur-sm group">
                 View Our Work
                 <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
@@ -340,13 +339,12 @@ export function HomePage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
             <Link href="/contact">
-              <Button size="lg" className="w-full sm:w-auto px-8 sm:px-10 py-5 sm:py-6 text-sm sm:text-base bg-primary hover:bg-primary/90 shadow-lg shadow-primary/30 glow-primary group relative overflow-hidden">
-                <span className="absolute inset-0 animate-shimmer opacity-0 group-hover:opacity-100 transition-opacity" />
+              <Button size="lg" className="btn-shimmer btn-ripple w-full sm:w-auto px-8 sm:px-10 py-5 sm:py-6 text-sm sm:text-base bg-primary hover:bg-primary/90 shadow-lg shadow-primary/30 group">
                 Start a Project <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
             <Link href="/portfolio">
-              <Button size="lg" variant="outline" className="w-full sm:w-auto px-8 sm:px-10 py-5 sm:py-6 text-sm sm:text-base border-border hover:border-primary/50 group">
+              <Button size="lg" variant="outline" className="btn-outline-glow w-full sm:w-auto px-8 sm:px-10 py-5 sm:py-6 text-sm sm:text-base group">
                 See Our Work <ChevronRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
