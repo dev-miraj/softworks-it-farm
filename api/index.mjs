@@ -58,9 +58,24 @@ export default async function handler(req, res) {
         resolve(undefined);
       };
       app(req, res, (err) => {
-        // Express "next" called with error → unhandled
-        if (err) reject(err);
-        else resolve(undefined);
+        // Express exhausted all middleware without sending a response
+        if (err) {
+          // Error in middleware — send 500
+          if (!res.headersSent) {
+            res.writeHead(500, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ error: "Internal server error", detail: String(err) }));
+          } else {
+            resolve(undefined);
+          }
+        } else {
+          // No route matched — send 404
+          if (!res.headersSent) {
+            res.writeHead(404, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ error: "Not found", path: req.url }));
+          } else {
+            resolve(undefined);
+          }
+        }
       });
     });
   } catch (err) {
