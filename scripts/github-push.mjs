@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 /**
  * github-push.mjs — Smart push via GitHub Git Data API
- * Compares local git tree with GitHub's tree via API.
+ * Compares local git tree (HEAD + working-tree changes) with GitHub's tree via API.
  * Only uploads blobs that actually changed. No rate-limit issues.
  */
 
 import { execSync } from "child_process";
+import { readFileSync } from "fs";
 
 const OWNER  = "dev-miraj";
 const REPO   = "softworks-it-farm";
@@ -62,11 +63,11 @@ async function main() {
   }
   console.log(`  Remote has ${Object.keys(remoteFiles).length} files\n`);
 
-  // Get local tree
+  // Get local tree from HEAD
   const localTreeLines = execSync("git ls-tree -r HEAD", { maxBuffer: 20*1024*1024 })
     .toString().trim().split("\n").filter(Boolean);
 
-  const localFiles = {}; // path → { gitSha, mode }
+  const localFiles = {}; // path → { gitSha, mode, fromDisk? }
   for (const line of localTreeLines) {
     // format: <mode> SP blob SP <sha> TAB <path>
     const [meta, filePath] = line.split("\t");
@@ -76,13 +77,29 @@ async function main() {
     localFiles[filePath] = { sha, mode };
   }
 
+  // Merge uncommitted working-tree changes (modified + new untracked files)
+  try {
+    const statusOut = execSync("git status --porcelain", { maxBuffer: 5*1024*1024 }).toString();
+    for (const line of statusOut.split("\n").filter(Boolean)) {
+      const xy = line.slice(0, 2);
+      const filePath = line.slice(3).trim().replace(/^"(.*)"$/, "$1");
+      if (xy.includes("D")) {
+        // Deleted in working tree
+        delete localFiles[filePath];
+      } else if (!xy.startsWith("!")) {
+        // Modified or new — mark to read from disk
+        localFiles[filePath] = { sha: null, mode: "100644", fromDisk: true };
+      }
+    }
+  } catch { /* ignore */ }
+
   // Find changed/added/deleted files
   const toUpload = [];
   const toDelete = [];
 
-  for (const [path, { sha, mode }] of Object.entries(localFiles)) {
+  for (const [path, { sha, mode, fromDisk }] of Object.entries(localFiles)) {
     if (remoteFiles[path] !== sha) {
-      toUpload.push({ path, sha, mode });
+      toUpload.push({ path, sha, mode, fromDisk });
     }
   }
   for (const path of Object.keys(remoteFiles)) {
@@ -99,10 +116,14 @@ async function main() {
   // Upload only changed blobs
   const treeItems = [];
   for (let i = 0; i < toUpload.length; i++) {
-    const { path, sha, mode } = toUpload[i];
+    const { path, sha, mode, fromDisk } = toUpload[i];
     let content;
     try {
-      content = execSync(`git cat-file blob ${sha}`, { maxBuffer: 50*1024*1024 });
+      if (fromDisk || !sha) {
+        content = readFileSync(path);
+      } else {
+        content = execSync(`git cat-file blob ${sha}`, { maxBuffer: 50*1024*1024 });
+      }
     } catch {
       console.warn(`  ⚠️  Skip: ${path}`); continue;
     }

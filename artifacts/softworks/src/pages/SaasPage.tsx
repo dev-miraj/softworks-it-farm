@@ -5,6 +5,7 @@ import { CheckCircle, ArrowRight, Zap, Package } from "lucide-react";
 import { useListSaasProducts } from "@workspace/api-client-react";
 import { useGsapReveal } from "@/hooks/useGsapReveal";
 import { StatCounter } from "@/components/ui/StatCounter";
+import { STATIC_SAAS } from "@/lib/staticData";
 
 const statusStyles: Record<string, { dot: string; pill: string }> = {
   active: { dot: "bg-emerald-400", pill: "text-emerald-400 bg-emerald-400/10 border-emerald-400/20" },
@@ -14,8 +15,9 @@ const statusStyles: Record<string, { dot: string; pill: string }> = {
 
 export function SaasPage() {
   const ref = useGsapReveal();
-  const { data: products, isLoading } = useListSaasProducts({ query: { staleTime: 60000 } });
-  const activeProducts = products?.filter((p) => p.isActive);
+  const { data: apiProducts, isLoading } = useListSaasProducts({ query: { staleTime: 60000 } });
+  const products = (apiProducts && apiProducts.length > 0) ? apiProducts : STATIC_SAAS;
+  const activeProducts = products.filter((p) => p.isActive);
 
   return (
     <div ref={ref}>
@@ -52,7 +54,7 @@ export function SaasPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 reveal-cards">
-            {activeProducts?.map((product) => {
+            {activeProducts.map((product) => {
               const status = statusStyles[product.status] ?? statusStyles.active;
               return (
                 <div
@@ -125,7 +127,7 @@ export function SaasPage() {
           </div>
         )}
 
-        {!isLoading && (!activeProducts || activeProducts.length === 0) && (
+        {!isLoading && activeProducts.length === 0 && (
           <div className="text-center py-24">
             <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
               <Package className="w-8 h-8 text-muted-foreground" />

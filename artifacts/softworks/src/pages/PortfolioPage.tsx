@@ -4,19 +4,22 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ExternalLink } from "lucide-react";
 import { useListPortfolio } from "@workspace/api-client-react";
 import { useGsapReveal } from "@/hooks/useGsapReveal";
+import { STATIC_PORTFOLIO } from "@/lib/staticData";
 
 export function PortfolioPage() {
   const ref = useGsapReveal();
   const [activeCategory, setActiveCategory] = useState<string>("all");
-  const { data: portfolio, isLoading } = useListPortfolio({
+  const { data: apiPortfolio, isLoading } = useListPortfolio({
     params: activeCategory !== "all" ? { category: activeCategory } : {},
     query: { staleTime: 60000 },
   });
 
-  const { data: allPortfolio } = useListPortfolio({ params: {}, query: { staleTime: 60000 } });
-  const categories = allPortfolio
-    ? ["all", ...Array.from(new Set(allPortfolio.map((p) => p.category)))]
-    : ["all"];
+  const { data: apiAllPortfolio } = useListPortfolio({ params: {}, query: { staleTime: 60000 } });
+  const allPortfolio = (apiAllPortfolio && apiAllPortfolio.length > 0) ? apiAllPortfolio : STATIC_PORTFOLIO;
+  const portfolio = (apiPortfolio && apiPortfolio.length > 0) ? apiPortfolio : (
+    activeCategory !== "all" ? STATIC_PORTFOLIO.filter((p) => p.category === activeCategory) : STATIC_PORTFOLIO
+  );
+  const categories = ["all", ...Array.from(new Set(allPortfolio.map((p) => p.category)))];
 
   return (
     <div ref={ref}>
@@ -59,7 +62,7 @@ export function PortfolioPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 reveal-cards">
-            {portfolio?.map((item) => (
+            {portfolio.map((item) => (
               <div
                 key={item.id}
                 className="group rounded-xl overflow-hidden border border-border hover:border-primary/30 transition-all duration-300 hover:shadow-xl hover:shadow-primary/10 bg-card"
@@ -108,7 +111,7 @@ export function PortfolioPage() {
             ))}
           </div>
         )}
-        {!isLoading && (!portfolio || portfolio.length === 0) && (
+        {!isLoading && portfolio.length === 0 && (
           <p className="text-center text-muted-foreground py-20">No portfolio items found.</p>
         )}
       </section>

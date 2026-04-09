@@ -4,6 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { CheckCircle, Code, Cloud, Brain, Shield, Palette, Lightbulb, Cpu, Database, Globe, Smartphone, Lock, Zap, BarChart, type LucideIcon } from "lucide-react";
 import { useListServices } from "@workspace/api-client-react";
 import { useGsapReveal } from "@/hooks/useGsapReveal";
+import { STATIC_SERVICES } from "@/lib/staticData";
 
 const iconMap: Record<string, LucideIcon> = {
   Code, Cloud, Brain, Shield, Palette, Lightbulb, Cpu, Database, Globe, Smartphone, Lock, Zap, BarChart,
@@ -11,14 +12,14 @@ const iconMap: Record<string, LucideIcon> = {
 
 export function ServicesPage() {
   const ref = useGsapReveal();
-  const { data: services, isLoading } = useListServices({ query: { staleTime: 60000 } });
+  const { data: apiServices, isLoading } = useListServices({ query: { staleTime: 60000 } });
   const [activeCategory, setActiveCategory] = useState<string>("all");
 
-  const categories = services
-    ? ["all", ...Array.from(new Set(services.map((s) => s.category)))]
-    : ["all"];
+  const services = (apiServices && apiServices.length > 0) ? apiServices : STATIC_SERVICES;
 
-  const filtered = services?.filter(
+  const categories = ["all", ...Array.from(new Set(services.map((s) => s.category)))];
+
+  const filtered = services.filter(
     (s) => activeCategory === "all" || s.category === activeCategory
   );
 
@@ -90,7 +91,7 @@ export function ServicesPage() {
           </div>
         )}
 
-        {!isLoading && (!filtered || filtered.length === 0) && (
+        {!isLoading && filtered.length === 0 && (
           <div className="text-center py-20 text-muted-foreground">
             No services found in this category.
           </div>

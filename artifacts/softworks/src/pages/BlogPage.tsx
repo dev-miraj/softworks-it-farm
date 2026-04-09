@@ -5,12 +5,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { CalendarDays, User, Clock, Tag } from "lucide-react";
 import { useListBlogPosts } from "@workspace/api-client-react";
 import { useGsapReveal } from "@/hooks/useGsapReveal";
+import { STATIC_BLOG } from "@/lib/staticData";
 
 export function BlogPage() {
   const ref = useGsapReveal();
-  const { data: posts, isLoading } = useListBlogPosts({ query: { staleTime: 60000 } });
+  const { data: apiPosts, isLoading } = useListBlogPosts({ query: { staleTime: 60000 } });
   const [activeCategory, setActiveCategory] = useState<string>("all");
-  const publishedPosts = posts?.filter((p) => p.isPublished) ?? [];
+  const rawPosts = (apiPosts && apiPosts.length > 0) ? apiPosts : STATIC_BLOG;
+  const publishedPosts = rawPosts.filter((p) => p.isPublished);
   const categories = ["all", ...Array.from(new Set(publishedPosts.map((p) => p.category)))];
   const filtered = activeCategory === "all" ? publishedPosts : publishedPosts.filter((p) => p.category === activeCategory);
   const featured = filtered[0];

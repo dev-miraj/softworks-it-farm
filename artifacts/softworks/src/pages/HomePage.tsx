@@ -6,6 +6,7 @@ import {
   Code, Cloud, Lightbulb, Lock, Star, type LucideIcon,
 } from "lucide-react";
 import { useListServices, useListTestimonials } from "@workspace/api-client-react";
+import { STATIC_SERVICES, STATIC_TESTIMONIALS } from "@/lib/staticData";
 import { useGsapReveal } from "@/hooks/useGsapReveal";
 import { TechStackMarquee } from "@/components/ui/TechStackMarquee";
 import { StatCounter } from "@/components/ui/StatCounter";
@@ -78,9 +79,11 @@ function TypewriterText() {
 
 export function HomePage() {
   const ref = useGsapReveal();
-  const { data: services } = useListServices({ query: { staleTime: 60000 } });
-  const { data: testimonials } = useListTestimonials({ query: { staleTime: 60000 } });
-  const activeTestimonials = testimonials?.filter(t => t.isActive) ?? [];
+  const { data: apiServices } = useListServices({ query: { staleTime: 60000 } });
+  const { data: apiTestimonials } = useListTestimonials({ query: { staleTime: 60000 } });
+  const services = (apiServices && apiServices.length > 0) ? apiServices : STATIC_SERVICES;
+  const testimonials = (apiTestimonials && apiTestimonials.length > 0) ? apiTestimonials : STATIC_TESTIMONIALS;
+  const activeTestimonials = testimonials.filter(t => t.isActive);
 
   return (
     <div ref={ref}>

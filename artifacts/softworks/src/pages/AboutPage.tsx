@@ -4,6 +4,7 @@ import { useListTeamMembers } from "@workspace/api-client-react";
 import { Target, Eye, Heart, Linkedin, Award, Clock, Users, Briefcase } from "lucide-react";
 import { useGsapReveal } from "@/hooks/useGsapReveal";
 import { StatCounter } from "@/components/ui/StatCounter";
+import { STATIC_TEAM } from "@/lib/staticData";
 
 const values = [
   { icon: Target, title: "Precision", desc: "Every line of code, every pixel — built with intent and craftsmanship." },
@@ -13,8 +14,9 @@ const values = [
 
 export function AboutPage() {
   const ref = useGsapReveal();
-  const { data: team, isLoading } = useListTeamMembers({ query: { staleTime: 60000 } });
-  const activeTeam = team?.filter((t) => t.isActive);
+  const { data: apiTeam, isLoading } = useListTeamMembers({ query: { staleTime: 60000 } });
+  const team = (apiTeam && apiTeam.length > 0) ? apiTeam : STATIC_TEAM;
+  const activeTeam = team.filter((t) => t.isActive);
 
   return (
     <div ref={ref}>
@@ -108,7 +110,7 @@ export function AboutPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 reveal-cards">
-            {activeTeam?.map((member) => (
+            {activeTeam.map((member) => (
               <div key={member.id} className="group gradient-border rounded-xl p-6 text-center hover:shadow-lg hover:shadow-primary/10 transition-all duration-300">
                 <div className="w-20 h-20 rounded-full overflow-hidden mx-auto mb-4 ring-2 ring-primary/20 group-hover:ring-primary/50 transition-all duration-300 group-hover:scale-105">
                   {member.avatarUrl ? (
@@ -136,7 +138,7 @@ export function AboutPage() {
             ))}
           </div>
         )}
-        {!isLoading && (!activeTeam || activeTeam.length === 0) && (
+        {!isLoading && activeTeam.length === 0 && (
           <p className="text-center text-muted-foreground py-20">Team information coming soon.</p>
         )}
       </section>
