@@ -1,29 +1,20 @@
 #!/usr/bin/env node
 /**
- * github-push.mjs
- * Pushes the current git state to GitHub via the Git Data API.
- * Bypasses Replit's gitsafe git-push restriction completely.
- *
- * Usage:
- *   GITHUB_PAT=<token> node scripts/github-push.mjs
- *   or: node scripts/github-push.mjs <token>
+ * github-push.mjs  — diff-only push via GitHub Git Data API
+ * Only uploads blobs that changed between remote HEAD and local HEAD.
  */
 
 import { execSync } from "child_process";
-import { readFileSync } from "fs";
 
-const OWNER = "dev-miraj";
-const REPO  = "softworks-it-farm";
+const OWNER  = "dev-miraj";
+const REPO   = "softworks-it-farm";
 const BRANCH = "main";
-const TOKEN = process.env.GITHUB_PAT || process.argv[2];
+const TOKEN  = process.env.GITHUB_PAT || process.argv[2];
 
-if (!TOKEN) {
-  console.error("❌  No token. Set GITHUB_PAT env or pass as first arg.");
-  process.exit(1);
-}
+if (!TOKEN) { console.error("❌ No token."); process.exit(1); }
 
 const BASE = `https://api.github.com/repos/${OWNER}/${REPO}`;
-const HEADERS = {
+const H = {
   Authorization: `token ${TOKEN}`,
   Accept: "application/vnd.github+json",
   "Content-Type": "application/json",
@@ -32,112 +23,131 @@ const HEADERS = {
 
 async function api(method, path, body) {
   const res = await fetch(`${BASE}${path}`, {
-    method,
-    headers: HEADERS,
-    body: body ? JSON.stringify(body) : undefined,
+    method, headers: H, body: body ? JSON.stringify(body) : undefined,
   });
   const json = await res.json();
   if (!res.ok) {
-    console.error(`API error ${res.status} at ${method} ${path}:`, json.message);
+    console.error(`❌ API ${res.status} ${method} ${path}: ${json.message}`);
     process.exit(1);
   }
   return json;
 }
 
+async function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
 async function main() {
-  console.log("🚀 Starting GitHub push via API...\n");
+  console.log("🚀  GitHub push (diff-only)...\n");
 
-  // 1. Get current local commit SHA
-  const localSHA = execSync("git rev-parse HEAD").toString().trim();
-  const commitMsg = execSync("git log -1 --pretty=%B").toString().trim();
-  console.log(`📌 Local HEAD: ${localSHA.slice(0,7)}  "${commitMsg}"`);
+  const localSHA  = execSync("git rev-parse HEAD").toString().trim();
+  const commitMsg = execSync("git log -1 --pretty=%s").toString().trim();
 
-  // 2. Get remote branch SHA
+  // Get remote ref
   const remoteRef = await api("GET", `/git/ref/heads/${BRANCH}`);
   const remoteSHA = remoteRef.object.sha;
-  console.log(`☁️  Remote HEAD: ${remoteSHA.slice(0,7)}\n`);
+  console.log(`📌 Local : ${localSHA.slice(0,7)}  "${commitMsg}"`);
+  console.log(`☁️  Remote: ${remoteSHA.slice(0,7)}\n`);
 
   if (localSHA === remoteSHA) {
-    console.log("✅ Already up to date. Nothing to push.");
-    return;
+    console.log("✅ Already up to date."); return;
   }
 
-  // 3. List all files in the current tree
-  const lsTree = execSync("git ls-tree -r HEAD --long", { maxBuffer: 20 * 1024 * 1024 })
-    .toString().trim().split("\n");
+  // Get changed files between remote SHA and local HEAD
+  let changedLines;
+  try {
+    changedLines = execSync(`git diff --name-status ${remoteSHA} HEAD`, { maxBuffer: 20*1024*1024 })
+      .toString().trim().split("\n").filter(Boolean);
+  } catch {
+    // If remote SHA not in local history, fall back to all files
+    console.log("⚠️  Remote SHA not in local history — uploading all files.");
+    changedLines = execSync("git ls-tree -r HEAD --name-only", { maxBuffer: 20*1024*1024 })
+      .toString().trim().split("\n").filter(Boolean)
+      .map(f => `M\t${f}`);
+  }
 
-  console.log(`📦 Uploading ${lsTree.length} files as blobs...\n`);
+  const deleted = [];
+  const upserted = [];
 
+  for (const line of changedLines) {
+    const [status, ...rest] = line.split("\t");
+    const filePath = rest[rest.length - 1];
+    if (status.startsWith("D")) {
+      deleted.push(filePath);
+    } else {
+      upserted.push(filePath);
+    }
+  }
+
+  console.log(`📝 Changed: ${upserted.length} files, deleted: ${deleted.length} files\n`);
+
+  if (upserted.length === 0 && deleted.length === 0) {
+    console.log("✅ No changes to push."); return;
+  }
+
+  // Get remote tree SHA for base
+  const remoteCommit = await api("GET", `/git/commits/${remoteSHA}`);
+  const remoteTreeSHA = remoteCommit.tree.sha;
+
+  // Upload new/modified blobs
   const treeItems = [];
-  let done = 0;
 
-  for (const line of lsTree) {
-    // format: mode SP type SP sha TAB size TAB path
-    const parts = line.split(/\s+/);
-    const mode   = parts[0];
-    const type   = parts[1];
-    const gitSHA = parts[2];
-    // path is after the third tab-separated block
-    const filePath = line.split("\t")[1];
-
-    if (type !== "blob") continue;
-
-    // Read file content as base64
+  for (let i = 0; i < upserted.length; i++) {
+    const filePath = upserted[i];
     let content;
     try {
-      content = execSync(`git cat-file blob ${gitSHA}`, { maxBuffer: 50 * 1024 * 1024 });
+      content = execSync(`git show HEAD:"${filePath}"`, { maxBuffer: 50*1024*1024 });
     } catch {
-      console.warn(`  ⚠️  Skipping unreadable: ${filePath}`);
-      continue;
+      console.warn(`  ⚠️  Skip: ${filePath}`); continue;
     }
 
-    const base64 = content.toString("base64");
-
-    // Create blob on GitHub
     const blob = await api("POST", "/git/blobs", {
-      content: base64,
+      content: content.toString("base64"),
       encoding: "base64",
     });
 
-    treeItems.push({
-      path: filePath,
-      mode: mode === "100755" ? "100755" : "100644",
-      type: "blob",
-      sha: blob.sha,
-    });
+    // Get file mode
+    let mode = "100644";
+    try {
+      const info = execSync(`git ls-tree HEAD -- "${filePath}"`).toString().trim();
+      if (info.startsWith("100755")) mode = "100755";
+    } catch {}
 
-    done++;
-    if (done % 30 === 0 || done === lsTree.length) {
-      process.stdout.write(`  ✔ ${done}/${lsTree.length} blobs uploaded\r`);
-    }
+    treeItems.push({ path: filePath, mode, type: "blob", sha: blob.sha });
+    process.stdout.write(`  ✔ ${i+1}/${upserted.length} ${filePath}\n`);
+
+    // Small delay every 10 to avoid secondary rate limits
+    if ((i + 1) % 10 === 0) await sleep(300);
   }
-  console.log(`\n✅ All ${done} blobs uploaded.\n`);
 
-  // 4. Create a new tree
-  console.log("🌳 Creating tree...");
+  // Mark deleted files
+  for (const filePath of deleted) {
+    treeItems.push({ path: filePath, mode: "100644", type: "blob", sha: null });
+  }
+
+  // Create tree on top of remote tree
+  console.log("\n🌳 Creating tree...");
   const tree = await api("POST", "/git/trees", {
-    base_tree: null,   // full tree replacement
+    base_tree: remoteTreeSHA,
     tree: treeItems,
   });
-  console.log(`✅ Tree: ${tree.sha.slice(0,7)}\n`);
+  console.log(`✅ Tree: ${tree.sha.slice(0,7)}`);
 
-  // 5. Create a commit
+  // Create commit
   console.log("💾 Creating commit...");
   const commit = await api("POST", "/git/commits", {
     message: commitMsg,
     tree: tree.sha,
     parents: [remoteSHA],
   });
-  console.log(`✅ Commit: ${commit.sha.slice(0,7)}\n`);
+  console.log(`✅ Commit: ${commit.sha.slice(0,7)}`);
 
-  // 6. Update the branch ref
-  console.log(`🔀 Updating refs/heads/${BRANCH}...`);
+  // Update ref
+  console.log(`🔀 Updating ${BRANCH}...`);
   await api("PATCH", `/git/refs/heads/${BRANCH}`, {
     sha: commit.sha,
     force: true,
   });
-  console.log(`\n🎉 Successfully pushed to github.com/${OWNER}/${REPO} (${BRANCH})!`);
-  console.log(`🔗 https://github.com/${OWNER}/${REPO}/commit/${commit.sha}`);
+
+  console.log(`\n🎉 Pushed! → https://github.com/${OWNER}/${REPO}/commit/${commit.sha}`);
 }
 
-main().catch((e) => { console.error("Fatal:", e); process.exit(1); });
+main().catch(e => { console.error("Fatal:", e); process.exit(1); });
