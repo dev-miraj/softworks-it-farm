@@ -1,31 +1,39 @@
-// @ts-nocheck
-/**
- * Vercel Serverless Function
- *
- * Loads the pre-built Express bundle at runtime.
- * The bundle is included via `includeFiles` in vercel.json.
- * Dynamic import prevents Vercel from statically bundling serverless.mjs.
- * In AWS Lambda (Vercel), process.cwd() === /var/task at runtime.
- */
+import * as path from "path";
+import { IncomingMessage, ServerResponse } from "http";
 
-let _handler;
+let cachedHandler: ((req: IncomingMessage, res: ServerResponse) => void) | null = null;
 
-export default async function handler(req, res) {
+async function loadHandler() {
+  if (cachedHandler) return cachedHandler;
+
+  // In Vercel Lambda runtime, cwd is /var/task
+  // Files from `includeFiles` in vercel.json are placed relative to project root
+  const bundlePath = path.join(process.cwd(), "artifacts", "api-server", "dist", "serverless.mjs");
+
   try {
-    if (!_handler) {
-      // process.cwd() is /var/task in Vercel Lambda runtime
-      const bundlePath = process.cwd() + "/artifacts/api-server/dist/serverless.mjs";
-      const bundleUrl = "file://" + bundlePath;
-      const mod = await import(bundleUrl);
-      _handler = mod.default;
-    }
-    return await _handler(req, res);
+    // Dynamic import of the pre-built ESM bundle
+    const mod = await import(bundlePath);
+    cachedHandler = mod.default;
+    return cachedHandler!;
+  } catch (loadErr) {
+    // Try file:// URL format as fallback
+    const fileUrl = "file://" + bundlePath.replace(/\\/g, "/");
+    const mod = await import(fileUrl);
+    cachedHandler = mod.default;
+    return cachedHandler!;
+  }
+}
+
+export default async function handler(req: IncomingMessage, res: ServerResponse): Promise<void> {
+  try {
+    const fn = await loadHandler();
+    await (fn as Function)(req, res);
   } catch (err) {
-    const msg = String(err);
-    console.error("[vercel-fn] error:", msg);
+    const detail = err instanceof Error ? err.message : String(err);
+    console.error("[vercel] Fatal error:", detail);
     if (!res.headersSent) {
       res.writeHead(500, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ error: "Internal server error", detail: msg }));
+      res.end(JSON.stringify({ error: "Server error", detail }));
     }
   }
 }
