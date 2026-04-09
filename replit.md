@@ -94,3 +94,27 @@ cd lib/db && pnpm run push
 ## Workflows
 - `artifacts/softworks: web` — Vite dev server for React frontend
 - `artifacts/api-server: API Server` — Express API with esbuild bundling
+
+## Critical Vercel Compatibility Notes
+### NEVER DO THESE (cause 30s FUNCTION_INVOCATION_TIMEOUT):
+1. **`serverless-http v4`** — DO NOT use. Its Promise never resolves on Vercel Lambda request objects.
+   - FIX: Call the raw Express `app(req, res, next)` directly from `api/index.mjs`
+2. **`pg` (node-postgres) in serverless bundle** — DO NOT import. TCP connections hang in Vercel Lambda.
+   - FIX: Use `@neondatabase/serverless` + `drizzle-orm/neon-http` in `artifacts/api-server/src/lib/db.ts`
+   - `lib/db/src/index.ts` still uses pg.Pool for local seeding ONLY — never import this in api-server routes
+3. **Route files importing `@workspace/db"`** — This imports `lib/db/src/index.ts` which has `import pg from "pg"` — pulls pg into bundle
+   - FIX: All routes import from `@workspace/db/schema"` instead
+4. **`pino`/`pino-http`/`esbuild-plugin-pino`** — Spawns worker threads that block on Vercel Lambda init
+   - FIX: Use simple console.log-based logger in `artifacts/api-server/src/lib/logger.ts`
+
+### DB Driver Architecture (MUST NOT MERGE):
+- `artifacts/api-server/src/lib/db.ts` = Neon HTTP driver ONLY (`@neondatabase/serverless` + `drizzle-orm/neon-http`)
+- `lib/db/src/index.ts` = pg.Pool ONLY for local/seed scripts. Never bundled into serverless.mjs.
+
+### Vercel Lambda Entry Point Pattern:
+- `api/index.mjs` calls `app(req, res, next)` directly
+- Bundle loaded at init time (top-level `appPromise`) for warm Lambda reuse
+- When Express doesn't find a route, `next()` is called — must manually send 404
+
+### DB URL Priority (used in both db files):
+`DATABASE_URL_UNPOOLED` → `POSTGRES_URL_NON_POOLING` → `NEON_DATABASE_URL` → `POSTGRES_URL` → `DATABASE_URL`
