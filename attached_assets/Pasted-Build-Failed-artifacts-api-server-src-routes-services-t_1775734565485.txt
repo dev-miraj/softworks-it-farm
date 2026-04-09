@@ -1,0 +1,130 @@
+Build Failed
+artifacts/api-server/src/routes/services.ts(24,65): error TS2345: Argument of type 'SQL<unknown>' is not assignable to parameter of type 'SQL<unknown> | ((aliases: { id: PgColumn<{ name: "id"; tableName: "services"; dataType: "number"; columnType: "PgSerial"; data: number; driverParam: number; notNull: true; hasDefault: true; isPrimaryKey: true; ... 5 more ...; generated: undefined; }, {}, {}>; ... 6 more ...; createdAt: PgColumn<...>; }) => SQL<...> ...'. Type 'import("/vercel/path0/artifacts/api-server/node_modules/drizzle-orm/sql/sql").SQL<unknown>' is not assignable to type 'import("/vercel/path0/artifacts/api-server/node_modules/@workspace/db/node_modules/drizzle-orm/sql/sql").SQL<unknown>'. Types have separate declarations of a private property 'shouldInlineParams'. artifacts/api-server/src/routes/services.ts(24,68): error TS2769: No overload matches this call. Overload 1 of 3, '(left: Column<ColumnBaseConfig<ColumnDataType, string>, object, object>, right: unknown): SQL<
+Created
+github/dev-miraj
+dev-miraj
+40m ago
+Status
+Error
+Latest
+Duration
+41s
+40m ago
+Environment
+Production
+Domains
+softworksit-git-main-md-mirajul-islams-projects.vercel.app
+softworksit-2pioj98or-md-mirajul-islams-projects.vercel.app
+Source
+main
+a86057b
+fix: import from TS source directly, remove dist bundle dependency
+
+Deployment Settings
+3 Recommendations
+Build Logs
+41s
+127 lines
+Find in logs
+CtrlF
+16:52:47.673 
+    Argument of type 'PgColumn<{ name: "id"; tableName: "services"; dataType: "number"; columnType: "PgSerial"; data: number; driverParam: number; notNull: true; hasDefault: true; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>' is not assignable to parameter of type 'Column<ColumnBaseConfig<ColumnDataType, string>, object, object>'.
+16:52:47.673 
+      The types of 'table._.config.columns' are incompatible between these types.
+16:52:47.673 
+        Type 'Record<string, PgColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}>>' is not assignable to type 'Record<string, Column<any, object, object>>'.
+16:52:47.673 
+          'string' index signatures are incompatible.
+16:52:47.673 
+            Type 'PgColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}>' is not assignable to type 'Column<any, object, object>'.
+16:52:47.673 
+              Property 'config' is protected but type 'Column<T, TRuntimeConfig, TTypeConfig>' is not a class derived from 'Column<T, TRuntimeConfig, TTypeConfig>'.
+16:52:47.673 
+  Overload 2 of 3, '(left: Aliased<number>, right: number | SQLWrapper): SQL<unknown>', gave the following error.
+16:52:47.673 
+    Argument of type 'PgColumn<{ name: "id"; tableName: "services"; dataType: "number"; columnType: "PgSerial"; data: number; driverParam: number; notNull: true; hasDefault: true; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>' is not assignable to parameter of type 'Aliased<number>'.
+16:52:47.673 
+      Type 'PgColumn<{ name: "id"; tableName: "services"; dataType: "number"; columnType: "PgSerial"; data: number; driverParam: number; notNull: true; hasDefault: true; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>' is missing the following properties from type 'Aliased<number>': sql, fieldAlias
+16:52:47.673 
+  Overload 3 of 3, '(left: SQLWrapper, right: unknown): SQL<unknown>', gave the following error.
+16:52:47.673 
+    Argument of type 'PgColumn<{ name: "id"; tableName: "services"; dataType: "number"; columnType: "PgSerial"; data: number; driverParam: number; notNull: true; hasDefault: true; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>' is not assignable to parameter of type 'SQLWrapper'.
+16:52:47.673 
+      The types returned by 'getSQL()' are incompatible between these types.
+16:52:47.673 
+        Type 'import("/vercel/path0/artifacts/api-server/node_modules/@workspace/db/node_modules/drizzle-orm/sql/sql").SQL<unknown>' is not assignable to type 'import("/vercel/path0/artifacts/api-server/node_modules/drizzle-orm/sql/sql").SQL<unknown>'.
+16:52:47.673 
+          Types have separate declarations of a private property 'shouldInlineParams'.
+16:52:47.673 
+artifacts/api-server/src/routes/services.ts(39,73): error TS2345: Argument of type 'import("/vercel/path0/artifacts/api-server/node_modules/drizzle-orm/sql/sql").SQL<unknown>' is not assignable to parameter of type 'import("/vercel/path0/artifacts/api-server/node_modules/@workspace/db/node_modules/drizzle-orm/sql/sql").SQL<unknown>'.
+16:52:47.673 
+  Types have separate declarations of a private property 'shouldInlineParams'.
+16:52:47.673 
+artifacts/api-server/src/routes/services.ts(39,76): error TS2769: No overload matches this call.
+16:52:47.673 
+  Overload 1 of 3, '(left: Column<ColumnBaseConfig<ColumnDataType, string>, object, object>, right: unknown): SQL<unknown>', gave the following error.
+16:52:47.674 
+    Argument of type 'PgColumn<{ name: "id"; tableName: "services"; dataType: "number"; columnType: "PgSerial"; data: number; driverParam: number; notNull: true; hasDefault: true; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>' is not assignable to parameter of type 'Column<ColumnBaseConfig<ColumnDataType, string>, object, object>'.
+16:52:47.674 
+      The types of 'table._.config.columns' are incompatible between these types.
+16:52:47.674 
+        Type 'Record<string, PgColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}>>' is not assignable to type 'Record<string, Column<any, object, object>>'.
+16:52:47.674 
+          'string' index signatures are incompatible.
+16:52:47.674 
+            Type 'PgColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}>' is not assignable to type 'Column<any, object, object>'.
+16:52:47.674 
+              Property 'config' is protected but type 'Column<T, TRuntimeConfig, TTypeConfig>' is not a class derived from 'Column<T, TRuntimeConfig, TTypeConfig>'.
+16:52:47.674 
+  Overload 2 of 3, '(left: Aliased<number>, right: number | SQLWrapper): SQL<unknown>', gave the following error.
+16:52:47.674 
+    Argument of type 'PgColumn<{ name: "id"; tableName: "services"; dataType: "number"; columnType: "PgSerial"; data: number; driverParam: number; notNull: true; hasDefault: true; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>' is not assignable to parameter of type 'Aliased<number>'.
+16:52:47.674 
+      Type 'PgColumn<{ name: "id"; tableName: "services"; dataType: "number"; columnType: "PgSerial"; data: number; driverParam: number; notNull: true; hasDefault: true; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>' is missing the following properties from type 'Aliased<number>': sql, fieldAlias
+16:52:47.674 
+  Overload 3 of 3, '(left: SQLWrapper, right: unknown): SQL<unknown>', gave the following error.
+16:52:47.674 
+    Argument of type 'PgColumn<{ name: "id"; tableName: "services"; dataType: "number"; columnType: "PgSerial"; data: number; driverParam: number; notNull: true; hasDefault: true; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>' is not assignable to parameter of type 'SQLWrapper'.
+16:52:47.674 
+      The types returned by 'getSQL()' are incompatible between these types.
+16:52:47.674 
+        Type 'import("/vercel/path0/artifacts/api-server/node_modules/@workspace/db/node_modules/drizzle-orm/sql/sql").SQL<unknown>' is not assignable to type 'import("/vercel/path0/artifacts/api-server/node_modules/drizzle-orm/sql/sql").SQL<unknown>'.
+16:52:47.674 
+          Types have separate declarations of a private property 'shouldInlineParams'.
+16:52:47.674 
+artifacts/api-server/src/routes/services.ts(49,58): error TS2345: Argument of type 'import("/vercel/path0/artifacts/api-server/node_modules/drizzle-orm/sql/sql").SQL<unknown>' is not assignable to parameter of type 'import("/vercel/path0/artifacts/api-server/node_modules/@workspace/db/node_modules/drizzle-orm/sql/sql").SQL<unknown>'.
+16:52:47.674 
+  Types have separate declarations of a private property 'shouldInlineParams'.
+16:52:47.674 
+artifacts/api-server/src/routes/services.ts(49,61): error TS2769: No overload matches this call.
+16:52:47.674 
+  Overload 1 of 3, '(left: Column<ColumnBaseConfig<ColumnDataType, string>, object, object>, right: unknown): SQL<unknown>', gave the following error.
+16:52:47.674 
+    Argument of type 'PgColumn<{ name: "id"; tableName: "services"; dataType: "number"; columnType: "PgSerial"; data: number; driverParam: number; notNull: true; hasDefault: true; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>' is not assignable to parameter of type 'Column<ColumnBaseConfig<ColumnDataType, string>, object, object>'.
+16:52:47.674 
+      The types of 'table._.config.columns' are incompatible between these types.
+16:52:47.674 
+        Type 'Record<string, PgColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}>>' is not assignable to type 'Record<string, Column<any, object, object>>'.
+16:52:47.674 
+          'string' index signatures are incompatible.
+16:52:47.674 
+            Type 'PgColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}>' is not assignable to type 'Column<any, object, object>'.
+16:52:47.674 
+              Property 'config' is protected but type 'Column<T, TRuntimeConfig, TTypeConfig>' is not a class derived from 'Column<T, TRuntimeConfig, TTypeConfig>'.
+16:52:47.674 
+  Overload 2 of 3, '(left: Aliased<number>, right: number | SQLWrapper): SQL<unknown>', gave the following error.
+16:52:47.674 
+    Argument of type 'PgColumn<{ name: "id"; tableName: "services"; dataType: "number"; columnType: "PgSerial"; data: number; driverParam: number; notNull: true; hasDefault: true; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>' is not assignable to parameter of type 'Aliased<number>'.
+16:52:47.674 
+      Type 'PgColumn<{ name: "id"; tableName: "services"; dataType: "number"; columnType: "PgSerial"; data: number; driverParam: number; notNull: true; hasDefault: true; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>' is missing the following properties from type 'Aliased<number>': sql, fieldAlias
+16:52:47.675 
+  Overload 3 of 3, '(left: SQLWrapper, right: unknown): SQL<unknown>', gave the following error.
+16:52:47.675 
+    Argument of type 'PgColumn<{ name: "id"; tableName: "services"; dataType: "number"; columnType: "PgSerial"; data: number; driverParam: number; notNull: true; hasDefault: true; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>' is not assignable to parameter of type 'SQLWrapper'.
+16:52:47.675 
+      The types returned by 'getSQL()' are incompatible between these types.
+16:52:47.675 
+        Type 'import("/vercel/path0/artifacts/api-server/node_modules/@workspace/db/node_modules/drizzle-orm/sql/sql").SQL<unknown>' is not assignable to type 'import("/vercel/path0/artifacts/api-server/node_modules/drizzle-orm/sql/sql").SQL<unknown>'.
+16:52:47.675 
+          Types have separate declarations of a private property 'shouldInlineParams'.
+16:52:47.675 
