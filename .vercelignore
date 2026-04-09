@@ -1,0 +1,6 @@
+api/index.mjs
+artifacts/api-server/src
+artifacts/api-server/node_modules
+lib
+scripts
+attached_assets
