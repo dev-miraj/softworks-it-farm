@@ -1,5 +1,4 @@
 import * as path from "path";
-import { createRequire } from "module";
 
 let cachedHandler = null;
 
@@ -14,16 +13,27 @@ async function loadHandler() {
     const mod = await import(bundlePath);
     cachedHandler = mod.default;
     return cachedHandler;
-  } catch (_err) {
+  } catch (err1) {
     // Fallback: file:// URL format (Windows paths & edge cases)
-    const fileUrl = "file://" + bundlePath.replace(/\\/g, "/");
-    const mod = await import(fileUrl);
-    cachedHandler = mod.default;
-    return cachedHandler;
+    try {
+      const fileUrl = "file://" + bundlePath.replace(/\\/g, "/");
+      const mod = await import(fileUrl);
+      cachedHandler = mod.default;
+      return cachedHandler;
+    } catch (err2) {
+      throw new Error(`Import failed: ${err1?.message} | ${err2?.message}`);
+    }
   }
 }
 
 export default async function handler(req, res) {
+  // Instant ping — no DB, no imports — verifies Lambda infra works
+  if (req.url === "/api/ping" || req.url === "/api/ping/") {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ pong: true, cwd: process.cwd(), t: Date.now() }));
+    return;
+  }
+
   try {
     const fn = await loadHandler();
     await fn(req, res);
