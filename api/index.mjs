@@ -1,13 +1,12 @@
 import * as path from "path";
-import * as fs from "fs";
 
 const bundlePath = path.join(process.cwd(), "artifacts", "api-server", "dist", "serverless.mjs");
 
-// Start loading at Lambda init time (not on first request)
-let handlerPromise = (async () => {
+// Start loading the Express app at Lambda init time (not on first request)
+let appPromise = (async () => {
   try {
     const mod = await import(bundlePath);
-    return mod.default;
+    return mod.default; // Raw Express app
   } catch (_) {
     const fileUrl = "file://" + bundlePath.replace(/\\/g, "/");
     const mod = await import(fileUrl);
@@ -25,44 +24,7 @@ export default async function handler(req, res) {
     return;
   }
 
-  // Test how fast we can READ the bundle file (file system speed)
-  if (url === "/api/fs-test" || url === "/api/fs-test/") {
-    const t0 = Date.now();
-    try {
-      const content = await fs.promises.readFile(bundlePath);
-      const readMs = Date.now() - t0;
-      res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({
-        readMs,
-        sizeKb: Math.round(content.length / 1024),
-        path: bundlePath
-      }));
-    } catch (err) {
-      res.writeHead(500, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ error: String(err) }));
-    }
-    return;
-  }
-
-  // Check if the handler promise is already resolved
-  if (url === "/api/handler-status" || url === "/api/handler-status/") {
-    const t0 = Date.now();
-    try {
-      // Try to get the handler with a 2s timeout
-      const result = await Promise.race([
-        handlerPromise.then(() => "loaded"),
-        new Promise((resolve) => setTimeout(() => resolve("still_loading"), 2000))
-      ]);
-      res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ status: result, waitMs: Date.now() - t0 }));
-    } catch (err) {
-      res.writeHead(500, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ error: String(err) }));
-    }
-    return;
-  }
-
-  // Direct DB test — bypasses the Express bundle
+  // Direct DB test — bypasses Express, tests Neon HTTP directly
   if (url === "/api/direct-db" || url === "/api/direct-db/") {
     try {
       const { neon } = await import("@neondatabase/serverless");
@@ -84,8 +46,23 @@ export default async function handler(req, res) {
   }
 
   try {
-    const fn = await handlerPromise;
-    await fn(req, res);
+    const app = await appPromise;
+    // Call Express app directly as a Node.js HTTP handler — no serverless-http wrapper needed
+    // Express app is a function: (req, res, next?) => void
+    // Vercel Lambda req/res are standard Node.js IncomingMessage/ServerResponse — Express handles them natively
+    await new Promise((resolve, reject) => {
+      // Override res.end to detect when Express has finished responding
+      const originalEnd = res.end.bind(res);
+      res.end = function(...args) {
+        originalEnd(...args);
+        resolve(undefined);
+      };
+      app(req, res, (err) => {
+        // Express "next" called with error → unhandled
+        if (err) reject(err);
+        else resolve(undefined);
+      });
+    });
   } catch (err) {
     const detail = err instanceof Error ? err.message : String(err);
     console.error("[vercel] Fatal error:", detail);
