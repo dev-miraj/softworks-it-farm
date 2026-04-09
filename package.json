@@ -8,6 +8,7 @@
   },
   "scripts": {
     "preinstall": "sh -c 'rm -f package-lock.json yarn.lock; true'",
+    "postinstall": "sh -c 'case \"$npm_config_user_agent\" in npm/*) echo \"Installing workspace packages with pnpm...\" && pnpm install --no-frozen-lockfile || echo \"\\nPlease install pnpm first: npm install -g pnpm\" ;; esac'",
     "install:all": "pnpm install --no-frozen-lockfile",
     "dev": "concurrently --kill-others --names \"API,WEB\" --prefix-colors \"cyan,magenta\" \"pnpm --filter @workspace/api-server run dev\" \"pnpm --filter @workspace/softworks run dev\"",
     "dev:api": "pnpm --filter @workspace/api-server run dev",
