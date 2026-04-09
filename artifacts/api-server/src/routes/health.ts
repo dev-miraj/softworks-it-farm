@@ -16,7 +16,7 @@ router.get("/healthz", async (_req, res) => {
 });
 
 // Debug endpoint — shows which env vars are present (not their values)
-router.get("/api-debug", (_req, res) => {
+router.get("/debug-env", (_req, res) => {
   const vars = [
     "DATABASE_URL_UNPOOLED",
     "POSTGRES_URL_NON_POOLING",
