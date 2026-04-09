@@ -206,6 +206,88 @@
   }
 }
 
+/* ── BUTTON ANIMATIONS ─────────────────────── */
+
+/* Shimmer sweep — add to any button */
+.btn-shimmer {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.btn-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    110deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.18) 50%,
+    transparent 80%
+  );
+  transform: translateX(-120%) skewX(-12deg);
+  transition: transform 0.55s ease;
+}
+.btn-shimmer:hover::after {
+  transform: translateX(120%) skewX(-12deg);
+}
+.btn-shimmer:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px hsl(var(--primary) / 0.25);
+}
+.btn-shimmer:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+/* Lift + glow on hover */
+.btn-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.btn-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px hsl(var(--primary) / 0.2);
+}
+.btn-lift:active {
+  transform: translateY(-1px);
+}
+
+/* Outline button glow border on hover */
+.btn-outline-glow {
+  transition: all 0.25s ease;
+}
+.btn-outline-glow:hover {
+  border-color: hsl(var(--primary) / 0.5);
+  box-shadow: 0 0 0 1px hsl(var(--primary) / 0.2), 0 6px 20px hsl(var(--primary) / 0.1);
+  transform: translateY(-2px);
+}
+.btn-outline-glow:active {
+  transform: translateY(0);
+}
+
+/* Ripple effect via pseudo element */
+.btn-ripple {
+  position: relative;
+  overflow: hidden;
+}
+.btn-ripple::before {
+  content: '';
+  position: absolute;
+  inset: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  transform: translate(-50%, -50%);
+  transition: width 0.5s ease, height 0.5s ease, opacity 0.5s ease;
+  opacity: 0;
+}
+.btn-ripple:active::before {
+  width: 200%;
+  height: 200%;
+  opacity: 0;
+  transition: 0s;
+}
+
 /* Glow effects for premium feel */
 .glow-primary {
   box-shadow: 0 0 20px hsl(var(--primary) / 0.3), 0 0 40px hsl(var(--primary) / 0.1);
