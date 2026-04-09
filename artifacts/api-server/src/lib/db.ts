@@ -43,5 +43,5 @@ export const db = new Proxy({} as ReturnType<typeof drizzle<typeof schema>>, {
   },
 });
 
-// pool is not used with the HTTP driver — kept for type compat only
-export const pool = db as unknown as import("pg").Pool;
+// pool alias — not used with Neon HTTP driver, kept for any legacy compat
+export const pool = db as unknown as Record<string, unknown>;

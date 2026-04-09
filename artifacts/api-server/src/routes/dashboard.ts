@@ -9,7 +9,7 @@ import {
   leavesTable,
   payrollTable,
   attendanceTable,
-} from "@workspace/db";
+} from "@workspace/db/schema";
 
 const router = Router();
 

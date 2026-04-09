@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { desc, eq } from "drizzle-orm";
 import { db } from "../lib/db";
-import { leadsTable, insertLeadSchema } from "@workspace/db";
+import { leadsTable, insertLeadSchema } from "@workspace/db/schema";
 
 const router = Router();
 

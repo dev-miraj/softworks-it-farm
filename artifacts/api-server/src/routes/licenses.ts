@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { eq, desc } from "drizzle-orm";
 import { db } from "../lib/db";
-import { licensesTable, insertLicenseSchema } from "@workspace/db";
+import { licensesTable, insertLicenseSchema } from "@workspace/db/schema";
 import crypto from "crypto";
 
 const router = Router();

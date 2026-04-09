@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { eq } from "drizzle-orm";
 import { db } from "../lib/db";
-import { servicesTable, insertServiceSchema } from "@workspace/db";
+import { servicesTable, insertServiceSchema } from "@workspace/db/schema";
 const router = Router();
 
 router.get("/services", async (req, res): Promise<void> => {

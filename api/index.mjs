@@ -1,33 +1,37 @@
 import * as path from "path";
 
 let cachedHandler = null;
+let importError = null;
 
-async function loadHandler() {
-  if (cachedHandler) return cachedHandler;
-
-  // In Vercel Lambda runtime, cwd is /var/task
-  // Files from `includeFiles` in vercel.json are placed relative to project root
-  const bundlePath = path.join(process.cwd(), "artifacts", "api-server", "dist", "serverless.mjs");
-
+async function tryImport(bundlePath) {
   try {
     const mod = await import(bundlePath);
-    cachedHandler = mod.default;
-    return cachedHandler;
-  } catch (err1) {
-    // Fallback: file:// URL format (Windows paths & edge cases)
-    try {
-      const fileUrl = "file://" + bundlePath.replace(/\\/g, "/");
-      const mod = await import(fileUrl);
-      cachedHandler = mod.default;
-      return cachedHandler;
-    } catch (err2) {
-      throw new Error(`Import failed: ${err1?.message} | ${err2?.message}`);
-    }
+    return mod.default;
+  } catch (_) {
+    const fileUrl = "file://" + bundlePath.replace(/\\/g, "/");
+    const mod = await import(fileUrl);
+    return mod.default;
   }
 }
 
+async function loadHandler() {
+  if (cachedHandler) return cachedHandler;
+  if (importError) throw importError;
+
+  const bundlePath = path.join(process.cwd(), "artifacts", "api-server", "dist", "serverless.mjs");
+
+  // Race the import against a 10s timeout so we get a real error instead of a 30s Lambda timeout
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error("import(serverless.mjs) timed out after 10s")), 10_000)
+  );
+
+  const fn = await Promise.race([tryImport(bundlePath), timeoutPromise]);
+  cachedHandler = fn;
+  return cachedHandler;
+}
+
 export default async function handler(req, res) {
-  // Instant ping — no DB, no imports — verifies Lambda infra works
+  // Instant ping — verifies Lambda infra, no imports needed
   if (req.url === "/api/ping" || req.url === "/api/ping/") {
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(JSON.stringify({ pong: true, cwd: process.cwd(), t: Date.now() }));
