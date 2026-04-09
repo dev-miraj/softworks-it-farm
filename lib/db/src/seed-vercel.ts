@@ -13,12 +13,19 @@ import {
   licensesTable, paymentMethodsTable,
 } from "./schema/index";
 
-const url = process.env.DATABASE_URL || process.env.NEON_DATABASE_URL;
-if (!url) {
-  console.log("⚠️  No DATABASE_URL set — skipping seed.");
+const rawUrl =
+  process.env.NEON_DATABASE_URL ||
+  process.env.DATABASE_URL_UNPOOLED ||
+  process.env.POSTGRES_URL_NON_POOLING ||
+  process.env.DATABASE_URL;
+
+if (!rawUrl) {
+  console.log("⚠️  No database URL set — skipping seed.");
   process.exit(0);
 }
 
+let url = rawUrl;
+try { const u = new URL(rawUrl); u.searchParams.delete("channel_binding"); url = u.toString(); } catch { /* use raw */ }
 const isNeon = url.includes("neon.tech");
 const pool = new pg.Pool({
   connectionString: url,

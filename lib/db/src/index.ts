@@ -7,12 +7,34 @@ const { Pool } = pg;
 let _pool: pg.Pool | null = null;
 let _db: ReturnType<typeof drizzle<typeof schema>> | null = null;
 
-function createPool(): pg.Pool {
-  // NEON_DATABASE_URL takes priority over Replit's built-in DATABASE_URL
-  const url = process.env.NEON_DATABASE_URL || process.env.DATABASE_URL;
-  if (!url) {
-    throw new Error("NEON_DATABASE_URL (or DATABASE_URL) must be set.");
+function getConnectionUrl(): string {
+  // Priority order:
+  // 1. NEON_DATABASE_URL  — our explicit secret (set in Replit + Vercel env vars)
+  // 2. DATABASE_URL_UNPOOLED — Vercel Neon integration: direct connection, no PgBouncer
+  //    (PgBouncer + channel_binding=require causes FUNCTION_INVOCATION_TIMEOUT on Vercel)
+  // 3. POSTGRES_URL_NON_POOLING — alias Vercel sometimes uses
+  // 4. DATABASE_URL — last resort (pooled; may fail with channel_binding=require)
+  const url =
+    process.env.NEON_DATABASE_URL ||
+    process.env.DATABASE_URL_UNPOOLED ||
+    process.env.POSTGRES_URL_NON_POOLING ||
+    process.env.DATABASE_URL;
+
+  if (!url) throw new Error("No database URL found in environment variables.");
+
+  // Strip channel_binding=require — PgBouncer doesn't support it and causes hangs.
+  // Use URL class for correct query-string manipulation (avoids leaving a dangling &).
+  try {
+    const u = new URL(url);
+    u.searchParams.delete("channel_binding");
+    return u.toString();
+  } catch {
+    return url;
   }
+}
+
+function createPool(): pg.Pool {
+  const url = getConnectionUrl();
   const isNeon = url.includes("neon.tech");
   return new Pool({
     connectionString: url,

@@ -7,9 +7,15 @@ import {
   licensesTable, paymentMethodsTable,
 } from "./schema/index";
 
-const url = process.env.NEON_DATABASE_URL || process.env.DATABASE_URL;
-if (!url) throw new Error("NEON_DATABASE_URL must be set");
+const rawUrl =
+  process.env.NEON_DATABASE_URL ||
+  process.env.DATABASE_URL_UNPOOLED ||
+  process.env.POSTGRES_URL_NON_POOLING ||
+  process.env.DATABASE_URL;
 
+if (!rawUrl) throw new Error("No database URL found in environment variables.");
+let url = rawUrl;
+try { const u = new URL(rawUrl); u.searchParams.delete("channel_binding"); url = u.toString(); } catch { /* use raw */ }
 const isNeon = url.includes("neon.tech");
 const pool = new pg.Pool({
   connectionString: url,
