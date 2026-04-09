@@ -8,22 +8,21 @@ let _pool: pg.Pool | null = null;
 let _db: ReturnType<typeof drizzle<typeof schema>> | null = null;
 
 function getConnectionUrl(): string {
-  // Priority order:
-  // 1. NEON_DATABASE_URL  — our explicit secret (set in Replit + Vercel env vars)
-  // 2. DATABASE_URL_UNPOOLED — Vercel Neon integration: direct connection, no PgBouncer
-  //    (PgBouncer + channel_binding=require causes FUNCTION_INVOCATION_TIMEOUT on Vercel)
-  // 3. POSTGRES_URL_NON_POOLING — alias Vercel sometimes uses
-  // 4. DATABASE_URL — last resort (pooled; may fail with channel_binding=require)
+  // Priority — UNPOOLED first:
+  //   Vercel Neon integration automatically sets DATABASE_URL_UNPOOLED (direct, no PgBouncer).
+  //   PgBouncer (pooled) hangs on Vercel serverless even with channel_binding stripped,
+  //   so we must use the direct/unpooled connection in production.
+  // Locally:
+  //   DATABASE_URL_UNPOOLED is not set → falls through to NEON_DATABASE_URL which works fine.
   const url =
-    process.env.NEON_DATABASE_URL ||
-    process.env.DATABASE_URL_UNPOOLED ||
-    process.env.POSTGRES_URL_NON_POOLING ||
-    process.env.DATABASE_URL;
+    process.env.DATABASE_URL_UNPOOLED ||        // Vercel Neon: direct, no PgBouncer ✓
+    process.env.POSTGRES_URL_NON_POOLING ||     // Alternate unpooled alias
+    process.env.NEON_DATABASE_URL ||            // Local dev / manual secret
+    process.env.DATABASE_URL;                   // Last resort
 
   if (!url) throw new Error("No database URL found in environment variables.");
 
-  // Strip channel_binding=require — PgBouncer doesn't support it and causes hangs.
-  // Use URL class for correct query-string manipulation (avoids leaving a dangling &).
+  // Strip channel_binding — not supported by PgBouncer; safe to remove everywhere.
   try {
     const u = new URL(url);
     u.searchParams.delete("channel_binding");

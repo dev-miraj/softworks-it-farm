@@ -8,9 +8,9 @@ import {
 } from "./schema/index";
 
 const rawUrl =
-  process.env.NEON_DATABASE_URL ||
   process.env.DATABASE_URL_UNPOOLED ||
   process.env.POSTGRES_URL_NON_POOLING ||
+  process.env.NEON_DATABASE_URL ||
   process.env.DATABASE_URL;
 
 if (!rawUrl) throw new Error("No database URL found in environment variables.");

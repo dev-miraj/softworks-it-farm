@@ -3,9 +3,9 @@ import path from "path";
 
 function getUrl(): string {
   const url =
-    process.env.NEON_DATABASE_URL ||
     process.env.DATABASE_URL_UNPOOLED ||
     process.env.POSTGRES_URL_NON_POOLING ||
+    process.env.NEON_DATABASE_URL ||
     process.env.DATABASE_URL;
 
   if (!url) throw new Error("No database URL found in environment variables.");

@@ -1,0 +1,260 @@
+Logs
+Filters
+
+Timeline
+
+Combobox Menu
+Last 30 minutes
+
+Contains Console Level
+
+​
+Error
+8
+
+​
+Warning
+0
+
+​
+Fatal
+0
+
+
+Resource
+
+​
+Vercel Function
+8
+
+​
+Middleware
+0
+
+​
+Cache
+0
+
+
+Environment
+
+​
+Production
+8
+
+​
+Preview
+0
+
+
+Route
+
+Search Routes
+Search Routes…
+​
+/api
+8
+
+
+Request Path
+
+Search request paths
+Search request paths…
+​
+/api/testimonials
+3
+
+​
+/api/services
+3
+
+​
+/api/portfolio
+2
+
+
+Status Code
+
+Search status
+Search status…
+​
+504 Gateway Timeout
+8
+
+
+Request Type
+
+​
+API Endpoint
+8
+
+​
+Server-side Rendering
+0
+
+​
+Incremental Static Regeneration
+0
+
+​
+Partial Prerendering
+0
+
+​
+Server Components
+0
+
+​
+Cron Job
+0
+
+
+Host
+
+Search hosts
+Search hosts…
+​
+softworksit.vercel.app
+4
+
+​
+softworksit-ksbvhchht-md-mirajul-islams-projects.vercel.app
+4
+
+
+Request Method
+
+Search request methods
+Search request methods…
+​
+GET
+8
+
+​
+POST
+0
+
+​
+HEAD
+0
+
+​
+PUT
+0
+
+​
+DELETE
+0
+
+​
+OPTIONS
+0
+
+​
+PATCH
+0
+
+
+Cache
+
+​
+MISS
+8
+
+
+Branch
+
+Search branches
+Search branches…
+​
+main
+8
+
+​
+NONE
+0
+
+
+Deployment ID
+
+Search deployment IDs
+Search deployment IDs…
+​
+Current
+dpl_54sBGsLaZXPXJNwe1N52Dm9GnV9k
+8
+
+
+Avatar for mdm144532-2908
+Md Mirajul Islam
+
+
+Logs
+
+
+Search logs...
+00:21:00
+00:29:00
+00:36:40
+00:51:00
+Time
+Status
+Host
+Request
+Messages
+Apr 10 00:44:50.12
+GET
+504
+softworksit-ksbvhchht-md-mirajul-islams-projects.vercel.app
+/api/testimonials
+2
+Vercel Runtime Timeout Error: Task timed out after 30 seconds
+Apr 10 00:44:50.12
+GET
+504
+softworksit-ksbvhchht-md-mirajul-islams-projects.vercel.app
+/api/services
+2
+Vercel Runtime Timeout Error: Task timed out after 30 seconds
+Apr 10 00:44:48.57
+GET
+504
+softworksit-ksbvhchht-md-mirajul-islams-projects.vercel.app
+/api/testimonials
+2
+Vercel Runtime Timeout Error: Task timed out after 30 seconds
+Apr 10 00:44:48.57
+GET
+504
+softworksit-ksbvhchht-md-mirajul-islams-projects.vercel.app
+/api/services
+2
+Vercel Runtime Timeout Error: Task timed out after 30 seconds
+Apr 10 00:35:23.62
+GET
+504
+softworksit.vercel.app
+/api/testimonials
+2
+Vercel Runtime Timeout Error: Task timed out after 30 seconds
+Apr 10 00:35:23.61
+GET
+504
+softworksit.vercel.app
+/api/services
+2
+Vercel Runtime Timeout Error: Task timed out after 30 seconds
+Apr 10 00:35:20.98
+GET
+504
+softworksit.vercel.app
+/api/portfolio
+2
+Vercel Runtime Timeout Error: Task timed out after 30 seconds
+Apr 10 00:33:29.27
+GET
+504
+softworksit.vercel.app
+/api/portfolio
+2
+Vercel Runtime Timeout Error: Task timed out after 30 seconds
