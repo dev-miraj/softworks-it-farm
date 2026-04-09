@@ -26,7 +26,8 @@ export function ContactPage() {
     <div ref={ref}>
       <section className="pt-24 pb-16 relative">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent" />
-        <div className="relative max-w-4xl mx-auto text-center px-4 hero-enter">
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 w-64 sm:w-96 h-32 sm:h-48 bg-primary/15 blur-[80px] rounded-full pointer-events-none" />
+        <div className="relative max-w-4xl mx-auto text-center px-4 hero-stagger">
           <Badge variant="outline" className="mb-4 border-primary/30 text-primary bg-primary/10">Contact Us</Badge>
           <h1 className="text-5xl font-black tracking-tight text-foreground mb-6">
             Let's Build Something <span className="gradient-text">Together</span>
@@ -44,37 +45,25 @@ export function ContactPage() {
             <div>
               <h2 className="text-xl font-bold text-foreground mb-6">Get In Touch</h2>
               <div className="flex flex-col gap-5">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <Mail className="w-5 h-5 text-primary" />
+                {[
+                  { icon: Mail, color: "primary", label: "Email", value: "hello@softworks.dev" },
+                  { icon: Phone, color: "secondary", label: "Phone", value: "+1 (555) 123-4567" },
+                  { icon: MapPin, color: "accent", label: "Location", value: "Remote-first, Global Team" },
+                ].map(({ icon: Icon, color, label, value }) => (
+                  <div key={label} className="flex items-center gap-4 group">
+                    <div className={`w-10 h-10 rounded-xl bg-${color}/10 flex items-center justify-center flex-shrink-0 group-hover:bg-${color}/20 group-hover:scale-110 transition-all duration-300`}>
+                      <Icon className={`w-5 h-5 text-${color}`} />
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-foreground">{label}</div>
+                      <div className="text-sm text-muted-foreground">{value}</div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="text-sm font-medium text-foreground">Email</div>
-                    <div className="text-sm text-muted-foreground">hello@softworks.dev</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center flex-shrink-0">
-                    <Phone className="w-5 h-5 text-secondary" />
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium text-foreground">Phone</div>
-                    <div className="text-sm text-muted-foreground">+1 (555) 123-4567</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center flex-shrink-0">
-                    <MapPin className="w-5 h-5 text-accent" />
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium text-foreground">Location</div>
-                    <div className="text-sm text-muted-foreground">Remote-first, Global Team</div>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
 
-            <div className="glass rounded-xl p-6 border border-border/50">
+            <div className="glass rounded-xl p-6 border border-border/50 reveal-glow">
               <h3 className="font-bold text-foreground mb-4">Why Partner With Us?</h3>
               <div className="flex flex-col gap-3">
                 {[
@@ -95,7 +84,7 @@ export function ContactPage() {
           {/* Contact Form */}
           <div className="lg:col-span-2 reveal-right">
             {submitted ? (
-              <div className="gradient-border rounded-xl p-12 text-center">
+              <div className="gradient-border rounded-xl p-12 text-center reveal-zoom">
                 <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
                   <CheckCircle className="w-8 h-8 text-primary" />
                 </div>

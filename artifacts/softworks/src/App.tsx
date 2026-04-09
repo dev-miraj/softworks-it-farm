@@ -27,6 +27,8 @@ import { BlogAdminPage } from "@/pages/admin/BlogAdminPage";
 import { TestimonialsAdminPage } from "@/pages/admin/TestimonialsAdminPage";
 import { TeamAdminPage } from "@/pages/admin/TeamAdminPage";
 import { SaasAdminPage } from "@/pages/admin/SaasAdminPage";
+import { LicensesPage } from "@/pages/admin/LicensesPage";
+import { PaymentMethodsPage } from "@/pages/admin/PaymentMethodsPage";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient({
@@ -95,6 +97,8 @@ function Router() {
       <Route path="/admin/testimonials"><AdminRoute component={TestimonialsAdminPage} /></Route>
       <Route path="/admin/team"><AdminRoute component={TeamAdminPage} /></Route>
       <Route path="/admin/saas-products"><AdminRoute component={SaasAdminPage} /></Route>
+      <Route path="/admin/licenses"><AdminRoute component={LicensesPage} /></Route>
+      <Route path="/admin/payment-methods"><AdminRoute component={PaymentMethodsPage} /></Route>
 
       <Route component={NotFound} />
     </Switch>

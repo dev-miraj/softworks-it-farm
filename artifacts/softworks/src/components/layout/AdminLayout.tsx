@@ -18,7 +18,8 @@ import {
   LogOut,
   Terminal,
   ExternalLink,
-  Settings,
+  KeyRound,
+  CreditCard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
@@ -56,6 +57,13 @@ const sidebarSections = [
       { href: "/admin/attendance", label: "Attendance", icon: Clock },
       { href: "/admin/leaves", label: "Leave Requests", icon: Calendar },
       { href: "/admin/payroll", label: "Payroll", icon: DollarSign },
+    ],
+  },
+  {
+    title: "License System",
+    links: [
+      { href: "/admin/licenses", label: "License Manager", icon: KeyRound },
+      { href: "/admin/payment-methods", label: "Payment Methods", icon: CreditCard },
     ],
   },
 ];

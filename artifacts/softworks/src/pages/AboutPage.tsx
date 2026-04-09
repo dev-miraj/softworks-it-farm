@@ -20,7 +20,7 @@ export function AboutPage() {
     <div ref={ref}>
       <section className="pt-24 pb-16 relative">
         <div className="absolute inset-0 bg-gradient-to-b from-accent/10 to-transparent" />
-        <div className="relative max-w-4xl mx-auto text-center px-4 hero-enter">
+        <div className="relative max-w-4xl mx-auto text-center px-4 hero-stagger">
           <Badge variant="outline" className="mb-4 border-accent/30 text-accent bg-accent/10">About Us</Badge>
           <h1 className="text-5xl font-black tracking-tight text-foreground mb-6">
             The Studio Behind <span className="gradient-text">The Build</span>
@@ -46,7 +46,7 @@ export function AboutPage() {
               We work with startups looking to move fast and enterprises looking to modernize — with the same level of dedication and quality on every engagement.
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-4 reveal-right">
+          <div className="grid grid-cols-2 gap-4 reveal-zoom-stagger">
             {[
               { val: "3+", label: "Years Operating", icon: Clock },
               { val: "150+", label: "Projects Delivered", icon: Briefcase },
@@ -70,15 +70,16 @@ export function AboutPage() {
       {/* Values */}
       <section className="py-20 bg-card/30 border-y border-border">
         <div className="max-w-6xl mx-auto px-4">
-          <div className="text-center mb-12">
+          <div className="text-center mb-12 reveal-drift-stagger">
             <h2 className="text-3xl font-black text-foreground mb-4">What We Stand For</h2>
+            <p className="text-muted-foreground max-w-xl mx-auto">Principles that guide every decision we make.</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 reveal-stagger">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 reveal-flip-stagger">
             {values.map((v) => {
               const Icon = v.icon;
               return (
-                <div key={v.title} className="text-center">
-                  <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <div key={v.title} className="text-center group p-6 rounded-2xl border border-border/50 bg-card/60 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5 transition-all duration-400">
+                  <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
                     <Icon className="w-7 h-7 text-primary" />
                   </div>
                   <h3 className="font-bold text-foreground mb-2 text-lg">{v.title}</h3>
@@ -92,7 +93,7 @@ export function AboutPage() {
 
       {/* Team */}
       <section className="py-24 max-w-7xl mx-auto px-4">
-        <div className="text-center mb-12">
+        <div className="text-center mb-12 reveal-drift-stagger">
           <h2 className="text-3xl sm:text-4xl font-black text-foreground mb-4">
             Meet the <span className="gradient-text">Team</span>
           </h2>
@@ -106,10 +107,10 @@ export function AboutPage() {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 reveal-stagger">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 reveal-cards">
             {activeTeam?.map((member) => (
               <div key={member.id} className="group gradient-border rounded-xl p-6 text-center hover:shadow-lg hover:shadow-primary/10 transition-all duration-300">
-                <div className="w-20 h-20 rounded-full overflow-hidden mx-auto mb-4 ring-2 ring-primary/20">
+                <div className="w-20 h-20 rounded-full overflow-hidden mx-auto mb-4 ring-2 ring-primary/20 group-hover:ring-primary/50 transition-all duration-300 group-hover:scale-105">
                   {member.avatarUrl ? (
                     <img src={member.avatarUrl} alt={member.name} className="w-full h-full object-cover" />
                   ) : (

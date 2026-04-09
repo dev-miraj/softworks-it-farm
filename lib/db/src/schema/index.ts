@@ -11,3 +11,5 @@ export * from "./leaves";
 export * from "./payroll";
 export * from "./projects";
 export * from "./clients";
+export * from "./licenses";
+export * from "./paymentMethods";

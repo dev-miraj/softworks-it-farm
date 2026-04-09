@@ -14,6 +14,8 @@ import payrollRouter from "./payroll";
 import projectsRouter from "./projects";
 import clientsRouter from "./clients";
 import dashboardRouter from "./dashboard";
+import licensesRouter from "./licenses";
+import paymentMethodsRouter from "./paymentMethods";
 
 const router: IRouter = Router();
 
@@ -32,5 +34,7 @@ router.use(payrollRouter);
 router.use(projectsRouter);
 router.use(clientsRouter);
 router.use(dashboardRouter);
+router.use(licensesRouter);
+router.use(paymentMethodsRouter);
 
 export default router;

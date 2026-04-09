@@ -22,7 +22,7 @@ export function SaasPage() {
       <section className="pt-24 pb-16 relative">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent" />
         <div className="absolute top-20 left-1/2 -translate-x-1/2 w-64 sm:w-[400px] h-32 sm:h-48 bg-primary/15 blur-[80px] rounded-full pointer-events-none animate-float" />
-        <div className="relative max-w-4xl mx-auto text-center px-4 hero-enter">
+        <div className="relative max-w-4xl mx-auto text-center px-4 hero-stagger">
           <div className="badge-pill mb-4">
             <Zap className="w-3 h-3 fill-current" />
             SaaS Products
@@ -51,7 +51,7 @@ export function SaasPage() {
             {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-80 rounded-2xl" />)}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 reveal-stagger">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 reveal-cards">
             {activeProducts?.map((product) => {
               const status = statusStyles[product.status] ?? statusStyles.active;
               return (
@@ -62,7 +62,7 @@ export function SaasPage() {
                   {/* Header */}
                   <div className="flex items-start justify-between mb-6">
                     <div className="flex items-start gap-4">
-                      <div className="text-4xl sm:text-5xl leading-none">{product.iconUrl || "📦"}</div>
+                      <div className="text-4xl sm:text-5xl leading-none group-hover:scale-110 transition-transform duration-300">{product.iconUrl || "📦"}</div>
                       <div>
                         <h2 className="text-xl sm:text-2xl font-black text-foreground group-hover:text-primary transition-colors">{product.name}</h2>
                         <p className="text-sm text-muted-foreground mt-0.5">{product.category}</p>

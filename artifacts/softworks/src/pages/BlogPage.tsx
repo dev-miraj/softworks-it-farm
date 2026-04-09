@@ -21,7 +21,7 @@ export function BlogPage() {
       <section className="pt-24 pb-16 relative">
         <div className="absolute inset-0 bg-gradient-to-b from-secondary/10 to-transparent" />
         <div className="absolute top-20 left-1/2 -translate-x-1/2 w-64 sm:w-96 h-32 sm:h-48 bg-secondary/15 blur-[80px] rounded-full pointer-events-none" />
-        <div className="relative max-w-4xl mx-auto text-center px-4 hero-enter">
+        <div className="relative max-w-4xl mx-auto text-center px-4 hero-stagger">
           <div className="badge-pill mb-4">
             <Tag className="w-3 h-3" />
             Insights & Articles
@@ -37,7 +37,7 @@ export function BlogPage() {
 
       <section className="pb-24 max-w-7xl mx-auto px-4">
         {/* Category Filter */}
-        <div className="flex flex-wrap gap-2 justify-center mb-10 reveal">
+        <div className="flex flex-wrap gap-2 justify-center mb-10 reveal-pop-stagger">
           {categories.map((cat) => (
             <button
               key={cat}
@@ -72,7 +72,7 @@ export function BlogPage() {
             {/* Featured Post */}
             {featured && (
               <Link href={`/blog/${featured.id}`}>
-                <div className="group rounded-2xl overflow-hidden border border-border bg-card hover:border-primary/30 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 cursor-pointer mb-8 reveal grid grid-cols-1 lg:grid-cols-2">
+                <div className="group rounded-2xl overflow-hidden border border-border bg-card hover:border-primary/30 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 cursor-pointer mb-8 reveal-scale grid grid-cols-1 lg:grid-cols-2">
                   <div className="h-56 sm:h-72 lg:h-full overflow-hidden bg-muted">
                     <img
                       src={featured.imageUrl}
@@ -107,7 +107,7 @@ export function BlogPage() {
 
             {/* Rest of Posts */}
             {rest.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 reveal-stagger">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 reveal-cards">
                 {rest.map((post) => (
                   <Link key={post.id} href={`/blog/${post.id}`}>
                     <div className="group rounded-xl overflow-hidden border border-border hover:border-primary/30 bg-card hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 cursor-pointer h-full flex flex-col card-hover">

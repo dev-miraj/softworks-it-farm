@@ -26,7 +26,8 @@ export function ServicesPage() {
     <div ref={ref}>
       <section className="pt-24 pb-16 relative">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent" />
-        <div className="relative max-w-4xl mx-auto text-center px-4 hero-enter">
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 w-64 sm:w-96 h-32 sm:h-48 bg-primary/15 blur-[80px] rounded-full pointer-events-none" />
+        <div className="relative max-w-4xl mx-auto text-center px-4 hero-stagger">
           <Badge variant="outline" className="mb-4 border-primary/30 text-primary bg-primary/10">Our Services</Badge>
           <h1 className="text-5xl font-black tracking-tight text-foreground mb-6">
             Solutions That <span className="gradient-text">Drive Results</span>
@@ -39,7 +40,7 @@ export function ServicesPage() {
 
       <section className="pb-24 max-w-7xl mx-auto px-4">
         {/* Category Filter */}
-        <div className="flex flex-wrap gap-2 justify-center mb-12 reveal">
+        <div className="flex flex-wrap gap-2 justify-center mb-12 reveal-pop-stagger">
           {categories.map((cat) => (
             <button
               key={cat}
@@ -62,17 +63,17 @@ export function ServicesPage() {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 reveal-stagger">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 reveal-cards">
             {filtered?.map((service) => (
               <div
                 key={service.id}
                 className="gradient-border rounded-xl p-6 hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 group"
               >
-                <div className="mb-4 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <div className="mb-4 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
                   {(() => { const I = iconMap[service.icon] || Code; return <I className="w-6 h-6 text-primary" />; })()}
                 </div>
                 <Badge variant="outline" className="mb-3 text-xs border-primary/20 text-primary">{service.category}</Badge>
-                <h3 className="text-xl font-bold text-foreground mb-2">{service.title}</h3>
+                <h3 className="text-xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors">{service.title}</h3>
                 <p className="text-sm text-muted-foreground mb-4 leading-relaxed">{service.description}</p>
                 {service.features.length > 0 && (
                   <ul className="flex flex-col gap-2">
