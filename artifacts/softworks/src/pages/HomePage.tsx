@@ -8,6 +8,7 @@ import {
 import { useListServices, useListTestimonials } from "@workspace/api-client-react";
 import { useGsapReveal } from "@/hooks/useGsapReveal";
 import { TechStackMarquee } from "@/components/ui/TechStackMarquee";
+import { StatCounter } from "@/components/ui/StatCounter";
 import { useEffect, useState } from "react";
 
 const iconMap: Record<string, LucideIcon> = {
@@ -137,10 +138,7 @@ export function HomePage() {
           {/* Stats — 2×2 on mobile, 4 col on sm+ */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 max-w-lg sm:max-w-none mx-auto">
             {stats.map((s) => (
-              <div key={s.label} className="text-center">
-                <div className="text-2xl sm:text-3xl font-black gradient-text">{s.value}</div>
-                <div className="text-xs text-muted-foreground mt-1">{s.label}</div>
-              </div>
+              <StatCounter key={s.label} value={s.value} label={s.label} className="text-2xl sm:text-3xl" labelClassName="text-xs" />
             ))}
           </div>
         </div>
