@@ -17,10 +17,10 @@ function createPool(): pg.Pool {
   return new Pool({
     connectionString: url,
     ssl: isNeon ? { rejectUnauthorized: false } : undefined,
-    max: 5,
+    max: 10,
     idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 5000,  // Fail fast — don't hang for 30s
-    query_timeout: 10000,
+    connectionTimeoutMillis: 8000,
+    query_timeout: 15000,
   });
 }
 
