@@ -82,20 +82,19 @@ function MarqueeRow({ items, direction = "left", speed = 40 }: { items: TechItem
   return (
     <div className="relative overflow-hidden py-1" style={{ maskImage: "linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)" }}>
       <div
-        className={`flex gap-4 w-max ${animClass}`}
+        className={`flex gap-3 sm:gap-4 w-max ${animClass}`}
         style={{ animationDuration: `${speed}s` }}
       >
         {doubled.map((tech, i) => (
           <div
             key={`${tech.name}-${i}`}
-            className="flex flex-col items-center gap-2 px-4 py-3 rounded-xl border border-white/5 bg-white/[0.03] hover:bg-white/[0.07] hover:border-white/10 transition-all duration-300 group cursor-default min-w-[80px]"
-            style={{ boxShadow: `0 0 0 0 ${tech.color}00` }}
+            className="flex flex-col items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl border border-border bg-card hover:bg-muted hover:border-primary/20 transition-all duration-300 group cursor-default min-w-[70px] sm:min-w-[80px]"
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLDivElement).style.boxShadow = `0 0 20px 2px ${tech.color}30`;
+              (e.currentTarget as HTMLDivElement).style.boxShadow = `0 0 20px 2px ${tech.color}25`;
               (e.currentTarget as HTMLDivElement).style.borderColor = `${tech.color}40`;
             }}
             onMouseLeave={(e) => {
-              (e.currentTarget as HTMLDivElement).style.boxShadow = "none";
+              (e.currentTarget as HTMLDivElement).style.boxShadow = "";
               (e.currentTarget as HTMLDivElement).style.borderColor = "";
             }}
           >
@@ -121,17 +120,17 @@ function MarqueeRow({ items, direction = "left", speed = 40 }: { items: TechItem
 export function TechStackMarquee() {
   return (
     <section className="py-24 overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 mb-12 text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/30 bg-primary/5 text-primary text-sm font-medium mb-4">
+      <div className="max-w-7xl mx-auto px-4 mb-8 sm:mb-12 text-center">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/30 bg-primary/10 text-primary text-sm font-medium mb-4">
           <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
           Tech Stack
         </div>
-        <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-foreground mb-4">
+        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-foreground mb-4">
           Every Language. Every{" "}
           <span className="gradient-text">Framework.</span>
         </h2>
-        <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-          We master the tools that matter. From systems-level C++ to modern TypeScript, from bare-metal Linux to serverless cloud — we build with whatever your project demands.
+        <p className="text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto">
+          From systems-level C++ to modern TypeScript — we build with whatever your project demands.
         </p>
       </div>
 
