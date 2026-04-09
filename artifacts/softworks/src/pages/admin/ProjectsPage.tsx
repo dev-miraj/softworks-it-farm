@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { useListProjects, useCreateProject, useDeleteProject } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -29,7 +28,7 @@ const priorityColors: Record<string, string> = {
 const blankForm = { name: "", description: "", clientId: "1", clientName: "", status: "active", priority: "medium", budget: "", startDate: "", endDate: "", progress: "0", technologies: "" };
 
 export function ProjectsPage() {
-  const { data: projects, isLoading, queryKey } = useListProjects();
+  const { data: projects, queryKey } = useListProjects();
   const createProject = useCreateProject();
   const deleteProject = useDeleteProject();
   const qc = useQueryClient();
@@ -111,12 +110,7 @@ export function ProjectsPage() {
         </Dialog>
       </div>
 
-      {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-48 rounded-xl" />)}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {projects?.map((project) => (
             <div key={project.id} className="gradient-border rounded-xl p-5">
               <div className="flex items-start justify-between mb-3">
@@ -152,8 +146,7 @@ export function ProjectsPage() {
             </div>
           ))}
         </div>
-      )}
-      {!isLoading && (!projects || projects.length === 0) && (
+      {(!projects || projects.length === 0) && (
         <div className="text-center py-20 text-muted-foreground">No projects yet. Create your first project.</div>
       )}
     </AdminLayout>

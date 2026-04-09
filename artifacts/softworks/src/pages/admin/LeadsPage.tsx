@@ -3,7 +3,6 @@ import { AdminLayout } from "@/components/layout/AdminLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useListLeads, useUpdateLead } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Mail, Phone, Building2, MessageSquare } from "lucide-react";
@@ -16,7 +15,7 @@ const statusColors: Record<string, string> = {
 };
 
 export function LeadsPage() {
-  const { data: leads, isLoading, queryKey } = useListLeads();
+  const { data: leads, queryKey } = useListLeads();
   const updateLead = useUpdateLead();
   const qc = useQueryClient();
   const [expandedLead, setExpandedLead] = useState<number | null>(null);
@@ -38,12 +37,7 @@ export function LeadsPage() {
         </Badge>
       </div>
 
-      {isLoading ? (
-        <div className="flex flex-col gap-4">
-          {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}
-        </div>
-      ) : (
-        <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3">
           {leads?.map((lead) => (
             <div key={lead.id} className="gradient-border rounded-xl p-5 transition-all duration-200">
               <div className="flex items-start justify-between gap-4">
@@ -94,7 +88,6 @@ export function LeadsPage() {
             <div className="text-center py-20 text-muted-foreground">No leads yet.</div>
           )}
         </div>
-      )}
     </AdminLayout>
   );
 }

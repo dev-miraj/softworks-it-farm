@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useListBlogPosts, useCreateBlogPost, useDeleteBlogPost } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Plus, Trash2, CalendarDays } from "lucide-react";
@@ -15,7 +14,7 @@ import { Plus, Trash2, CalendarDays } from "lucide-react";
 const blankForm = { title: "", slug: "", excerpt: "", content: "", category: "", tags: "", imageUrl: "", authorName: "", isPublished: false, publishedAt: "" };
 
 export function BlogAdminPage() {
-  const { data: posts, isLoading, queryKey } = useListBlogPosts();
+  const { data: posts, queryKey } = useListBlogPosts();
   const createPost = useCreateBlogPost();
   const deletePost = useDeleteBlogPost();
   const qc = useQueryClient();
@@ -75,12 +74,7 @@ export function BlogAdminPage() {
         </Dialog>
       </div>
 
-      {isLoading ? (
-        <div className="flex flex-col gap-3">
-          {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
-        </div>
-      ) : (
-        <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3">
           {posts?.map((post) => (
             <div key={post.id} className="gradient-border rounded-xl p-5 group flex items-center justify-between gap-4">
               <div className="flex-1">
@@ -103,7 +97,6 @@ export function BlogAdminPage() {
             <div className="text-center py-20 text-muted-foreground">No blog posts yet.</div>
           )}
         </div>
-      )}
     </AdminLayout>
   );
 }

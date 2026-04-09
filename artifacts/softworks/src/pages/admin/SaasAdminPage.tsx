@@ -8,7 +8,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useListSaasProducts, useCreateSaasProduct, useDeleteSaasProduct } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Plus, Trash2, ExternalLink } from "lucide-react";
@@ -22,7 +21,7 @@ const statusColors: Record<string, string> = {
 const blankForm = { name: "", description: "", features: "", category: "", iconUrl: "", demoUrl: "", pricingMonthly: "", pricingYearly: "", status: "active", isActive: true };
 
 export function SaasAdminPage() {
-  const { data: products, isLoading, queryKey } = useListSaasProducts();
+  const { data: products, queryKey } = useListSaasProducts();
   const createProduct = useCreateSaasProduct();
   const deleteProduct = useDeleteSaasProduct();
   const qc = useQueryClient();
@@ -95,12 +94,7 @@ export function SaasAdminPage() {
         </Dialog>
       </div>
 
-      {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-40 rounded-xl" />)}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {products?.map((product) => (
             <div key={product.id} className="gradient-border rounded-xl p-5 group">
               <div className="flex items-start justify-between mb-3">
@@ -133,8 +127,7 @@ export function SaasAdminPage() {
             </div>
           ))}
         </div>
-      )}
-      {!isLoading && (!products || products.length === 0) && (
+      {(!products || products.length === 0) && (
         <div className="text-center py-20 text-muted-foreground">No SaaS products yet.</div>
       )}
     </AdminLayout>

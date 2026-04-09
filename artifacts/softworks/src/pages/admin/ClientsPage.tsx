@@ -6,7 +6,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useListClients, useCreateClient, useDeleteClient } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Plus, Trash2, Mail, Phone, Globe } from "lucide-react";
@@ -20,7 +19,7 @@ const statusColors: Record<string, string> = {
 const blankForm = { name: "", email: "", phone: "", company: "", country: "", status: "active" };
 
 export function ClientsPage() {
-  const { data: clients, isLoading, queryKey } = useListClients();
+  const { data: clients, queryKey } = useListClients();
   const createClient = useCreateClient();
   const deleteClient = useDeleteClient();
   const qc = useQueryClient();
@@ -79,12 +78,7 @@ export function ClientsPage() {
         </Dialog>
       </div>
 
-      {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-36 rounded-xl" />)}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {clients?.map((client) => (
             <div key={client.id} className="gradient-border rounded-xl p-5 group">
               <div className="flex items-start justify-between mb-3">
@@ -111,8 +105,7 @@ export function ClientsPage() {
             </div>
           ))}
         </div>
-      )}
-      {!isLoading && (!clients || clients.length === 0) && (
+      {(!clients || clients.length === 0) && (
         <div className="text-center py-20 text-muted-foreground">No clients yet.</div>
       )}
     </AdminLayout>

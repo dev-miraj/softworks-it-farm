@@ -1,5 +1,4 @@
 import { AdminLayout } from "@/components/layout/AdminLayout";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Users, Briefcase, Inbox, TrendingUp, DollarSign, Clock, CheckCircle, AlertCircle } from "lucide-react";
 import {
   useGetDashboardStats,
@@ -16,7 +15,7 @@ const statusColors: Record<string, string> = {
 };
 
 export function DashboardPage() {
-  const { data: stats, isLoading: statsLoading } = useGetDashboardStats();
+  const { data: stats } = useGetDashboardStats();
   const { data: recentLeads } = useGetRecentLeads();
   const { data: projectSummary } = useGetProjectSummary();
   const { data: hrSummary } = useGetHrSummary();
@@ -44,17 +43,11 @@ export function DashboardPage() {
           const Icon = card.icon;
           return (
             <div key={card.label} className="gradient-border rounded-xl p-5">
-              {statsLoading ? (
-                <Skeleton className="h-16" />
-              ) : (
-                <>
-                  <div className={`w-10 h-10 rounded-lg ${card.bg} flex items-center justify-center mb-3`}>
-                    <Icon className={`w-5 h-5 ${card.color}`} />
-                  </div>
-                  <div className={`text-2xl font-black ${card.color} mb-1`}>{card.value}</div>
-                  <div className="text-xs text-muted-foreground font-medium">{card.label}</div>
-                </>
-              )}
+              <div className={`w-10 h-10 rounded-lg ${card.bg} flex items-center justify-center mb-3`}>
+                <Icon className={`w-5 h-5 ${card.color}`} />
+              </div>
+              <div className={`text-2xl font-black ${card.color} mb-1`}>{card.value}</div>
+              <div className="text-xs text-muted-foreground font-medium">{card.label}</div>
             </div>
           );
         })}
@@ -82,7 +75,7 @@ export function DashboardPage() {
         <div className="flex flex-col gap-6">
           <div className="gradient-border rounded-xl p-6">
             <h2 className="font-bold text-foreground mb-4">Project Status</h2>
-            {projectSummary ? (
+            {projectSummary && (
               <div className="flex flex-col gap-3">
                 {[
                   { label: "Active", value: projectSummary.active, color: "bg-primary" },
@@ -100,12 +93,12 @@ export function DashboardPage() {
                   </div>
                 ))}
               </div>
-            ) : <Skeleton className="h-24" />}
+            )}
           </div>
 
           <div className="gradient-border rounded-xl p-6">
             <h2 className="font-bold text-foreground mb-4">HR Overview</h2>
-            {hrSummary ? (
+            {hrSummary && (
               <div className="flex flex-col gap-3">
                 <div className="flex justify-between text-sm"><span className="text-muted-foreground">Total</span><span className="font-bold text-foreground">{hrSummary.totalEmployees}</span></div>
                 <div className="flex justify-between text-sm"><span className="text-muted-foreground">Active</span><span className="font-bold text-green-400">{hrSummary.activeEmployees}</span></div>
@@ -124,7 +117,7 @@ export function DashboardPage() {
                   ))}
                 </div>
               </div>
-            ) : <Skeleton className="h-32" />}
+            )}
           </div>
         </div>
       </div>

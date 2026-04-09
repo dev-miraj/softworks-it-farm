@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useListServices, useCreateService, useDeleteService } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Plus, Trash2 } from "lucide-react";
@@ -15,7 +14,7 @@ import { Plus, Trash2 } from "lucide-react";
 const blankForm = { title: "", description: "", icon: "🚀", category: "", features: "", isActive: true };
 
 export function ServicesAdminPage() {
-  const { data: services, isLoading, queryKey } = useListServices();
+  const { data: services, queryKey } = useListServices();
   const createService = useCreateService();
   const deleteService = useDeleteService();
   const qc = useQueryClient();
@@ -69,12 +68,7 @@ export function ServicesAdminPage() {
         </Dialog>
       </div>
 
-      {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-40 rounded-xl" />)}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {services?.map((service) => (
             <div key={service.id} className="gradient-border rounded-xl p-5 group">
               <div className="flex items-start justify-between mb-3">
@@ -93,8 +87,7 @@ export function ServicesAdminPage() {
             </div>
           ))}
         </div>
-      )}
-      {!isLoading && (!services || services.length === 0) && (
+      {(!services || services.length === 0) && (
         <div className="text-center py-20 text-muted-foreground">No services yet.</div>
       )}
     </AdminLayout>

@@ -12,7 +12,6 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -91,7 +90,7 @@ function usePaymentMethods() {
 }
 
 export function LicensesPage() {
-  const { data: licenses, isLoading } = useLicenses();
+  const { data: licenses } = useLicenses();
   const { data: payMethods } = usePaymentMethods();
   const qc = useQueryClient();
   const { toast } = useToast();
@@ -240,7 +239,7 @@ export function LicensesPage() {
           ].map(({ label, value, icon: Icon, color, bg }) => (
             <div key={label} className={`rounded-xl border p-4 ${bg}`}>
               <div className="flex items-center gap-2 mb-2"><Icon className={`w-4 h-4 ${color}`} /><span className="text-xs text-muted-foreground">{label}</span></div>
-              <div className={`text-2xl font-bold ${color}`}>{isLoading ? <Skeleton className="h-7 w-8" /> : value}</div>
+              <div className={`text-2xl font-bold ${color}`}>{value}</div>
             </div>
           ))}
         </div>
@@ -288,13 +287,7 @@ export function LicensesPage() {
                 </tr>
               </thead>
               <tbody>
-                {isLoading
-                  ? Array.from({ length: 5 }).map((_, i) => (
-                    <tr key={i} className="border-b border-border/50">
-                      {Array.from({ length: 6 }).map((__, j) => <td key={j} className="px-4 py-3"><Skeleton className="h-5 w-full" /></td>)}
-                    </tr>
-                  ))
-                  : filtered.length === 0
+                {filtered.length === 0
                     ? <tr><td colSpan={6} className="px-4 py-16 text-center text-muted-foreground">
                         <KeyRound className="w-10 h-10 mx-auto mb-3 opacity-20" />
                         <p>{search ? "No matches found" : "No licenses yet. Create your first one!"}</p>

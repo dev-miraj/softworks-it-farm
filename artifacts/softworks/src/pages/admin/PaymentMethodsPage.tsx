@@ -20,7 +20,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -98,7 +97,7 @@ function usePaymentMethods() {
 }
 
 export function PaymentMethodsPage() {
-  const { data: methods, isLoading } = usePaymentMethods();
+  const { data: methods } = usePaymentMethods();
   const qc = useQueryClient();
   const { toast } = useToast();
   const [createOpen, setCreateOpen] = useState(false);
@@ -248,7 +247,7 @@ export function PaymentMethodsPage() {
           ].map(({ label, value, color }) => (
             <div key={label} className="rounded-xl border border-border bg-card p-4">
               <div className="text-xs text-muted-foreground mb-1">{label}</div>
-              <div className={`text-2xl font-bold ${color}`}>{isLoading ? <Skeleton className="h-7 w-6" /> : value}</div>
+              <div className={`text-2xl font-bold ${color}`}>{value}</div>
             </div>
           ))}
         </div>
@@ -273,9 +272,7 @@ export function PaymentMethodsPage() {
         </div>
 
         {/* Groups */}
-        {isLoading
-          ? <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}</div>
-          : (Object.entries(grouped) as [string, PaymentMethod[]][]).map(([cat, items]) => (
+        {(Object.entries(grouped) as [string, PaymentMethod[]][]).map(([cat, items]) => (
             items.length > 0 && (
               <div key={cat}>
                 <div className="flex items-center gap-2 mb-3">
@@ -328,7 +325,7 @@ export function PaymentMethodsPage() {
           ))
         }
 
-        {filtered.length === 0 && !isLoading && (
+        {filtered.length === 0 && (
           <div className="text-center py-16 text-muted-foreground">
             <CreditCard className="w-10 h-10 mx-auto mb-3 opacity-20" />
             <p>{methods?.length === 0 ? 'No payment methods yet. Click "Load BD Methods" to pre-load all Bangladesh methods.' : "No methods match your search."}</p>

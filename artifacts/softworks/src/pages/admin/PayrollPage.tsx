@@ -6,7 +6,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useListPayroll, useCreatePayrollRecord, useListEmployees } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Plus, DollarSign, User } from "lucide-react";
@@ -22,7 +21,7 @@ const blankForm = { employeeId: "", month: thisMonth, basicSalary: "", bonus: "0
 
 export function PayrollPage() {
   const [filterMonth, setFilterMonth] = useState(thisMonth);
-  const { data: payroll, isLoading, queryKey } = useListPayroll(filterMonth ? { month: filterMonth } : undefined);
+  const { data: payroll, queryKey } = useListPayroll(filterMonth ? { month: filterMonth } : undefined);
   const { data: employees } = useListEmployees();
   const createPayroll = useCreatePayrollRecord();
   const qc = useQueryClient();
@@ -123,12 +122,7 @@ export function PayrollPage() {
         </div>
       )}
 
-      {isLoading ? (
-        <div className="flex flex-col gap-3">
-          {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-16 rounded-xl" />)}
-        </div>
-      ) : (
-        <div className="overflow-x-auto">
+      <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border text-xs text-muted-foreground uppercase tracking-wide">
@@ -174,7 +168,6 @@ export function PayrollPage() {
             <div className="text-center py-16 text-muted-foreground">No payroll records found.</div>
           )}
         </div>
-      )}
     </AdminLayout>
   );
 }

@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useListPortfolio, useCreatePortfolioItem, useDeletePortfolioItem } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Plus, Trash2, ExternalLink } from "lucide-react";
@@ -15,7 +14,7 @@ import { Plus, Trash2, ExternalLink } from "lucide-react";
 const blankForm = { title: "", description: "", category: "", technologies: "", imageUrl: "", projectUrl: "", clientName: "", isFeatured: false };
 
 export function PortfolioAdminPage() {
-  const { data: portfolio, isLoading, queryKey } = useListPortfolio();
+  const { data: portfolio, queryKey } = useListPortfolio();
   const createItem = useCreatePortfolioItem();
   const deleteItem = useDeletePortfolioItem();
   const qc = useQueryClient();
@@ -71,12 +70,7 @@ export function PortfolioAdminPage() {
         </Dialog>
       </div>
 
-      {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-40 rounded-xl" />)}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {portfolio?.map((item) => (
             <div key={item.id} className="gradient-border rounded-xl overflow-hidden group">
               <div className="relative h-32 overflow-hidden bg-muted">
@@ -110,8 +104,7 @@ export function PortfolioAdminPage() {
             </div>
           ))}
         </div>
-      )}
-      {!isLoading && (!portfolio || portfolio.length === 0) && (
+      {(!portfolio || portfolio.length === 0) && (
         <div className="text-center py-20 text-muted-foreground">No portfolio items yet.</div>
       )}
     </AdminLayout>

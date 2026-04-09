@@ -6,7 +6,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useListEmployees, useCreateEmployee, useDeleteEmployee } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Plus, Trash2, Mail, Building2, Calendar } from "lucide-react";
@@ -20,7 +19,7 @@ const statusColors: Record<string, string> = {
 const DEPARTMENTS = ["Engineering", "Design", "Marketing", "Sales", "HR", "Management", "Finance", "Operations"];
 
 export function EmployeesPage() {
-  const { data: employees, isLoading, queryKey } = useListEmployees();
+  const { data: employees, queryKey } = useListEmployees();
   const createEmployee = useCreateEmployee();
   const deleteEmployee = useDeleteEmployee();
   const qc = useQueryClient();
@@ -89,12 +88,7 @@ export function EmployeesPage() {
         </Dialog>
       </div>
 
-      {isLoading ? (
-        <div className="flex flex-col gap-3">
-          {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
-        </div>
-      ) : (
-        <div className="overflow-x-auto">
+      <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border text-xs text-muted-foreground uppercase tracking-wide">
@@ -136,7 +130,6 @@ export function EmployeesPage() {
             <div className="text-center py-16 text-muted-foreground">No employees found. Add one to get started.</div>
           )}
         </div>
-      )}
     </AdminLayout>
   );
 }

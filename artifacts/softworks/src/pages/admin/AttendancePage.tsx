@@ -6,7 +6,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useListAttendance, useCreateAttendanceRecord, useListEmployees } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Plus, Clock, User } from "lucide-react";
@@ -27,7 +26,7 @@ export function AttendancePage() {
     employeeId: filterEmployeeId ? Number(filterEmployeeId) : undefined,
     month: filterMonth || undefined,
   };
-  const { data: attendance, isLoading, queryKey } = useListAttendance(params);
+  const { data: attendance, queryKey } = useListAttendance(params);
   const { data: employees } = useListEmployees();
   const createAttendance = useCreateAttendanceRecord();
   const qc = useQueryClient();
@@ -108,12 +107,7 @@ export function AttendancePage() {
         </div>
       </div>
 
-      {isLoading ? (
-        <div className="flex flex-col gap-3">
-          {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-14 rounded-xl" />)}
-        </div>
-      ) : (
-        <div className="overflow-x-auto">
+      <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border text-xs text-muted-foreground uppercase tracking-wide">
@@ -163,7 +157,6 @@ export function AttendancePage() {
             <div className="text-center py-16 text-muted-foreground">No attendance records found.</div>
           )}
         </div>
-      )}
     </AdminLayout>
   );
 }

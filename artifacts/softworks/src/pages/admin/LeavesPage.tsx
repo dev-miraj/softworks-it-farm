@@ -1,7 +1,6 @@
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useListLeaveRequests, useUpdateLeaveRequest } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Calendar, CheckCircle, XCircle } from "lucide-react";
@@ -13,7 +12,7 @@ const statusColors: Record<string, string> = {
 };
 
 export function LeavesPage() {
-  const { data: leaves, isLoading, queryKey } = useListLeaveRequests();
+  const { data: leaves, queryKey } = useListLeaveRequests();
   const updateLeave = useUpdateLeaveRequest();
   const qc = useQueryClient();
 
@@ -29,12 +28,7 @@ export function LeavesPage() {
         <p className="text-muted-foreground text-sm">Review and approve employee leave requests</p>
       </div>
 
-      {isLoading ? (
-        <div className="flex flex-col gap-3">
-          {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}
-        </div>
-      ) : (
-        <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3">
           {leaves?.map((leave) => (
             <div key={leave.id} className="gradient-border rounded-xl p-5">
               <div className="flex items-start justify-between gap-4">
@@ -68,7 +62,6 @@ export function LeavesPage() {
             <div className="text-center py-20 text-muted-foreground">No leave requests found.</div>
           )}
         </div>
-      )}
     </AdminLayout>
   );
 }

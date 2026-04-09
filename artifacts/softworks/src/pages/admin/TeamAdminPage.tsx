@@ -6,7 +6,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useListTeamMembers, useCreateTeamMember, useDeleteTeamMember } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Plus, Trash2, Linkedin } from "lucide-react";
@@ -14,7 +13,7 @@ import { Plus, Trash2, Linkedin } from "lucide-react";
 const blankForm = { name: "", role: "", department: "", skills: "", avatarUrl: "", linkedinUrl: "", bio: "", isActive: true, order: 0 };
 
 export function TeamAdminPage() {
-  const { data: team, isLoading, queryKey } = useListTeamMembers();
+  const { data: team, queryKey } = useListTeamMembers();
   const createMember = useCreateTeamMember();
   const deleteMember = useDeleteTeamMember();
   const qc = useQueryClient();
@@ -70,12 +69,7 @@ export function TeamAdminPage() {
         </Dialog>
       </div>
 
-      {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-48 rounded-xl" />)}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {team?.map((member) => (
             <div key={member.id} className="gradient-border rounded-xl p-5 text-center group">
               <div className="w-16 h-16 rounded-full overflow-hidden mx-auto mb-3 ring-2 ring-primary/20">
@@ -102,8 +96,7 @@ export function TeamAdminPage() {
             </div>
           ))}
         </div>
-      )}
-      {!isLoading && (!team || team.length === 0) && (
+      {(!team || team.length === 0) && (
         <div className="text-center py-20 text-muted-foreground">No team members yet.</div>
       )}
     </AdminLayout>
