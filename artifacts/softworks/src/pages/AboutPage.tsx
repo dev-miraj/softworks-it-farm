@@ -1,8 +1,9 @@
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useListTeamMembers } from "@workspace/api-client-react";
-import { Target, Eye, Heart, Linkedin } from "lucide-react";
+import { Target, Eye, Heart, Linkedin, Award, Clock, Users, Briefcase } from "lucide-react";
 import { useGsapReveal } from "@/hooks/useGsapReveal";
+import { StatCounter } from "@/components/ui/StatCounter";
 
 const values = [
   { icon: Target, title: "Precision", desc: "Every line of code, every pixel — built with intent and craftsmanship." },
@@ -47,16 +48,21 @@ export function AboutPage() {
           </div>
           <div className="grid grid-cols-2 gap-4 reveal-right">
             {[
-              { val: "3+", label: "Years Operating" },
-              { val: "150+", label: "Projects Delivered" },
-              { val: "80+", label: "Clients Served" },
-              { val: "15+", label: "Expert Team" },
-            ].map((s) => (
-              <div key={s.label} className="glass border border-border/50 rounded-xl p-6 text-center">
-                <div className="text-3xl font-black gradient-text mb-1">{s.val}</div>
-                <div className="text-xs text-muted-foreground">{s.label}</div>
-              </div>
-            ))}
+              { val: "3+", label: "Years Operating", icon: Clock },
+              { val: "150+", label: "Projects Delivered", icon: Briefcase },
+              { val: "80+", label: "Clients Served", icon: Users },
+              { val: "15+", label: "Expert Team", icon: Award },
+            ].map((s) => {
+              const Icon = s.icon;
+              return (
+                <div key={s.label} className="glass border border-border/50 rounded-xl p-5 text-center group hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-3 group-hover:bg-primary/20 transition-colors">
+                    <Icon className="w-4 h-4 text-primary" />
+                  </div>
+                  <StatCounter value={s.val} label={s.label} className="text-3xl" labelClassName="text-xs" />
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
