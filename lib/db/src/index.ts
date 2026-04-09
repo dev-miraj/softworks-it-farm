@@ -1,11 +1,10 @@
-import { drizzle } from "drizzle-orm/node-postgres";
+import { drizzle as drizzleHttp } from "drizzle-orm/neon-http";
+import { drizzle as drizzlePg } from "drizzle-orm/node-postgres";
+import { neon } from "@neondatabase/serverless";
 import pg from "pg";
 import * as schema from "./schema";
 
 const { Pool } = pg;
-
-let _pool: pg.Pool | null = null;
-let _db: ReturnType<typeof drizzle<typeof schema>> | null = null;
 
 function getConnectionUrl(): string {
   // Priority — UNPOOLED first:
@@ -32,16 +31,25 @@ function getConnectionUrl(): string {
   }
 }
 
+// Detect serverless (Vercel / AWS Lambda / etc.)
+const isServerless =
+  !!process.env.VERCEL ||
+  !!process.env.AWS_LAMBDA_FUNCTION_NAME ||
+  process.env.NODE_ENV === "production" && !process.env.LOCAL_DEV;
+
+let _pool: pg.Pool | null = null;
+let _db: ReturnType<typeof drizzlePg<typeof schema>> | ReturnType<typeof drizzleHttp<typeof schema>> | null = null;
+
 function createPool(): pg.Pool {
   const url = getConnectionUrl();
   const isNeon = url.includes("neon.tech");
   return new Pool({
     connectionString: url,
     ssl: isNeon ? { rejectUnauthorized: false } : undefined,
-    max: 10,
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 8000,
-    query_timeout: 15000,
+    max: 2,
+    idleTimeoutMillis: 10000,
+    connectionTimeoutMillis: 10000,
+    allowExitOnIdle: true,
   });
 }
 
@@ -50,8 +58,18 @@ export function getPool(): pg.Pool {
   return _pool;
 }
 
-export function getDb(): ReturnType<typeof drizzle<typeof schema>> {
-  if (!_db) _db = drizzle(getPool(), { schema });
+export function getDb() {
+  if (_db) return _db;
+
+  if (isServerless) {
+    // On Vercel: use Neon's HTTP driver — no TCP pool, instant cold start
+    const url = getConnectionUrl();
+    const sql = neon(url);
+    _db = drizzleHttp(sql, { schema });
+  } else {
+    // Locally: use standard pg Pool
+    _db = drizzlePg(getPool(), { schema });
+  }
   return _db;
 }
 
@@ -64,7 +82,7 @@ export const pool = new Proxy({} as pg.Pool, {
   },
 });
 
-export const db = new Proxy({} as ReturnType<typeof drizzle<typeof schema>>, {
+export const db = new Proxy({} as ReturnType<typeof drizzlePg<typeof schema>>, {
   get(_t, prop) {
     const d = getDb();
     const v = (d as unknown as Record<string | symbol, unknown>)[prop];
