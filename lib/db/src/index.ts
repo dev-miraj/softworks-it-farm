@@ -19,7 +19,8 @@ function createPool(): pg.Pool {
     ssl: isNeon ? { rejectUnauthorized: false } : undefined,
     max: 5,
     idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 10000,
+    connectionTimeoutMillis: 5000,  // Fail fast — don't hang for 30s
+    query_timeout: 10000,
   });
 }
 

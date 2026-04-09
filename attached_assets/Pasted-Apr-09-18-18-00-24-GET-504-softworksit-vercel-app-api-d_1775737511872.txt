@@ -1,0 +1,221 @@
+Apr 09 18:18:00.24
+GET
+504
+softworksit.vercel.app
+/api/dashboard/project-summary
+2
+Vercel Runtime Timeout Error: Task timed out after 30 seconds
+Apr 09 18:18:00.24
+GET
+504
+softworksit.vercel.app
+/api/dashboard/hr-summary
+2
+Vercel Runtime Timeout Error: Task timed out after 30 seconds
+Apr 09 18:18:00.24
+GET
+504
+softworksit.vercel.app
+/api/dashboard/recent-leads
+2
+Vercel Runtime Timeout Error: Task timed out after 30 seconds
+Apr 09 18:18:00.24
+GET
+504
+softworksit.vercel.app
+/api/dashboard/stats
+2
+Vercel Runtime Timeout Error: Task timed out after 30 seconds
+Apr 09 18:17:58.95
+GET
+504
+softworksit.vercel.app
+/api/dashboard/project-summary
+2
+Vercel Runtime Timeout Error: Task timed out after 30 seconds
+Apr 09 18:17:58.95
+GET
+504
+softworksit.vercel.app
+/api/dashboard/hr-summary
+2
+Vercel Runtime Timeout Error: Task timed out after 30 seconds
+Apr 09 18:17:58.95
+GET
+504
+softworksit.vercel.app
+/api/dashboard/recent-leads
+2
+Vercel Runtime Timeout Error: Task timed out after 30 seconds
+Apr 09 18:17:58.95
+GET
+504
+softworksit.vercel.app
+/api/dashboard/stats
+2
+Vercel Runtime Timeout Error: Task timed out after 30 seconds
+Apr 09 18:15:13.91
+GET
+504
+softworksit.vercel.app
+/api/dashboard/hr-summary
+2
+Vercel Runtime Timeout Error: Task timed out after 30 seconds
+Apr 09 18:15:13.91
+GET
+504
+softworksit.vercel.app
+/api/dashboard/recent-leads
+2
+Vercel Runtime Timeout Error: Task timed out after 30 seconds
+Apr 09 18:15:13.91
+GET
+504
+softworksit.vercel.app
+/api/dashboard/project-summary
+2
+Vercel Runtime Timeout Error: Task timed out after 30 seconds
+Apr 09 18:15:13.90
+GET
+504
+softworksit.vercel.app
+/api/dashboard/stats
+2
+Vercel Runtime Timeout Error: Task timed out after 30 seconds
+Apr 09 18:15:00.03
+GET
+504
+softworksit.vercel.app
+/api/dashboard/hr-summary
+2
+Vercel Runtime Timeout Error: Task timed out after 30 seconds
+Apr 09 18:15:00.02
+GET
+504
+softworksit.vercel.app
+/api/dashboard/stats
+2
+Vercel Runtime Timeout Error: Task timed out after 30 seconds
+Apr 09 18:15:00.02
+GET
+504
+softworksit.vercel.app
+/api/dashboard/recent-leads
+2
+Vercel Runtime Timeout Error: Task timed out after 30 seconds
+Apr 09 18:15:00.02
+GET
+504
+softworksit.vercel.app
+/api/dashboard/project-summary
+2
+Vercel Runtime Timeout Error: Task timed out after 30 seconds
+Apr 09 18:14:51.53
+GET
+504
+softworksit.vercel.app
+/api/services
+2
+Vercel Runtime Timeout Error: Task timed out after 30 seconds
+Apr 09 18:14:51.52
+GET
+504
+softworksit.vercel.app
+/api/testimonials
+2
+Vercel Runtime Timeout Error: Task timed out after 30 seconds
+Apr 09 18:14:44.99
+GET
+500
+softworksit-6wnnqt4pk-md-mirajul-islams-projects.vercel.app
+/api/saas-products
+(node:4) Warning: Failed to load the ES module: /var/task/api/index.js. Make sure to set "type": "module" in the nearest package.json file or use the .mjs extension. (Use `node --trace-warnings ...` to show where the warning was created) (node:4) Warning: Failed to load the ES module: /var/task/api/index.js. Make sure to set "type": "module" in the nearest package.json file or use the .mjs extension. /var/task/api/index.js:6 const __filename = (0, node_url_1.fileURLToPath)(import.meta.url); ^ SyntaxError: Identifier '__filename' has already been declared at wrapSafe (node:internal/modules/cjs/loader:1692:18) at Module.<anonymous> (node:internal/modules/cjs/loader:1735:20) at O.l._compile (/opt/rust/bytecode.js:2:4002) at Object..js (node:internal/modules/cjs/loader:1893:10) at Module.load (node:internal/modules/cjs/loader:1481:32) at Module.<anonymous> (node:internal/modules/cjs/loader:1300:12) at /opt/rust/nodejs.js:2:13531 at Module.pn (/opt/rust/nodejs.js:2:13909) at Xe.e.<computed>.Ye._load (/opt/rust/nodejs.js:2:13501) at TracingChannel.traceSync (node:diagnostics_channel:328:14) Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+Apr 09 18:14:43.48
+GET
+500
+softworksit-6wnnqt4pk-md-mirajul-islams-projects.vercel.app
+/api/saas-products
+(node:4) Warning: Failed to load the ES module: /var/task/api/index.js. Make sure to set "type": "module" in the nearest package.json file or use the .mjs extension. (Use `node --trace-warnings ...` to show where the warning was created) (node:4) Warning: Failed to load the ES module: /var/task/api/index.js. Make sure to set "type": "module" in the nearest package.json file or use the .mjs extension. /var/task/api/index.js:6 const __filename = (0, node_url_1.fileURLToPath)(import.meta.url); ^ SyntaxError: Identifier '__filename' has already been declared at wrapSafe (node:internal/modules/cjs/loader:1692:18) at Module.<anonymous> (node:internal/modules/cjs/loader:1735:20) at O.l._compile (/opt/rust/bytecode.js:2:4002) at Object..js (node:internal/modules/cjs/loader:1893:10) at Module.load (node:internal/modules/cjs/loader:1481:32) at Module.<anonymous> (node:internal/modules/cjs/loader:1300:12) at /opt/rust/nodejs.js:2:13531 at Module.pn (/opt/rust/nodejs.js:2:13909) at Xe.e.<computed>.Ye._load (/opt/rust/nodejs.js:2:13501) at TracingChannel.traceSync (node:diagnostics_channel:328:14) Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+Apr 09 18:14:41.49
+GET
+500
+softworksit-6wnnqt4pk-md-mirajul-islams-projects.vercel.app
+/api/services
+(node:4) Warning: Failed to load the ES module: /var/task/api/index.js. Make sure to set "type": "module" in the nearest package.json file or use the .mjs extension. (Use `node --trace-warnings ...` to show where the warning was created) (node:4) Warning: Failed to load the ES module: /var/task/api/index.js. Make sure to set "type": "module" in the nearest package.json file or use the .mjs extension. /var/task/api/index.js:6 const __filename = (0, node_url_1.fileURLToPath)(import.meta.url); ^ SyntaxError: Identifier '__filename' has already been declared at wrapSafe (node:internal/modules/cjs/loader:1692:18) at Module.<anonymous> (node:internal/modules/cjs/loader:1735:20) at O.l._compile (/opt/rust/bytecode.js:2:4002) at Object..js (node:internal/modules/cjs/loader:1893:10) at Module.load (node:internal/modules/cjs/loader:1481:32) at Module.<anonymous> (node:internal/modules/cjs/loader:1300:12) at /opt/rust/nodejs.js:2:13531 at Module.pn (/opt/rust/nodejs.js:2:13909) at Xe.e.<computed>.Ye._load (/opt/rust/nodejs.js:2:13501) at TracingChannel.traceSync (node:diagnostics_channel:328:14) Node.js process exited with exit status: 1. The logs above can help with debugging the issue. (node:4) Warning: Failed to load the ES module: /var/task/api/index.js. Make sure to set "type": "module" in the nearest package.json file or use the .mjs extension. (Use `node --trace-warnings ...` to show where the warning was created) (node:4) Warning: Failed to load the ES module: /var/task/api/index.js. Make sure to set "type": "module" in the nearest package.json file or use the .mjs extension. /var/task/api/index.js:6 const __filename = (0, node_url_1.fileURLToPath)(import.meta.url); ^ SyntaxError: Identifier '__filename' has already been declared at wrapSafe (node:internal/modules/cjs/loader:1692:18) at Module.<anonymous> (node:internal/modules/cjs/loader:1735:20) at O.l._compile (/opt/rust/bytecode.js:2:4002) at Object..js (node:internal/modules/cjs/loader:1893:10) at Module.load (node:internal/modules/cjs/loader:1481:32) at Module.<anonymous> (node:internal/modules/cjs/loader:1300:12) at /opt/rust/nodejs.js:2:13531 at Module.pn (/opt/rust/nodejs.js:2:13909) at Xe.e.<computed>.Ye._load (/opt/rust/nodejs.js:2:13501) at TracingChannel.traceSync (node:diagnostics_channel:328:14) Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+Apr 09 18:14:41.48
+GET
+500
+softworksit-6wnnqt4pk-md-mirajul-islams-projects.vercel.app
+/api/testimonials
+(node:4) Warning: Failed to load the ES module: /var/task/api/index.js. Make sure to set "type": "module" in the nearest package.json file or use the .mjs extension. (Use `node --trace-warnings ...` to show where the warning was created) (node:4) Warning: Failed to load the ES module: /var/task/api/index.js. Make sure to set "type": "module" in the nearest package.json file or use the .mjs extension. /var/task/api/index.js:6 const __filename = (0, node_url_1.fileURLToPath)(import.meta.url); ^ SyntaxError: Identifier '__filename' has already been declared at wrapSafe (node:internal/modules/cjs/loader:1692:18) at Module.<anonymous> (node:internal/modules/cjs/loader:1735:20) at O.l._compile (/opt/rust/bytecode.js:2:4002) at Object..js (node:internal/modules/cjs/loader:1893:10) at Module.load (node:internal/modules/cjs/loader:1481:32) at Module.<anonymous> (node:internal/modules/cjs/loader:1300:12) at /opt/rust/nodejs.js:2:13531 at Module.pn (/opt/rust/nodejs.js:2:13909) at Xe.e.<computed>.Ye._load (/opt/rust/nodejs.js:2:13501) at TracingChannel.traceSync (node:diagnostics_channel:328:14) Node.js process exited with exit status: 1. The logs above can help with debugging the issue. (node:4) Warning: Failed to load the ES module: /var/task/api/index.js. Make sure to set "type": "module" in the nearest package.json file or use the .mjs extension. (Use `node --trace-warnings ...` to show where the warning was created) (node:4) Warning: Failed to load the ES module: /var/task/api/index.js. Make sure to set "type": "module" in the nearest package.json file or use the .mjs extension. /var/task/api/index.js:6 const __filename = (0, node_url_1.fileURLToPath)(import.meta.url); ^ SyntaxError: Identifier '__filename' has already been declared at wrapSafe (node:internal/modules/cjs/loader:1692:18) at Module.<anonymous> (node:internal/modules/cjs/loader:1735:20) at O.l._compile (/opt/rust/bytecode.js:2:4002) at Object..js (node:internal/modules/cjs/loader:1893:10) at Module.load (node:internal/modules/cjs/loader:1481:32) at Module.<anonymous> (node:internal/modules/cjs/loader:1300:12) at /opt/rust/nodejs.js:2:13531 at Module.pn (/opt/rust/nodejs.js:2:13909) at Xe.e.<computed>.Ye._load (/opt/rust/nodejs.js:2:13501) at TracingChannel.traceSync (node:diagnostics_channel:328:14) Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+Apr 09 18:11:41.84
+GET
+504
+softworksit-hjetd547b-md-mirajul-islams-projects.vercel.app
+/api/services
+2
+Vercel Runtime Timeout Error: Task timed out after 30 seconds
+Apr 09 18:11:41.84
+GET
+504
+softworksit-hjetd547b-md-mirajul-islams-projects.vercel.app
+/api/testimonials
+2
+Vercel Runtime Timeout Error: Task timed out after 30 seconds
+Apr 09 18:11:39.82
+GET
+504
+softworksit-hjetd547b-md-mirajul-islams-projects.vercel.app
+/api/services
+2
+Vercel Runtime Timeout Error: Task timed out after 30 seconds
+Apr 09 18:11:39.82
+GET
+504
+softworksit-hjetd547b-md-mirajul-islams-projects.vercel.app
+/api/testimonials
+2
+Vercel Runtime Timeout Error: Task timed out after 30 seconds
+Apr 09 18:01:55.45
+GET
+500
+softworksit-qiz59od83-md-mirajul-islams-projects.vercel.app
+/api/services
+(node:4) Warning: Failed to load the ES module: /var/task/api/index.js. Make sure to set "type": "module" in the nearest package.json file or use the .mjs extension. (Use `node --trace-warnings ...` to show where the warning was created) (node:4) Warning: Failed to load the ES module: /var/task/api/index.js. Make sure to set "type": "module" in the nearest package.json file or use the .mjs extension. /var/task/api/index.js:11 export default async function handler(req, res) { ^^^^^^ SyntaxError: Unexpected token 'export' at wrapSafe (node:internal/modules/cjs/loader:1692:18) at Module.<anonymous> (node:internal/modules/cjs/loader:1735:20) at O.l._compile (/opt/rust/bytecode.js:2:4002) at Object..js (node:internal/modules/cjs/loader:1893:10) at Module.load (node:internal/modules/cjs/loader:1481:32) at Module.<anonymous> (node:internal/modules/cjs/loader:1300:12) at /opt/rust/nodejs.js:2:13531 at Module.pn (/opt/rust/nodejs.js:2:13909) at Xe.e.<computed>.Ye._load (/opt/rust/nodejs.js:2:13501) at TracingChannel.traceSync (node:diagnostics_channel:328:14) Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+Apr 09 18:01:55.45
+GET
+500
+softworksit-qiz59od83-md-mirajul-islams-projects.vercel.app
+/api/testimonials
+(node:4) Warning: Failed to load the ES module: /var/task/api/index.js. Make sure to set "type": "module" in the nearest package.json file or use the .mjs extension. (Use `node --trace-warnings ...` to show where the warning was created) (node:4) Warning: Failed to load the ES module: /var/task/api/index.js. Make sure to set "type": "module" in the nearest package.json file or use the .mjs extension. /var/task/api/index.js:11 export default async function handler(req, res) { ^^^^^^ SyntaxError: Unexpected token 'export' at wrapSafe (node:internal/modules/cjs/loader:1692:18) at Module.<anonymous> (node:internal/modules/cjs/loader:1735:20) at O.l._compile (/opt/rust/bytecode.js:2:4002) at Object..js (node:internal/modules/cjs/loader:1893:10) at Module.load (node:internal/modules/cjs/loader:1481:32) at Module.<anonymous> (node:internal/modules/cjs/loader:1300:12) at /opt/rust/nodejs.js:2:13531 at Module.pn (/opt/rust/nodejs.js:2:13909) at Xe.e.<computed>.Ye._load (/opt/rust/nodejs.js:2:13501) at TracingChannel.traceSync (node:diagnostics_channel:328:14) Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+Apr 09 18:01:54.13
+GET
+500
+softworksit-qiz59od83-md-mirajul-islams-projects.vercel.app
+/api/services
+(node:4) Warning: Failed to load the ES module: /var/task/api/index.js. Make sure to set "type": "module" in the nearest package.json file or use the .mjs extension. (Use `node --trace-warnings ...` to show where the warning was created) (node:4) Warning: Failed to load the ES module: /var/task/api/index.js. Make sure to set "type": "module" in the nearest package.json file or use the .mjs extension. /var/task/api/index.js:11 export default async function handler(req, res) { ^^^^^^ SyntaxError: Unexpected token 'export' at wrapSafe (node:internal/modules/cjs/loader:1692:18) at Module.<anonymous> (node:internal/modules/cjs/loader:1735:20) at O.l._compile (/opt/rust/bytecode.js:2:4002) at Object..js (node:internal/modules/cjs/loader:1893:10) at Module.load (node:internal/modules/cjs/loader:1481:32) at Module.<anonymous> (node:internal/modules/cjs/loader:1300:12) at /opt/rust/nodejs.js:2:13531 at Module.pn (/opt/rust/nodejs.js:2:13909) at Xe.e.<computed>.Ye._load (/opt/rust/nodejs.js:2:13501) at TracingChannel.traceSync (node:diagnostics_channel:328:14) Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+Apr 09 18:01:54.13
+GET
+500
+softworksit-qiz59od83-md-mirajul-islams-projects.vercel.app
+/api/testimonials
+(node:4) Warning: Failed to load the ES module: /var/task/api/index.js. Make sure to set "type": "module" in the nearest package.json file or use the .mjs extension. (Use `node --trace-warnings ...` to show where the warning was created) (node:4) Warning: Failed to load the ES module: /var/task/api/index.js. Make sure to set "type": "module" in the nearest package.json file or use the .mjs extension. /var/task/api/index.js:11 export default async function handler(req, res) { ^^^^^^ SyntaxError: Unexpected token 'export' at wrapSafe (node:internal/modules/cjs/loader:1692:18) at Module.<anonymous> (node:internal/modules/cjs/loader:1735:20) at O.l._compile (/opt/rust/bytecode.js:2:4002) at Object..js (node:internal/modules/cjs/loader:1893:10) at Module.load (node:internal/modules/cjs/loader:1481:32) at Module.<anonymous> (node:internal/modules/cjs/loader:1300:12) at /opt/rust/nodejs.js:2:13531 at Module.pn (/opt/rust/nodejs.js:2:13909) at Xe.e.<computed>.Ye._load (/opt/rust/nodejs.js:2:13501) at TracingChannel.traceSync (node:diagnostics_channel:328:14) Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+Apr 09 18:01:52.55
+GET
+500
+softworksit-qiz59od83-md-mirajul-islams-projects.vercel.app
+/api/testimonials
+(node:4) Warning: Failed to load the ES module: /var/task/api/index.js. Make sure to set "type": "module" in the nearest package.json file or use the .mjs extension. (Use `node --trace-warnings ...` to show where the warning was created) (node:4) Warning: Failed to load the ES module: /var/task/api/index.js. Make sure to set "type": "module" in the nearest package.json file or use the .mjs extension. /var/task/api/index.js:11 export default async function handler(req, res) { ^^^^^^ SyntaxError: Unexpected token 'export' at wrapSafe (node:internal/modules/cjs/loader:1692:18) at Module.<anonymous> (node:internal/modules/cjs/loader:1735:20) at O.l._compile (/opt/rust/bytecode.js:2:4002) at Object..js (node:internal/modules/cjs/loader:1893:10) at Module.load (node:internal/modules/cjs/loader:1481:32) at Module.<anonymous> (node:internal/modules/cjs/loader:1300:12) at /opt/rust/nodejs.js:2:13531 at Module.pn (/opt/rust/nodejs.js:2:13909) at Xe.e.<computed>.Ye._load (/opt/rust/nodejs.js:2:13501) at TracingChannel.traceSync (node:diagnostics_channel:328:14) Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+Apr 09 18:01:50.68
+GET
+500
+softworksit-qiz59od83-md-mirajul-islams-projects.vercel.app
+/api/services
+(node:4) Warning: Failed to load the ES module: /var/task/api/index.js. Make sure to set "type": "module" in the nearest package.json file or use the .mjs extension. (Use `node --trace-warnings ...` to show where the warning was created) (node:4) Warning: Failed to load the ES module: /var/task/api/index.js. Make sure to set "type": "module" in the nearest package.json file or use the .mjs extension. /var/task/api/index.js:11 export default async function handler(req, res) { ^^^^^^ SyntaxError: Unexpected token 'export' at wrapSafe (node:internal/modules/cjs/loader:1692:18) at Module.<anonymous> (node:internal/modules/cjs/loader:1735:20) at O.l._compile (/opt/rust/bytecode.js:2:4002) at Object..js (node:internal/modules/cjs/loader:1893:10) at Module.load (node:internal/modules/cjs/loader:1481:32) at Module.<anonymous> (node:internal/modules/cjs/loader:1300:12) at /opt/rust/nodejs.js:2:13531 at Module.pn (/opt/rust/nodejs.js:2:13909) at Xe.e.<computed>.Ye._load (/opt/rust/nodejs.js:2:13501) at TracingChannel.traceSync (node:diagnostics_channel:328:14) Node.js process exited with exit status: 1. The logs above can help with debugging the issue. (node:4) Warning: Failed to load the ES module: /var/task/api/index.js. Make sure to set "type": "module" in the nearest package.json file or use the .mjs extension. (Use `node --trace-warnings ...` to show where the warning was created) (node:4) Warning: Failed to load the ES module: /var/task/api/index.js. Make sure to set "type": "module" in the nearest package.json file or use the .mjs extension. /var/task/api/index.js:11 export default async function handler(req, res) { ^^^^^^ SyntaxError: Unexpected token 'export' at wrapSafe (node:internal/modules/cjs/loader:1692:18) at Module.<anonymous> (node:internal/modules/cjs/loader:1735:20) at O.l._compile (/opt/rust/bytecode.js:2:4002) at Object..js (node:internal/modules/cjs/loader:1893:10) at Module.load (node:internal/modules/cjs/loader:1481:32) at Module.<anonymous> (node:internal/modules/cjs/loader:1300:12) at /opt/rust/nodejs.js:2:13531 at Module.pn (/opt/rust/nodejs.js:2:13909) at Xe.e.<computed>.Ye._load (/opt/rust/nodejs.js:2:13501) at TracingChannel.traceSync (node:diagnostics_channel:328:14) Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+Apr 09 18:01:50.68
+GET
+500
+softworksit-qiz59od83-md-mirajul-islams-projects.vercel.app
+/api/testimonials
+(node:4) Warning: Failed to load the ES module: /var/task/api/index.js. Make sure to set "type": "module" in the nearest package.json file or use the .mjs extension. (Use `node --trace-warnings ...` to show where the warning was created) (node:4) Warning: Failed to load the ES module: /var/task/api/index.js. Make sure to set "type": "module" in the nearest package.json file or use the .mjs extension. /var/task/api/index.js:11 export default async function handler(req, res) { ^^^^^^ SyntaxError: Unexpected token 'export' at wrapSafe (node:internal/modules/cjs/loader:1692:18) at Module.<anonymous> (node:internal/modules/cjs/loader:1735:20) at O.l._compile (/opt/rust/bytecode.js:2:4002) at Object..js (node:internal/modules/cjs/loader:1893:10) at Module.load (node:internal/modules/cjs/loader:1481:32) at Module.<anonymous> (node:internal/modules/cjs/loader:1300:12) at /opt/rust/nodejs.js:2:13531 at Module.pn (/opt/rust/nodejs.js:2:13909) at Xe.e.<computed>.Ye._load (/opt/rust/nodejs.js:2:13501) at TracingChannel.traceSync (node:diagnostics_channel:328:14) Node.js process exited with exit status: 1. The logs above can help with debugging the issue. (node:4) Warning: Failed to load the ES module: /var/task/api/index.js. Make sure to set "type": "module" in the nearest package.json file or use the .mjs extension. (Use `node --trace-warnings ...` to show where the warning was created) (node:4) Warning: Failed to load the ES module: /var/task/api/index.js. Make sure to set "type": "module" in the nearest package.json file or use the .mjs extension. /var/task/api/index.js:11 export default async function handler(req, res) { ^^^^^^ SyntaxError: Unexpected token 'export' at wrapSafe (node:internal/modules/cjs/loader:1692:18) at Module.<anonymous> (node:internal/modules/cjs/loader:1735:20) at O.l._compile (/opt/rust/bytecode.js:2:4002) at Object..js (node:internal/modules/cjs/loader:1893:10) at Module.load (node:internal/modules/cjs/loader:1481:32) at Module.<anonymous> (node:internal/modules/cjs/loader:1300:12) at /opt/rust/nodejs.js:2:13531 at Module.pn (/opt/rust/nodejs.js:2:13909) at Xe.e.<computed>.Ye._load (/opt/rust/nodejs.js:2:13501) at TracingChannel.traceSync (node:diagnostics_channel:328:14) Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+No more logs to show within selected timeline
