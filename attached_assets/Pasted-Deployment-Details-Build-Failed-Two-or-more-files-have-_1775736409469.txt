@@ -1,0 +1,72 @@
+Deployment Details
+Build Failed
+Two or more files have conflicting paths or names. Please make sure path segments and filenames, without their extension, are unique. The path "api/index.mjs" has conflicts with "api/index.ts".
+Created
+github/dev-miraj
+dev-miraj
+9m ago
+Status
+Error
+Latest
+Duration
+3s
+9m ago
+Environment
+Production
+Domains
+softworksit-git-main-md-mirajul-islams-projects.vercel.app
+softworksit-c3lcv66d3-md-mirajul-islams-projects.vercel.app
+Source
+main
+51ea41f
+feat: npm install & npm run dev support + README setup guide
+
+Deployment Settings
+3 Recommendations
+Build Logs
+3s
+21 lines
+Find in logs
+CtrlF
+17:56:31.986 
+Running build in Washington, D.C., USA (East) – iad1
+17:56:31.987 
+Build machine configuration: 2 cores, 8 GB
+17:56:32.106 
+Cloning github.com/dev-miraj/softworks-it-farm (Branch: main, Commit: 51ea41f)
+17:56:32.755 
+Cloning completed: 649.000ms
+17:56:32.846 
+Found .vercelignore
+17:56:32.859 
+Removed 92 ignored files defined in .vercelignore
+17:56:32.859 
+  /artifacts/mockup-sandbox/.replit-artifact/artifact.toml
+17:56:32.859 
+  /artifacts/mockup-sandbox/components.json
+17:56:32.859 
+  /artifacts/mockup-sandbox/index.html
+17:56:32.859 
+  /artifacts/mockup-sandbox/mockupPreviewPlugin.ts
+17:56:32.859 
+  /artifacts/mockup-sandbox/package.json
+17:56:32.859 
+  /artifacts/mockup-sandbox/src/.generated/mockup-components.ts
+17:56:32.859 
+  /artifacts/mockup-sandbox/src/App.tsx
+17:56:32.859 
+  /artifacts/mockup-sandbox/src/components/ui/accordion.tsx
+17:56:32.859 
+  /artifacts/mockup-sandbox/src/components/ui/alert-dialog.tsx
+17:56:32.859 
+  /artifacts/mockup-sandbox/src/components/ui/alert.tsx
+17:56:32.976 
+Restored build cache from previous deployment (C3rgXtg9fCBTnczftyxpnPc9FCmf)
+17:56:33.325 
+Warning: Detected "engines": { "node": ">=20.0.0" } in your `package.json` that will automatically upgrade when a new major Node.js Version is released. Learn More: https://vercel.link/node-version
+17:56:33.326 
+Running "vercel build"
+17:56:33.969 
+Vercel CLI 50.38.2
+17:56:34.130 
+Error: Two or more files have conflicting paths or names. Please make sure path segments and filenames, without their extension, are unique. The path "api/index.mjs" has conflicts with "api/index.ts".
