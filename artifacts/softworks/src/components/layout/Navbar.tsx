@@ -147,15 +147,10 @@ export function Navbar() {
         </nav>
 
         {/* Drawer Footer */}
-        <div className="p-4 border-t border-border shrink-0 space-y-2">
+        <div className="p-4 border-t border-border shrink-0">
           <Link href="/contact" onClick={() => setIsOpen(false)}>
             <Button className="w-full bg-primary hover:bg-primary/90 shadow-md shadow-primary/25">
               Start a Project
-            </Button>
-          </Link>
-          <Link href="/admin" onClick={() => setIsOpen(false)}>
-            <Button variant="ghost" className="w-full text-muted-foreground text-xs">
-              Admin Portal
             </Button>
           </Link>
         </div>
