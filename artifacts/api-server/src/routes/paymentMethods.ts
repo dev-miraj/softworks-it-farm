@@ -6,41 +6,69 @@ import { paymentMethodsTable, insertPaymentMethodSchema } from "@workspace/db/sc
 const router = Router();
 
 const BD_PAYMENT_SEED = [
-  // MFS
-  { name: "bKash Personal", type: "Send Money", category: "mfs", emoji: "💚", instructions: "Send to bKash personal number. Reference: License Key" },
-  { name: "bKash Merchant", type: "Payment", category: "mfs", emoji: "💚", instructions: "Pay to bKash merchant. Reference: License Key" },
-  { name: "Nagad Personal", type: "Send Money", category: "mfs", emoji: "🟠", instructions: "Send to Nagad personal number. Reference: License Key" },
-  { name: "Nagad Merchant", type: "Payment", category: "mfs", emoji: "🟠", instructions: "Pay to Nagad merchant. Reference: License Key" },
-  { name: "Rocket (DBBL)", type: "Send Money", category: "mfs", emoji: "🚀", instructions: "Send to Rocket number. Reference: License Key" },
-  { name: "Upay", type: "Send Money", category: "mfs", emoji: "🔵", instructions: "Send via Upay. Reference: License Key" },
-  { name: "SureCash", type: "Payment", category: "mfs", emoji: "💜", instructions: "Pay via SureCash. Reference: License Key" },
-  { name: "MyCash (Mercantile)", type: "Send Money", category: "mfs", emoji: "🔷", instructions: "Send via MyCash. Reference: License Key" },
-  { name: "OK Wallet", type: "Payment", category: "mfs", emoji: "✅", instructions: "Pay via OK Wallet. Reference: License Key" },
-  // Banks
-  { name: "Dutch-Bangla Bank (DBBL)", type: "Bank Transfer", category: "bank", emoji: "🏦", instructions: "Transfer to DBBL account. Attach screenshot." },
-  { name: "BRAC Bank", type: "Bank Transfer", category: "bank", emoji: "🏦", instructions: "Transfer to BRAC Bank account. Attach screenshot." },
-  { name: "City Bank", type: "Bank Transfer", category: "bank", emoji: "🏦", instructions: "Transfer to City Bank account. Attach screenshot." },
-  { name: "Dhaka Bank", type: "Bank Transfer", category: "bank", emoji: "🏦", instructions: "Transfer to Dhaka Bank account. Attach screenshot." },
-  { name: "Eastern Bank (EBL)", type: "Bank Transfer", category: "bank", emoji: "🏦", instructions: "Transfer to EBL account. Attach screenshot." },
-  { name: "Islami Bank Bangladesh", type: "Bank Transfer", category: "bank", emoji: "🏦", instructions: "Transfer to Islami Bank account. Attach screenshot." },
-  { name: "Southeast Bank", type: "Bank Transfer", category: "bank", emoji: "🏦", instructions: "Transfer to Southeast Bank account. Attach screenshot." },
-  { name: "Sonali Bank", type: "Bank Transfer", category: "bank", emoji: "🏦", instructions: "Transfer to Sonali Bank account. Attach screenshot." },
-  { name: "Janata Bank", type: "Bank Transfer", category: "bank", emoji: "🏦", instructions: "Transfer to Janata Bank account. Attach screenshot." },
-  { name: "Prime Bank", type: "Bank Transfer", category: "bank", emoji: "🏦", instructions: "Transfer to Prime Bank account. Attach screenshot." },
-  { name: "Mutual Trust Bank (MTB)", type: "Bank Transfer", category: "bank", emoji: "🏦", instructions: "Transfer to MTB account. Attach screenshot." },
-  { name: "Standard Chartered BD", type: "Bank Transfer", category: "bank", emoji: "🏦", instructions: "Transfer to Standard Chartered account. Attach screenshot." },
-  { name: "HSBC Bangladesh", type: "Bank Transfer", category: "bank", emoji: "🏦", instructions: "Transfer to HSBC account. Attach screenshot." },
-  { name: "Bank Asia", type: "Bank Transfer", category: "bank", emoji: "🏦", instructions: "Transfer to Bank Asia account. Attach screenshot." },
-  { name: "AB Bank", type: "Bank Transfer", category: "bank", emoji: "🏦", instructions: "Transfer to AB Bank account. Attach screenshot." },
-  { name: "One Bank", type: "Bank Transfer", category: "bank", emoji: "🏦", instructions: "Transfer to One Bank account. Attach screenshot." },
-  { name: "Uttara Bank", type: "Bank Transfer", category: "bank", emoji: "🏦", instructions: "Transfer to Uttara Bank account. Attach screenshot." },
-  { name: "National Bank (NBL)", type: "Bank Transfer", category: "bank", emoji: "🏦", instructions: "Transfer to NBL account. Attach screenshot." },
-  // Cards
-  { name: "Visa Card", type: "Card Payment", category: "card", emoji: "💳", instructions: "Pay via Visa card through payment gateway." },
-  { name: "Mastercard", type: "Card Payment", category: "card", emoji: "💳", instructions: "Pay via Mastercard through payment gateway." },
-  { name: "American Express", type: "Card Payment", category: "card", emoji: "💳", instructions: "Pay via Amex through payment gateway." },
+  // ── MFS ──
+  { name: "bKash Personal",         type: "Send Money",   category: "mfs",      emoji: "💚", instructions: "Send Money করুন। Reference: Invoice/License Number দিন।" },
+  { name: "bKash Merchant",         type: "Payment",      category: "mfs",      emoji: "💚", instructions: "Payment করুন bKash Merchant-এ। Reference: Invoice Number দিন।" },
+  { name: "bKash Agent",            type: "Cash In",      category: "mfs",      emoji: "💚", instructions: "bKash Agent-এ Cash In করুন। Reference: Invoice Number দিন।" },
+  { name: "Nagad Personal",         type: "Send Money",   category: "mfs",      emoji: "🟠", instructions: "Nagad Send Money করুন। Reference: Invoice Number দিন।" },
+  { name: "Nagad Merchant",         type: "Payment",      category: "mfs",      emoji: "🟠", instructions: "Nagad Merchant-এ Payment করুন। Reference: Invoice Number দিন।" },
+  { name: "Nagad Agent",            type: "Cash In",      category: "mfs",      emoji: "🟠", instructions: "Nagad Agent-এ Cash In করুন। Reference: Invoice Number দিন।" },
+  { name: "Rocket (DBBL Mobile)",   type: "Send Money",   category: "mfs",      emoji: "🚀", instructions: "Rocket Send Money করুন। Reference: Invoice Number দিন।" },
+  { name: "Upay (UCB)",             type: "Send Money",   category: "mfs",      emoji: "🔵", instructions: "Upay-তে Send Money করুন। Reference: Invoice Number দিন।" },
+  { name: "TapCash (UCB)",          type: "Payment",      category: "mfs",      emoji: "🟢", instructions: "TapCash-এ Payment করুন। Reference: Invoice Number দিন।" },
+  { name: "SureCash",               type: "Payment",      category: "mfs",      emoji: "💜", instructions: "SureCash-এ Payment করুন। Reference: Invoice Number দিন।" },
+  { name: "MyCash (Mercantile)",    type: "Send Money",   category: "mfs",      emoji: "🔷", instructions: "MyCash-এ Send Money করুন। Reference: Invoice Number দিন।" },
+  { name: "OK Wallet",              type: "Payment",      category: "mfs",      emoji: "✅", instructions: "OK Wallet-এ Payment করুন। Reference: Invoice Number দিন।" },
+  { name: "M-Cash (IBBL Mobile)",   type: "Send Money",   category: "mfs",      emoji: "🟩", instructions: "M-Cash-এ Send Money করুন। Reference: Invoice Number দিন।" },
+  { name: "T-Cash (Trust Bank)",    type: "Send Money",   category: "mfs",      emoji: "🔶", instructions: "T-Cash-এ Send Money করুন। Reference: Invoice Number দিন।" },
+  // ── Banks ──
+  { name: "Dutch-Bangla Bank (DBBL)", type: "Bank Transfer", category: "bank", emoji: "🏦", instructions: "DBBL Account-এ BEFTN/NPSB Transfer করুন। Screenshot পাঠান।" },
+  { name: "BRAC Bank",               type: "Bank Transfer", category: "bank",  emoji: "🏦", instructions: "BRAC Bank Account-এ Transfer করুন। Screenshot পাঠান।" },
+  { name: "Islami Bank Bangladesh",  type: "Bank Transfer", category: "bank",  emoji: "🏦", instructions: "IBBL Account-এ Transfer করুন। Screenshot পাঠান।" },
+  { name: "City Bank",               type: "Bank Transfer", category: "bank",  emoji: "🏦", instructions: "City Bank Account-এ Transfer করুন। Screenshot পাঠান।" },
+  { name: "Eastern Bank (EBL)",      type: "Bank Transfer", category: "bank",  emoji: "🏦", instructions: "EBL Account-এ Transfer করুন। Screenshot পাঠান।" },
+  { name: "Dhaka Bank",              type: "Bank Transfer", category: "bank",  emoji: "🏦", instructions: "Dhaka Bank Account-এ Transfer করুন। Screenshot পাঠান।" },
+  { name: "Southeast Bank",          type: "Bank Transfer", category: "bank",  emoji: "🏦", instructions: "Southeast Bank Account-এ Transfer করুন। Screenshot পাঠান।" },
+  { name: "Prime Bank",              type: "Bank Transfer", category: "bank",  emoji: "🏦", instructions: "Prime Bank Account-এ Transfer করুন। Screenshot পাঠান।" },
+  { name: "Bank Asia",               type: "Bank Transfer", category: "bank",  emoji: "🏦", instructions: "Bank Asia Account-এ Transfer করুন। Screenshot পাঠান।" },
+  { name: "Mutual Trust Bank (MTB)", type: "Bank Transfer", category: "bank",  emoji: "🏦", instructions: "MTB Account-এ Transfer করুন। Screenshot পাঠান।" },
+  { name: "United Commercial Bank (UCB)", type: "Bank Transfer", category: "bank", emoji: "🏦", instructions: "UCB Account-এ Transfer করুন। Screenshot পাঠান।" },
+  { name: "Pubali Bank",             type: "Bank Transfer", category: "bank",  emoji: "🏦", instructions: "Pubali Bank Account-এ Transfer করুন। Screenshot পাঠান।" },
+  { name: "Mercantile Bank",         type: "Bank Transfer", category: "bank",  emoji: "🏦", instructions: "Mercantile Bank Account-এ Transfer করুন। Screenshot পাঠান।" },
+  { name: "Al-Arafah Islami Bank",   type: "Bank Transfer", category: "bank",  emoji: "🏦", instructions: "Al-Arafah Bank Account-এ Transfer করুন। Screenshot পাঠান।" },
+  { name: "Social Islami Bank (SIBL)", type: "Bank Transfer", category: "bank", emoji: "🏦", instructions: "SIBL Account-এ Transfer করুন। Screenshot পাঠান।" },
+  { name: "Exim Bank",               type: "Bank Transfer", category: "bank",  emoji: "🏦", instructions: "Exim Bank Account-এ Transfer করুন। Screenshot পাঠান।" },
+  { name: "First Security Islami Bank (FSIBL)", type: "Bank Transfer", category: "bank", emoji: "🏦", instructions: "FSIBL Account-এ Transfer করুন। Screenshot পাঠান।" },
+  { name: "Sonali Bank",             type: "Bank Transfer", category: "bank",  emoji: "🏦", instructions: "Sonali Bank Account-এ Transfer করুন। Screenshot পাঠান।" },
+  { name: "Janata Bank",             type: "Bank Transfer", category: "bank",  emoji: "🏦", instructions: "Janata Bank Account-এ Transfer করুন। Screenshot পাঠান।" },
+  { name: "Agrani Bank",             type: "Bank Transfer", category: "bank",  emoji: "🏦", instructions: "Agrani Bank Account-এ Transfer করুন। Screenshot পাঠান।" },
+  { name: "Rupali Bank",             type: "Bank Transfer", category: "bank",  emoji: "🏦", instructions: "Rupali Bank Account-এ Transfer করুন। Screenshot পাঠান।" },
+  { name: "AB Bank",                 type: "Bank Transfer", category: "bank",  emoji: "🏦", instructions: "AB Bank Account-এ Transfer করুন। Screenshot পাঠান।" },
+  { name: "One Bank",                type: "Bank Transfer", category: "bank",  emoji: "🏦", instructions: "One Bank Account-এ Transfer করুন। Screenshot পাঠান।" },
+  { name: "National Bank (NBL)",     type: "Bank Transfer", category: "bank",  emoji: "🏦", instructions: "NBL Account-এ Transfer করুন। Screenshot পাঠান।" },
+  { name: "Trust Bank",              type: "Bank Transfer", category: "bank",  emoji: "🏦", instructions: "Trust Bank Account-এ Transfer করুন। Screenshot পাঠান।" },
+  { name: "Uttara Bank",             type: "Bank Transfer", category: "bank",  emoji: "🏦", instructions: "Uttara Bank Account-এ Transfer করুন। Screenshot পাঠান।" },
+  { name: "Standard Chartered BD",   type: "Bank Transfer", category: "bank",  emoji: "🏦", instructions: "Standard Chartered Account-এ Transfer করুন। Screenshot পাঠান।" },
+  { name: "HSBC Bangladesh",         type: "Bank Transfer", category: "bank",  emoji: "🏦", instructions: "HSBC Account-এ Transfer করুন। Screenshot পাঠান।" },
+  // ── Payment Gateways ──
+  { name: "SSLCOMMERZ",             type: "Online Gateway", category: "gateway", emoji: "🌐", instructions: "SSLCOMMERZ payment gateway দিয়ে payment করুন। সকল card ও MFS সাপোর্ট।" },
+  { name: "ShurjoPay",              type: "Online Gateway", category: "gateway", emoji: "🌐", instructions: "ShurjoPay gateway দিয়ে payment করুন। Reference: Invoice Number।" },
+  { name: "AamarPay",              type: "Online Gateway", category: "gateway", emoji: "🌐", instructions: "AamarPay gateway দিয়ে payment করুন। Reference: Invoice Number।" },
+  { name: "PortWallet",             type: "Online Gateway", category: "gateway", emoji: "🌐", instructions: "PortWallet দিয়ে payment করুন। Reference: Invoice Number।" },
+  // ── Cards ──
+  { name: "Visa Card",              type: "Card Payment",  category: "card",    emoji: "💳", instructions: "Visa Card দিয়ে payment করুন online gateway-এর মাধ্যমে।" },
+  { name: "Mastercard",             type: "Card Payment",  category: "card",    emoji: "💳", instructions: "Mastercard দিয়ে payment করুন online gateway-এর মাধ্যমে।" },
+  { name: "American Express",       type: "Card Payment",  category: "card",    emoji: "💳", instructions: "American Express দিয়ে payment করুন online gateway-এর মাধ্যমে।" },
+  { name: "DBBL Nexus Card",        type: "Card Payment",  category: "card",    emoji: "💳", instructions: "DBBL Nexus Debit/Credit Card দিয়ে payment করুন।" },
+  // ── International ──
+  { name: "PayPal",                 type: "International", category: "international", emoji: "🌍", instructions: "PayPal দিয়ে international payment করুন। USD/EUR সাপোর্ট।" },
+  { name: "Wise (TransferWise)",    type: "International", category: "international", emoji: "🌍", instructions: "Wise দিয়ে international transfer করুন। Multi-currency সাপোর্ট।" },
+  { name: "Payoneer",               type: "International", category: "international", emoji: "🌍", instructions: "Payoneer দিয়ে payment করুন। USD account দরকার।" },
+  { name: "Western Union",          type: "International", category: "international", emoji: "🌍", instructions: "Western Union দিয়ে payment পাঠান। Receiver info পাঠান।" },
+  { name: "MoneyGram",              type: "International", category: "international", emoji: "🌍", instructions: "MoneyGram দিয়ে payment পাঠান। Receiver info পাঠান।" },
 ];
 
+// Seed endpoint — only adds if empty
 router.get("/payment-methods/seed", async (req, res): Promise<void> => {
   const existing = await db.select().from(paymentMethodsTable);
   if (existing.length > 0) {
@@ -49,6 +77,13 @@ router.get("/payment-methods/seed", async (req, res): Promise<void> => {
   }
   const inserted = await db.insert(paymentMethodsTable).values(BD_PAYMENT_SEED).returning();
   res.json({ message: "Seeded", count: inserted.length });
+});
+
+// Reseed endpoint — clears all and re-seeds with the full BD list
+router.post("/payment-methods/reseed", async (req, res): Promise<void> => {
+  await db.delete(paymentMethodsTable);
+  const inserted = await db.insert(paymentMethodsTable).values(BD_PAYMENT_SEED).returning();
+  res.json({ message: "Reseeded successfully", count: inserted.length });
 });
 
 router.get("/payment-methods", async (req, res): Promise<void> => {
