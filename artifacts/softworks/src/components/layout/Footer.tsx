@@ -54,6 +54,7 @@ export function Footer() {
                 { href: "/services", label: "Services" },
                 { href: "/portfolio", label: "Portfolio" },
                 { href: "/saas", label: "SaaS Products" },
+                { href: "/verify-license", label: "License System" },
               ].map((item) => (
                 <li key={item.href}>
                   <Link href={item.href} className="text-sm text-muted-foreground hover:text-primary transition-colors hover:translate-x-0.5 inline-block">
