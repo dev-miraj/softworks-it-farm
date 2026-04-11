@@ -6,7 +6,8 @@
  */
 
 import { execSync } from "child_process";
-import { readFileSync } from "fs";
+import { readFileSync, statSync, readdirSync } from "fs";
+import { join } from "path";
 
 const OWNER  = "dev-miraj";
 const REPO   = "softworks-it-farm";
@@ -77,6 +78,20 @@ async function main() {
     localFiles[filePath] = { sha, mode };
   }
 
+  function expandPath(p) {
+    try {
+      if (statSync(p).isDirectory()) {
+        const entries = [];
+        const items = readdirSync(p, { withFileTypes: true });
+        for (const item of items) {
+          entries.push(...expandPath(join(p, item.name)));
+        }
+        return entries;
+      }
+      return [p];
+    } catch { return []; }
+  }
+
   // Merge uncommitted working-tree changes (modified + new untracked files)
   try {
     const statusOut = execSync("git status --porcelain", { maxBuffer: 5*1024*1024 }).toString();
@@ -84,11 +99,12 @@ async function main() {
       const xy = line.slice(0, 2);
       const filePath = line.slice(3).trim().replace(/^"(.*)"$/, "$1");
       if (xy.includes("D")) {
-        // Deleted in working tree
         delete localFiles[filePath];
       } else if (!xy.startsWith("!")) {
-        // Modified or new — mark to read from disk
-        localFiles[filePath] = { sha: null, mode: "100644", fromDisk: true };
+        const expanded = expandPath(filePath);
+        for (const fp of expanded) {
+          localFiles[fp] = { sha: null, mode: "100644", fromDisk: true };
+        }
       }
     }
   } catch { /* ignore */ }
