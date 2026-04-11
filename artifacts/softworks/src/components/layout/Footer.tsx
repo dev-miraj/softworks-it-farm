@@ -1,27 +1,31 @@
-import { Link, useLocation } from "wouter";
-import { Terminal, Github, Twitter, Linkedin, Mail, MapPin, Phone } from "lucide-react";
+import { useLocation } from "wouter";
+import { Terminal, Github, Twitter, Linkedin, Mail, MapPin } from "lucide-react";
+import { scrollToTopNow } from "./ScrollToTop";
 
-function FooterLink({ href, label }: { href: string; label: string }) {
+function FooterLink({ href, label, children }: { href: string; label?: string; children?: React.ReactNode }) {
   const [, setLocation] = useLocation();
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    window.scrollTo(0, 0);
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
+    scrollToTopNow();
     setLocation(href);
-    requestAnimationFrame(() => {
-      window.scrollTo(0, 0);
-    });
   };
+
+  if (href === "#") {
+    return (
+      <span className="text-sm text-muted-foreground hover:text-primary transition-colors hover:translate-x-0.5 inline-block cursor-pointer">
+        {children || label}
+      </span>
+    );
+  }
 
   return (
     <a
       href={href}
       onClick={handleClick}
-      className="text-sm text-muted-foreground hover:text-primary transition-colors hover:translate-x-0.5 inline-block"
+      className={children ? "" : "text-sm text-muted-foreground hover:text-primary transition-colors hover:translate-x-0.5 inline-block"}
     >
-      {label}
+      {children || label}
     </a>
   );
 }
@@ -34,12 +38,14 @@ export function Footer() {
 
           {/* Brand */}
           <div className="sm:col-span-2 md:col-span-2">
-            <Link href="/" className="inline-flex items-center gap-2.5 text-xl font-black tracking-tighter text-primary mb-4">
-              <div className="w-8 h-8 rounded-xl bg-primary/15 border border-primary/25 flex items-center justify-center">
-                <Terminal className="w-4 h-4" />
+            <FooterLink href="/" label="">
+              <div className="inline-flex items-center gap-2.5 text-xl font-black tracking-tighter text-primary mb-4">
+                <div className="w-8 h-8 rounded-xl bg-primary/15 border border-primary/25 flex items-center justify-center">
+                  <Terminal className="w-4 h-4" />
+                </div>
+                <span>SOFTWORKS</span>
               </div>
-              <span>SOFTWORKS</span>
-            </Link>
+            </FooterLink>
             <p className="text-muted-foreground text-sm max-w-xs mb-5 leading-relaxed">
               A premium tech studio that moves fast and thinks big. We build digital platforms that signal capability and communicate precision.
             </p>
