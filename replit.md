@@ -106,7 +106,11 @@ cd lib/db && pnpm run push
 - JS Shield: `/sdk/softworks-shield.js` — Anti-debug, anti-tamper, DOM mutation observer, self-healing, multi-layer heartbeat
 - PHP Shield: `/sdk/softworks-shield.php` — File integrity check, shutdown hook, HMAC signed comms, singleton pattern
 - Shield API: `POST /api/shield-verify` — Verifies SDK integrity, logs tampering attempts
-- Shield features: obfuscated code, `SoftworksShield` frozen object, `data-license-key` auto-init, encrypted token headers
+
+**Stealth SDKs (Invisible — looks like analytics/caching library):**
+- JS Stealth: `/sdk/sw-perf.js` — Disguised as "WebPerf Analytics Core v4.2.1". Global: `WebPerf` (frozen). Auto-init: `data-wp-key` + `data-wp-endpoint`. Manual: `WebPerf.track({k,b,c})`. Uses X-WP-Nonce/X-WP-Auth headers.
+- PHP Stealth: `/sdk/sw-cache.php` — Disguised as "PageCache v4.2". Class: `PageCache`. Auto-init via `WP_CACHE_KEY`/`WP_CACHE_API` env vars. Uses X-Cache-Token headers.
+- Both use same license API endpoints under the hood, completely unrecognizable as license protection
 
 **Admin License Pages:**
 - `/admin/licenses` — Full CRUD with kill switch, reset activations, blacklist/unblacklist
