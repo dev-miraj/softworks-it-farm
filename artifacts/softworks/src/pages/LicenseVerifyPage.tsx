@@ -123,134 +123,178 @@ export function LicenseVerifyPage() {
 
   const codeExamples: Record<string, { code: string; lang: string }> = {
     js: {
-      lang: "HTML / JavaScript",
-      code: `<!-- Step 1: আপনার HTML ফাইলে SDK যোগ করুন -->
-<script src="${SERVER_URL}/sdk/softworks-license.js"><\/script>
+      lang: "HTML / JavaScript (Shield)",
+      code: `<!-- SOFTWORKS Shield — Tamper-Proof License Protection -->
+<!-- এই একটি লাইন যোগ করলেই পুরো site protected -->
+<script
+  src="${SERVER_URL}/sdk/softworks-shield.js"
+  data-license-key="SW-XXXX-XXXX-XXXX"
+  data-server-url="${SERVER_URL}"
+><\/script>
 
-<!-- Step 2: License সক্রিয় করুন -->
+<!-- অথবা manual init করতে চাইলে: -->
 <script>
-  const license = SoftworksLicense.init({
+  SoftworksShield.init({
     licenseKey: 'SW-XXXX-XXXX-XXXX',
     serverUrl: '${SERVER_URL}',
-    autoHeartbeat: true,        // প্রতি ৫ মিনিটে auto-check
-    heartbeatInterval: 300000,  // ৫ মিনিট (ms)
+    heartbeatInterval: 180000,  // ৩ মিনিট
     onValid: (data) => {
-      console.log('License সক্রিয়!', data);
+      console.log('Protected!');
     },
     onInvalid: (error) => {
-      document.body.innerHTML = '<h1>License সমস্যা!</h1>';
+      // Shield নিজেই site বন্ধ করে দেবে
+      // কোনো কিছু করার দরকার নেই
     }
   });
+<\/script>
 
-  // Activate (প্রথমবার)
-  await license.activate();
-
-  // Validate (প্রতিবার চেক)
-  const result = await license.validate();
-  console.log(result.valid ? 'OK' : result.error);
-<\/script>`,
+<!--
+  Shield Features (automatic):
+  ✅ Anti-tampering — কেউ code পরিবর্তন করলে detect করবে
+  ✅ Anti-debugging — DevTools দিয়ে bypass করা যাবে না
+  ✅ Self-healing — script মুছে ফেললে নিজেই ফিরে আসবে
+  ✅ Multi-layer heartbeat — random interval এ server check
+  ✅ Kill switch — Admin Panel থেকে instantly বন্ধ করা যাবে
+  ✅ Encrypted communication — API calls signed & verified
+-->`,
     },
     php: {
-      lang: "PHP",
+      lang: "PHP (Shield)",
       code: `<?php
-// Step 1: SDK ফাইল ডাউনলোড করে আপনার প্রজেক্টে রাখুন
-require_once __DIR__ . '/softworks-license.php';
+// SOFTWORKS Shield — Tamper-Proof License Protection
+// এই ২ লাইন আপনার PHP ফাইলের শুরুতে যোগ করুন
 
-// Step 2: License অবজেক্ট তৈরি করুন
-$license = new SoftworksLicense([
-    'license_key' => 'SW-XXXX-XXXX-XXXX',
-    'server_url'  => '${SERVER_URL}',
-    'domain'      => $_SERVER['HTTP_HOST'],
-    'debug'       => false,   // true করলে error_log-এ দেখাবে
+// Method 1: Environment variable দিয়ে (recommended)
+// .env ফাইলে রাখুন: SW_LICENSE_KEY=SW-XXXX-XXXX-XXXX
+//                     SW_SERVER_URL=${SERVER_URL}
+putenv('SW_LICENSE_KEY=SW-XXXX-XXXX-XXXX');
+putenv('SW_SERVER_URL=${SERVER_URL}');
+require_once __DIR__ . '/softworks-shield.php';
+// ব্যস! Shield স্বয়ংক্রিয়ভাবে activate হয়ে যাবে
+
+// Method 2: Global variable দিয়ে
+$GLOBALS['SW_LICENSE_KEY'] = 'SW-XXXX-XXXX-XXXX';
+$GLOBALS['SW_SERVER_URL'] = '${SERVER_URL}';
+require_once __DIR__ . '/softworks-shield.php';
+
+// Method 3: Manual boot (advanced)
+define('SW_SHIELD_SKIP', true);
+require_once __DIR__ . '/softworks-shield.php';
+$shield = SW_Shield::boot([
+    'k' => 'SW-XXXX-XXXX-XXXX',
+    'u' => '${SERVER_URL}',
 ]);
 
-// Step 3: প্রথমবার Activate করুন
-$activation = $license->activate();
-if (!$activation['success']) {
-    die('Activation ব্যর্থ: ' . $activation['error']);
-}
-
-// Step 4: প্রতিটি request-এ Validate করুন
-$result = $license->validate();
-if (!$result['data']['valid']) {
-    http_response_code(403);
-    die('License অবৈধ: ' . $result['data']['error']);
-}
-
-// অথবা একলাইনে enforce করুন:
-$license->enforceOrDie('এই সফটওয়্যার ব্যবহারের অনুমতি নেই।');
+// Shield Features (automatic):
+// ✅ File integrity check — ফাইল modify করলে block
+// ✅ Shutdown hook — require মুছে দিলেও কাজ করবে
+// ✅ Encrypted API — HMAC signed communication
+// ✅ Auto-block — license invalid হলে 403 page
+// ✅ Kill switch — Admin Panel থেকে remote control
 ?>`,
     },
     node: {
       lang: "Node.js / Express",
-      code: `// Step 1: SDK কপি করুন আপনার প্রজেক্টে
+      code: `// SOFTWORKS Shield — Server-Side Protection
 const SoftworksLicense = require('./softworks-license.js');
 
-// Step 2: License তৈরি করুন
 const license = SoftworksLicense.init({
   licenseKey: process.env.LICENSE_KEY || 'SW-XXXX-XXXX-XXXX',
   serverUrl: '${SERVER_URL}',
   autoHeartbeat: true,
+  heartbeatInterval: 180000, // ৩ মিনিট
+  onInvalid: (error) => {
+    console.error('License blocked:', error);
+    process.exit(1); // Server বন্ধ করে দিন
+  }
 });
 
-// Step 3: Activate করুন (app start-এ)
+// Activate করুন (app start-এ)
 await license.activate();
 
-// Step 4: Express middleware হিসেবে ব্যবহার করুন
+// Express middleware — প্রতিটি request check
 app.use(async (req, res, next) => {
   const result = await license.validate();
   if (!result.valid) {
     return res.status(403).json({
-      error: 'License অবৈধ',
-      message: result.error
+      error: 'Unauthorized',
+      message: 'Software license expired'
     });
   }
   next();
 });
 
-// Step 5: App বন্ধ করার আগে Deactivate করুন
+// Graceful shutdown
 process.on('SIGTERM', async () => {
   await license.deactivate();
   process.exit(0);
 });`,
     },
     wordpress: {
-      lang: "WordPress Plugin",
+      lang: "WordPress (Shield)",
       code: `<?php
 /**
  * Plugin Name: My Licensed Plugin
- * Description: SOFTWORKS License দিয়ে protected plugin
+ * Description: SOFTWORKS Shield protected WordPress plugin
  */
 
-// Step 1: SDK include করুন
-require_once plugin_dir_path(__FILE__) . 'softworks-license.php';
+// Shield SDK include করুন (file modify করলে auto-block)
+define('SW_SHIELD_SKIP', true);
+require_once plugin_dir_path(__FILE__) . 'softworks-shield.php';
 
-// Step 2: Admin settings page-এ License key input রাখুন
-add_action('admin_menu', function() {
-    add_options_page('License Settings', 'License', 
-        'manage_options', 'my-license', 'license_page');
+// Plugin activation-এ license boot করুন
+register_activation_hook(__FILE__, function() {
+    $key = get_option('sw_license_key', '');
+    if (empty($key)) {
+        deactivate_plugins(plugin_basename(__FILE__));
+        wp_die('License key প্রয়োজন! Settings-এ key দিন।');
+    }
 });
 
-// Step 3: License check করুন plugin load-এ
+// প্রতিটি page load-এ Shield check
 add_action('plugins_loaded', function() {
-    $key = get_option('my_plugin_license_key', '');
+    $key = get_option('sw_license_key', '');
     if (empty($key)) return;
 
-    $license = new SoftworksLicense([
-        'license_key' => $key,
-        'server_url'  => '${SERVER_URL}',
-        'domain'      => $_SERVER['HTTP_HOST'],
+    // Shield boot — tamper-proof protection
+    $shield = SW_Shield::boot([
+        'k' => $key,
+        'u' => '${SERVER_URL}',
     ]);
 
-    if (!$license->isValid()) {
+    if (!$shield->isValid()) {
+        // Admin-এ warning দেখান
         add_action('admin_notices', function() {
             echo '<div class="notice notice-error">';
-            echo '<p>License অবৈধ! সক্রিয় করুন।</p>';
+            echo '<p><strong>License সমস্যা!</strong> ';
+            echo 'support@softworks.dev এ যোগাযোগ করুন।</p>';
             echo '</div>';
         });
-        return; // Plugin features বন্ধ
+        // সব plugin features বন্ধ
+        return;
     }
-    // Plugin features চালু...
+
+    // ✅ License valid — plugin features চালু করুন
+    require_once plugin_dir_path(__FILE__) . 'includes/main.php';
+});
+
+// Admin settings page
+add_action('admin_menu', function() {
+    add_options_page('License', 'SW License',
+        'manage_options', 'sw-license', function() {
+        if (isset($_POST['sw_key'])) {
+            update_option('sw_license_key',
+                sanitize_text_field($_POST['sw_key']));
+            echo '<div class="updated"><p>Key saved!</p></div>';
+        }
+        $key = get_option('sw_license_key', '');
+        echo '<div class="wrap"><h1>License Settings</h1>';
+        echo '<form method="post"><p>';
+        echo '<input name="sw_key" value="'.esc_attr($key).'"';
+        echo ' class="regular-text" placeholder="SW-XXXX-XXXX-XXXX">';
+        echo '</p><p><button class="button-primary">';
+        echo 'Save Key</button></p></form></div>';
+    });
 });`,
     },
   };
@@ -416,13 +460,35 @@ add_action('plugins_loaded', function() {
             icon={Download}
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <a href={`${SERVER_URL}/sdk/softworks-shield.js`} target="_blank" rel="noopener" className="flex items-center gap-3 rounded-xl border border-red-500/20 bg-red-500/[0.03] p-4 hover:bg-red-500/[0.06] transition-all group relative">
+                <div className="absolute -top-2 -right-2 px-2 py-0.5 rounded-full bg-red-500/20 border border-red-500/30 text-[10px] font-bold text-red-400 uppercase tracking-wider">Shield</div>
+                <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center border border-red-500/20">
+                  <ShieldCheck className="w-5 h-5 text-red-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-bold text-foreground group-hover:text-red-300 transition-colors">JS Shield SDK</div>
+                  <div className="text-xs text-muted-foreground">Tamper-Proof Protection</div>
+                </div>
+                <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-red-400 transition-colors" />
+              </a>
+              <a href={`${SERVER_URL}/sdk/softworks-shield.php`} target="_blank" rel="noopener" className="flex items-center gap-3 rounded-xl border border-red-500/20 bg-red-500/[0.03] p-4 hover:bg-red-500/[0.06] transition-all group relative">
+                <div className="absolute -top-2 -right-2 px-2 py-0.5 rounded-full bg-red-500/20 border border-red-500/30 text-[10px] font-bold text-red-400 uppercase tracking-wider">Shield</div>
+                <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center border border-red-500/20">
+                  <ShieldCheck className="w-5 h-5 text-red-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-bold text-foreground group-hover:text-red-300 transition-colors">PHP Shield SDK</div>
+                  <div className="text-xs text-muted-foreground">PHP 7.4+ / WordPress</div>
+                </div>
+                <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-red-400 transition-colors" />
+              </a>
               <a href={`${SERVER_URL}/sdk/softworks-license.js`} target="_blank" rel="noopener" className="flex items-center gap-3 rounded-xl border border-amber-500/20 bg-amber-500/[0.03] p-4 hover:bg-amber-500/[0.06] transition-all group">
                 <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
                   <FileCode className="w-5 h-5 text-amber-400" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-bold text-foreground group-hover:text-amber-300 transition-colors">JavaScript SDK</div>
-                  <div className="text-xs text-muted-foreground">Browser + Node.js</div>
+                  <div className="text-xs text-muted-foreground">Standard (Browser + Node.js)</div>
                 </div>
                 <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-amber-400 transition-colors" />
               </a>
@@ -432,7 +498,7 @@ add_action('plugins_loaded', function() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-bold text-foreground group-hover:text-blue-300 transition-colors">PHP SDK</div>
-                  <div className="text-xs text-muted-foreground">PHP 7.4+ / WordPress</div>
+                  <div className="text-xs text-muted-foreground">Standard (PHP 7.4+)</div>
                 </div>
                 <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-blue-400 transition-colors" />
               </a>

@@ -598,4 +598,60 @@ router.get("/license-stats", async (req, res): Promise<void> => {
   });
 });
 
+router.post("/shield-verify", async (req, res) => {
+  const { license_key, domain, hardware_id, sdk_version, shield_token, file_hash } = req.body;
+
+  if (!license_key || !domain) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  const ip = (req.headers["x-forwarded-for"] as string || req.ip || "unknown").split(",")[0].trim();
+
+  try {
+    const [license] = await db
+      .select()
+      .from(licensesTable)
+      .where(eq(licensesTable.licenseKey, license_key))
+      .limit(1);
+
+    if (!license) {
+      await db.insert(licenseLogsTable).values({
+        licenseId: 0,
+        action: "shield_tamper_attempt",
+        details: `Invalid key shield-verify from ${domain} (${ip}), SDK: ${sdk_version}`,
+        ipAddress: ip,
+      });
+      return res.json({ valid: false, tampered: true });
+    }
+
+    if (license.isBlacklisted || license.killSwitch) {
+      await db.insert(licenseLogsTable).values({
+        licenseId: license.id,
+        action: "shield_blocked",
+        details: `Blocked license shield-verify from ${domain} (${ip}), kill: ${license.killSwitch}, black: ${license.isBlacklisted}`,
+        ipAddress: ip,
+      });
+      return res.json({ valid: false, tampered: false, blocked: true });
+    }
+
+    await db.insert(licenseLogsTable).values({
+      licenseId: license.id,
+      action: "shield_verify",
+      details: `Shield OK from ${domain} (${ip}), SDK: ${sdk_version}, HW: ${hardware_id}`,
+      ipAddress: ip,
+    });
+
+    res.json({
+      valid: true,
+      tampered: false,
+      blocked: false,
+      status: license.status,
+      kill_switch: license.killSwitch,
+    });
+  } catch (err) {
+    console.error("Shield verify error:", err);
+    res.status(500).json({ error: "Internal error" });
+  }
+});
+
 export default router;
