@@ -28,7 +28,13 @@ import { TestimonialsAdminPage } from "@/pages/admin/TestimonialsAdminPage";
 import { TeamAdminPage } from "@/pages/admin/TeamAdminPage";
 import { SaasAdminPage } from "@/pages/admin/SaasAdminPage";
 import { LicensesPage } from "@/pages/admin/LicensesPage";
+import { LicenseDashboardPage } from "@/pages/admin/LicenseDashboardPage";
+import { LicenseProductsPage } from "@/pages/admin/LicenseProductsPage";
+import { LicenseActivationsPage } from "@/pages/admin/LicenseActivationsPage";
+import { LicensePaymentsPage } from "@/pages/admin/LicensePaymentsPage";
+import { LicenseLogsPage } from "@/pages/admin/LicenseLogsPage";
 import { PaymentMethodsPage } from "@/pages/admin/PaymentMethodsPage";
+import { LicenseVerifyPage } from "@/pages/LicenseVerifyPage";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient({
@@ -78,6 +84,9 @@ function Router() {
       <Route path="/contact">
         <PublicLayout><ContactPage /></PublicLayout>
       </Route>
+      <Route path="/verify-license">
+        <PublicLayout><LicenseVerifyPage /></PublicLayout>
+      </Route>
 
       {/* Admin Login — public */}
       <Route path="/admin/login" component={LoginPage} />
@@ -97,7 +106,12 @@ function Router() {
       <Route path="/admin/testimonials"><AdminRoute component={TestimonialsAdminPage} /></Route>
       <Route path="/admin/team"><AdminRoute component={TeamAdminPage} /></Route>
       <Route path="/admin/saas-products"><AdminRoute component={SaasAdminPage} /></Route>
+      <Route path="/admin/license-dashboard"><AdminRoute component={LicenseDashboardPage} /></Route>
       <Route path="/admin/licenses"><AdminRoute component={LicensesPage} /></Route>
+      <Route path="/admin/license-products"><AdminRoute component={LicenseProductsPage} /></Route>
+      <Route path="/admin/license-activations"><AdminRoute component={LicenseActivationsPage} /></Route>
+      <Route path="/admin/license-payments"><AdminRoute component={LicensePaymentsPage} /></Route>
+      <Route path="/admin/license-logs"><AdminRoute component={LicenseLogsPage} /></Route>
       <Route path="/admin/payment-methods"><AdminRoute component={PaymentMethodsPage} /></Route>
 
       <Route component={NotFound} />

@@ -20,6 +20,10 @@ import {
   ExternalLink,
   KeyRound,
   CreditCard,
+  Package,
+  Activity,
+  ScrollText,
+  Shield,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
@@ -62,7 +66,12 @@ const sidebarSections = [
   {
     title: "License System",
     links: [
+      { href: "/admin/license-dashboard", label: "License Dashboard", icon: Shield },
       { href: "/admin/licenses", label: "License Manager", icon: KeyRound },
+      { href: "/admin/license-products", label: "Products", icon: Package },
+      { href: "/admin/license-activations", label: "Activations", icon: Activity },
+      { href: "/admin/license-payments", label: "Payments", icon: CreditCard },
+      { href: "/admin/license-logs", label: "Audit Logs", icon: ScrollText },
       { href: "/admin/payment-methods", label: "Payment Methods", icon: CreditCard },
     ],
   },

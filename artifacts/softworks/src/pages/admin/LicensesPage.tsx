@@ -29,10 +29,13 @@ const API = import.meta.env.VITE_API_URL ?? "";
 
 type License = {
   id: number; licenseKey: string; productName: string; clientName: string; clientEmail: string;
-  domain: string | null; ipAddress: string | null; hardwareId: string | null;
-  expiryDate: string | null; status: string; licenseType: string; maxDomains: number;
+  domain: string | null; domains: string[] | null; ipAddress: string | null; ipAddresses: string[] | null;
+  hardwareId: string | null; hardwareIds: string[] | null;
+  expiryDate: string | null; status: string; licenseType: string; planType: string | null;
+  maxDomains: number; maxActivations: number; usageCount: number; totalValidations: number;
+  isTrial: boolean; trialEndsAt: string | null;
   notes: string | null; activatedAt: string | null; lastValidated: string | null;
-  isBlacklisted: boolean;
+  lastHeartbeat: string | null; isBlacklisted: boolean; killSwitch: boolean; suspendReason: string | null;
   feeAmount: string | null; billingCycle: string | null; paymentStatus: string;
   paymentMethodId: number | null; paymentMethodName: string | null;
   nextPaymentDue: string | null; lastPaymentDate: string | null;
@@ -160,7 +163,7 @@ export function LicensesPage() {
     },
     onSuccess: (_: any, { action }: any) => {
       qc.invalidateQueries({ queryKey: ["licenses"] });
-      const msgs: Record<string, string> = { activate: "Activated", suspend: "Suspended", blacklist: "Blacklisted", "mark-paid": "Marked as Paid ✓", "mark-overdue": "Marked as Overdue — 3-day grace started" };
+      const msgs: Record<string, string> = { activate: "Activated", suspend: "Suspended", blacklist: "Blacklisted", unblacklist: "Unblacklisted", "mark-paid": "Marked as Paid ✓", "mark-overdue": "Marked as Overdue — 3-day grace started", "kill-switch": "Kill Switch Toggled", "reset-activations": "All Activations Reset" };
       toast({ title: msgs[action] || "Done" });
     },
     onError: err,
@@ -389,11 +392,21 @@ export function LicensesPage() {
                                     <ShieldOff className="w-3.5 h-3.5" />
                                   </Button>
                                 )}
-                                {!l.isBlacklisted && (
+                                {!l.isBlacklisted ? (
                                   <Button size="icon" variant="ghost" className="h-7 w-7 text-rose-400 hover:bg-rose-500/10" title="Blacklist" onClick={() => actionMut.mutate({ id: l.id, action: "blacklist" })}>
                                     <Ban className="w-3.5 h-3.5" />
                                   </Button>
+                                ) : (
+                                  <Button size="icon" variant="ghost" className="h-7 w-7 text-teal-400 hover:bg-teal-500/10" title="Unblacklist" onClick={() => actionMut.mutate({ id: l.id, action: "unblacklist" })}>
+                                    <CheckCircle2 className="w-3.5 h-3.5" />
+                                  </Button>
                                 )}
+                                <Button size="icon" variant="ghost" className="h-7 w-7 text-orange-400 hover:bg-orange-500/10" title="Kill Switch" onClick={() => actionMut.mutate({ id: l.id, action: "kill-switch" })}>
+                                  <XCircle className="w-3.5 h-3.5" />
+                                </Button>
+                                <Button size="icon" variant="ghost" className="h-7 w-7 text-cyan-400 hover:bg-cyan-500/10" title="Reset Activations" onClick={() => actionMut.mutate({ id: l.id, action: "reset-activations" })}>
+                                  <RefreshCw className="w-3.5 h-3.5" />
+                                </Button>
                                 <Button size="icon" variant="ghost" className="h-7 w-7 text-blue-400 hover:bg-blue-500/10" title="Edit" onClick={() => openEdit(l)}>
                                   <Pencil className="w-3.5 h-3.5" />
                                 </Button>
