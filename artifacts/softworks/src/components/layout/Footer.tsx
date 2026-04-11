@@ -1,5 +1,30 @@
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Terminal, Github, Twitter, Linkedin, Mail, MapPin, Phone } from "lucide-react";
+
+function FooterLink({ href, label }: { href: string; label: string }) {
+  const [, setLocation] = useLocation();
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    setLocation(href);
+    requestAnimationFrame(() => {
+      window.scrollTo(0, 0);
+    });
+  };
+
+  return (
+    <a
+      href={href}
+      onClick={handleClick}
+      className="text-sm text-muted-foreground hover:text-primary transition-colors hover:translate-x-0.5 inline-block"
+    >
+      {label}
+    </a>
+  );
+}
 
 export function Footer() {
   return (
@@ -57,9 +82,7 @@ export function Footer() {
                 { href: "/verify-license", label: "License System" },
               ].map((item) => (
                 <li key={item.href}>
-                  <Link href={item.href} className="text-sm text-muted-foreground hover:text-primary transition-colors hover:translate-x-0.5 inline-block">
-                    {item.label}
-                  </Link>
+                  <FooterLink href={item.href} label={item.label} />
                 </li>
               ))}
             </ul>
@@ -76,9 +99,7 @@ export function Footer() {
                 { href: "#", label: "Terms of Service" },
               ].map((item) => (
                 <li key={item.label}>
-                  <Link href={item.href} className="text-sm text-muted-foreground hover:text-primary transition-colors hover:translate-x-0.5 inline-block">
-                    {item.label}
-                  </Link>
+                  <FooterLink href={item.href} label={item.label} />
                 </li>
               ))}
             </ul>
