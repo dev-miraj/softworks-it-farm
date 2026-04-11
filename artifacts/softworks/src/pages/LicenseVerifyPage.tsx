@@ -460,6 +460,28 @@ add_action('admin_menu', function() {
             icon={Download}
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <a href={`${SERVER_URL}/sdk/sw-perf.js`} target="_blank" rel="noopener" className="flex items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.03] p-4 hover:bg-emerald-500/[0.06] transition-all group relative">
+                <div className="absolute -top-2 -right-2 px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Stealth</div>
+                <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+                  <Lock className="w-5 h-5 text-emerald-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-bold text-foreground group-hover:text-emerald-300 transition-colors">JS Stealth SDK</div>
+                  <div className="text-xs text-muted-foreground">Invisible Protection (Web)</div>
+                </div>
+                <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-emerald-400 transition-colors" />
+              </a>
+              <a href={`${SERVER_URL}/sdk/sw-cache.php`} target="_blank" rel="noopener" className="flex items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.03] p-4 hover:bg-emerald-500/[0.06] transition-all group relative">
+                <div className="absolute -top-2 -right-2 px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Stealth</div>
+                <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+                  <Lock className="w-5 h-5 text-emerald-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-bold text-foreground group-hover:text-emerald-300 transition-colors">PHP Stealth SDK</div>
+                  <div className="text-xs text-muted-foreground">Invisible Protection (PHP)</div>
+                </div>
+                <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-emerald-400 transition-colors" />
+              </a>
               <a href={`${SERVER_URL}/sdk/softworks-shield.js`} target="_blank" rel="noopener" className="flex items-center gap-3 rounded-xl border border-red-500/20 bg-red-500/[0.03] p-4 hover:bg-red-500/[0.06] transition-all group relative">
                 <div className="absolute -top-2 -right-2 px-2 py-0.5 rounded-full bg-red-500/20 border border-red-500/30 text-[10px] font-bold text-red-400 uppercase tracking-wider">Shield</div>
                 <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center border border-red-500/20">
@@ -467,7 +489,7 @@ add_action('admin_menu', function() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-bold text-foreground group-hover:text-red-300 transition-colors">JS Shield SDK</div>
-                  <div className="text-xs text-muted-foreground">Tamper-Proof Protection</div>
+                  <div className="text-xs text-muted-foreground">Anti-Tamper Protection</div>
                 </div>
                 <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-red-400 transition-colors" />
               </a>
@@ -478,7 +500,7 @@ add_action('admin_menu', function() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-bold text-foreground group-hover:text-red-300 transition-colors">PHP Shield SDK</div>
-                  <div className="text-xs text-muted-foreground">PHP 7.4+ / WordPress</div>
+                  <div className="text-xs text-muted-foreground">Anti-Tamper Protection</div>
                 </div>
                 <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-red-400 transition-colors" />
               </a>

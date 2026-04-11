@@ -1,0 +1,124 @@
+ORKS
+
+
+SOFTWORKS
+
+About
+Services
+Portfolio
+SaaS
+License
+Blog
+Contact
+Start a Project
+Response within 4 hours
+
+Military-Grade License Protection
+License Verification
+আপনার license key দিয়ে status চেক করুন
+
+SOFTWORKS IT FARM — Software License Management System
+
+SW-XXXX-XXXX-XXXX
+
+Verify
+কেন SOFTWORKS License?
+আপনার সফটওয়্যারের জন্য সবচেয়ে নিরাপদ লাইসেন্স সিস্টেম
+
+Hardware Binding
+প্রতিটি device-এর unique fingerprint তৈরি করে license lock করে
+
+Domain Lock
+নির্দিষ্ট domain-এ license সীমাবদ্ধ রাখুন
+
+Auto Heartbeat
+প্রতি ৫ মিনিটে স্বয়ংক্রিয়ভাবে license verify করে
+
+Kill Switch
+যেকোনো সময় remote থেকে license বাতিল করুন
+
+HMAC Signed
+প্রতিটি response cryptographically signed
+
+Rate Limiting
+প্রতি IP-তে ৬০ request/min সীমা
+
+Multi-Activation
+একটি key দিয়ে একাধিক device-এ ব্যবহার
+
+Multi-Product
+একাধিক product-এর জন্য আলাদা license
+
+Integration Guide
+কিভাবে আপনার Website-এ Connect করবেন
+মাত্র ৪টি সহজ ধাপে আপনার যেকোনো website, app বা software-এ SOFTWORKS License system যুক্ত করুন। কোনো complex setup নেই — just copy, paste, and go!
+
+1
+License Key সংগ্রহ করুন
+আপনার unique license key পেতে আমাদের সাথে যোগাযোগ করুন
+
+SOFTWORKS Admin Panel থেকে আপনার জন্য একটি unique license key (SW-XXXX-XXXX-XXXX) তৈরি করা হবে। key টি আপনার email-এ পাঠানো হবে।
+
+SW-A1B2-C3D4-E5F6
+আপনার License Key (উদাহরণ)
+2
+SDK ডাউনলোড করুন
+আপনার platform অনুযায়ী সঠিক SDK বেছে নিন
+
+আমরা JavaScript এবং PHP দুটি SDK সরবরাহ করি। আপনার website/app যে ভাষায় তৈরি সেই SDK ডাউনলোড করুন।
+
+Shield
+JS Shield SDK
+Tamper-Proof Protection
+Shield
+PHP Shield SDK
+PHP 7.4+ / WordPress
+JavaScript SDK
+Standard (Browser + Node.js)
+PHP SDK
+Standard (PHP 7.4+)
+3
+আপনার Website-এ SDK যোগ করুন
+নিচে আপনার platform অনুযায়ী code কপি করে paste করুন
+
+আপনার project-এর root folder-এ SDK ফাইলটি রাখুন, তারপর নিচের code আপনার main ফাইলে যোগ করুন।
+
+HTML / JS
+PHP
+Node.js
+WordPress
+Node.js / Express
+// SOFTWORKS Shield — Server-Side Protection
+const SoftworksLicense = require('./softworks-license.js');
+
+const license = SoftworksLicense.init({
+  licenseKey: process.env.LICENSE_KEY || 'SW-XXXX-XXXX-XXXX',
+  serverUrl: 'https://softworksit.vercel.app',
+  autoHeartbeat: true,
+  heartbeatInterval: 180000, // ৩ মিনিট
+  onInvalid: (error) => {
+    console.error('License blocked:', error);
+    process.exit(1); // Server বন্ধ করে দিন
+  }
+});
+
+// Activate করুন (app start-এ)
+await license.activate();
+
+// Express middleware — প্রতিটি request check
+app.use(async (req, res, next) => {
+  const result = await license.validate();
+  if (!result.valid) {
+    return res.status(403).json({
+      error: 'Unauthorized',
+      message: 'Software license expired'
+    });
+  }
+  next();
+});
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  await license.deactivate();
+  process.exit(0);
+});

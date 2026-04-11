@@ -102,6 +102,12 @@ cd lib/db && pnpm run push
 - JavaScript/Node.js: `/sdk/softworks-license.js` (browser + Node dual support)
 - PHP: `/sdk/softworks-license.php` (cURL-based, fingerprinting, enforceOrDie)
 
+**Shield SDKs (Tamper-Proof):**
+- JS Shield: `/sdk/softworks-shield.js` — Anti-debug, anti-tamper, DOM mutation observer, self-healing, multi-layer heartbeat
+- PHP Shield: `/sdk/softworks-shield.php` — File integrity check, shutdown hook, HMAC signed comms, singleton pattern
+- Shield API: `POST /api/shield-verify` — Verifies SDK integrity, logs tampering attempts
+- Shield features: obfuscated code, `SoftworksShield` frozen object, `data-license-key` auto-init, encrypted token headers
+
 **Admin License Pages:**
 - `/admin/licenses` — Full CRUD with kill switch, reset activations, blacklist/unblacklist
 - `/admin/license-dashboard` — Analytics dashboard
