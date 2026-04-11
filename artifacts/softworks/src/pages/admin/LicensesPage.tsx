@@ -316,6 +316,7 @@ export function LicensesPage() {
                             <div className="flex items-center gap-1 mt-0.5">
                               <Badge className={`text-[10px] border capitalize px-1.5 py-0 ${typeColors[l.licenseType] ?? typeColors.lifetime}`}>{l.licenseType}</Badge>
                               {l.isBlacklisted && <Badge className="text-[10px] border bg-rose-500/10 text-rose-400 border-rose-500/20 px-1.5 py-0"><Ban className="w-2.5 h-2.5 inline mr-0.5" />Blacklisted</Badge>}
+                              {l.killSwitch && <Badge className="text-[10px] border bg-orange-500/10 text-orange-400 border-orange-500/20 px-1.5 py-0"><XCircle className="w-2.5 h-2.5 inline mr-0.5" />Kill Switch</Badge>}
                             </div>
                           </td>
 
@@ -401,7 +402,7 @@ export function LicensesPage() {
                                     <CheckCircle2 className="w-3.5 h-3.5" />
                                   </Button>
                                 )}
-                                <Button size="icon" variant="ghost" className="h-7 w-7 text-orange-400 hover:bg-orange-500/10" title="Kill Switch" onClick={() => actionMut.mutate({ id: l.id, action: "kill-switch" })}>
+                                <Button size="icon" variant="ghost" className={`h-7 w-7 ${l.killSwitch ? "text-red-400 hover:bg-red-500/10" : "text-orange-400 hover:bg-orange-500/10"}`} title={l.killSwitch ? "Disable Kill Switch" : "Enable Kill Switch"} onClick={() => { fetch(`${API}/api/licenses/${l.id}/kill-switch`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ enabled: !l.killSwitch }) }).then(() => qc.invalidateQueries({ queryKey: ["licenses"] })); }}>
                                   <XCircle className="w-3.5 h-3.5" />
                                 </Button>
                                 <Button size="icon" variant="ghost" className="h-7 w-7 text-cyan-400 hover:bg-cyan-500/10" title="Reset Activations" onClick={() => actionMut.mutate({ id: l.id, action: "reset-activations" })}>

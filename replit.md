@@ -77,6 +77,49 @@ cd lib/db && pnpm run push
 - `/admin/leaves` — LeavesPage (approve/reject)
 - `/admin/payroll` — PayrollPage (salary management)
 
+### Military-Grade License Management System
+**Database Tables:** `licenses` (enhanced), `license_products`, `license_activations`, `license_payments`, `license_logs`
+
+**License API Endpoints:**
+- `POST /api/license/activate` — Domain/IP/hardware bind with activation limits
+- `POST /api/license/validate` — HMAC signed validation response
+- `POST /api/license/heartbeat` — Periodic check-in
+- `POST /api/license/deactivate` — Remove activation
+- `GET /api/license/check/:key` — Public verification
+- `GET /api/license-stats` — Dashboard statistics
+
+**Admin License Actions:**
+- `POST /api/licenses/:id/activate` | `suspend` | `blacklist` | `unblacklist`
+- `POST /api/licenses/:id/kill-switch` | `reset-activations`
+- `POST /api/licenses/:id/mark-paid` | `mark-overdue`
+
+**License Key Format:** `SW-XXXX-XXXX-XXXX`
+**Signing:** HMAC-SHA256 with `LICENSE_SIGNING_SECRET` env var
+**Rate Limiting:** In-memory Map, 60 req/min per IP
+**Grace Period:** 3 days | **Trial:** 7 days
+
+**Client SDKs:**
+- JavaScript/Node.js: `/sdk/softworks-license.js` (browser + Node dual support)
+- PHP: `/sdk/softworks-license.php` (cURL-based, fingerprinting, enforceOrDie)
+
+**Admin License Pages:**
+- `/admin/licenses` — Full CRUD with kill switch, reset activations, blacklist/unblacklist
+- `/admin/license-dashboard` — Analytics dashboard
+- `/admin/license-products` — Product management
+- `/admin/license-activations` — Activation logs
+- `/admin/license-payments` — Payment recording
+- `/admin/license-logs` — Real-time audit trail
+
+**Public:** `/verify-license` — License verification with SDK integration guide
+
+### Bangladesh Payment Methods (55 total)
+- 14 MFS (bKash Personal/Merchant/Agent, Nagad, Rocket, Upay, etc.)
+- 28 Banks (all major Bangladeshi banks)
+- 4 Payment Gateways (SSLCOMMERZ, ShurjoPay, AamarPay, PortWallet)
+- 4 Card payments, 5 International
+- Custom SVG logos, Bangla UI
+- Reseed endpoint: `POST /api/payment-methods/reseed`
+
 ## Design System
 - **Theme:** Dark mode default (navy/indigo background)
 - **Gradients:** `gradient-text` class, deep indigo to purple/cyan
