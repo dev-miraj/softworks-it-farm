@@ -9,8 +9,13 @@ export function ScrollToTop() {
   const [location] = useLocation();
 
   useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
-    setTimeout(() => ScrollTrigger.refresh(), 80);
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    setTimeout(() => {
+      window.scrollTo(0, 0);
+      ScrollTrigger.refresh();
+    }, 50);
   }, [location]);
 
   return null;
