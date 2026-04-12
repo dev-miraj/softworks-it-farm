@@ -1,12 +1,14 @@
 import { Link, useLocation } from "wouter";
 import { Menu, X, Moon, Sun, Terminal, ChevronRight } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 
 export function Navbar() {
   const [location] = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [isDark, setIsDark] = useState(true);
   const [scrolled, setScrolled] = useState(false);
+  const { logoUrl, siteName } = useSiteSettings();
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", isDark);
@@ -30,6 +32,25 @@ export function Navbar() {
     { href: "/contact", label: "Contact" },
   ];
 
+  const LogoMark = ({ size = "md" }: { size?: "sm" | "md" }) => {
+    const dim = size === "sm" ? "w-7 h-7" : "w-8 h-8";
+    const icon = size === "sm" ? "w-3.5 h-3.5" : "w-4 h-4";
+    if (logoUrl) {
+      return (
+        <img
+          src={logoUrl}
+          alt={siteName}
+          className={`${dim} rounded-xl object-cover border border-primary/25`}
+        />
+      );
+    }
+    return (
+      <div className={`${dim} rounded-xl bg-primary/15 border border-primary/25 flex items-center justify-center transition-all duration-300 group-hover:bg-primary/25 group-hover:scale-105`}>
+        <Terminal className={`${icon} text-primary`} />
+      </div>
+    );
+  };
+
   return (
     <>
       {/* ── NAV BAR ── */}
@@ -44,10 +65,8 @@ export function Navbar() {
 
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 font-black tracking-tighter text-primary shrink-0 group">
-            <div className="w-8 h-8 rounded-xl bg-primary/15 border border-primary/25 flex items-center justify-center transition-all duration-300 group-hover:bg-primary/25 group-hover:scale-105">
-              <Terminal className="w-4 h-4" />
-            </div>
-            <span className="text-base sm:text-lg leading-none">SOFTWORKS</span>
+            <LogoMark size="md" />
+            <span className="text-base sm:text-lg leading-none">{siteName}</span>
           </Link>
 
           {/* Desktop Nav Links */}
@@ -124,16 +143,12 @@ export function Navbar() {
           transition-transform duration-300 ease-in-out
           ${isOpen ? "translate-x-0" : "translate-x-full"}`}
       >
-        {/* Rainbow top bar */}
         <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary via-secondary to-accent" />
 
-        {/* Header */}
         <div className="flex items-center justify-between px-5 h-16 shrink-0 border-b border-border/50">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-primary/15 border border-primary/25 flex items-center justify-center">
-              <Terminal className="w-3.5 h-3.5 text-primary" />
-            </div>
-            <span className="font-black tracking-tighter text-primary text-base">SOFTWORKS</span>
+            <LogoMark size="sm" />
+            <span className="font-black tracking-tighter text-primary text-base">{siteName}</span>
           </div>
           <button
             onClick={() => setIsOpen(false)}
@@ -143,7 +158,6 @@ export function Navbar() {
           </button>
         </div>
 
-        {/* Links */}
         <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
           {links.map((link) => (
             <Link
@@ -162,7 +176,6 @@ export function Navbar() {
           ))}
         </nav>
 
-        {/* Footer */}
         <div className="shrink-0 p-4 border-t border-border/50 space-y-2">
           <Link href="/contact" onClick={() => setIsOpen(false)}>
             <button className="btn-shimmer relative overflow-hidden w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold shadow-lg shadow-primary/25 active:scale-95">
