@@ -27,7 +27,8 @@ export function Navbar() {
     { href: "/services", label: "Services" },
     { href: "/portfolio", label: "Portfolio" },
     { href: "/saas", label: "SaaS" },
-    { href: "/verify-license", label: "License" },
+    { href: "/careers", label: "Careers" },
+    { href: "/faq", label: "FAQ" },
     { href: "/blog", label: "Blog" },
     { href: "/contact", label: "Contact" },
   ];

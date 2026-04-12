@@ -52,14 +52,17 @@ const sidebarSections = [
       { href: "/admin/blog", label: "Blog Posts", icon: FileText },
       { href: "/admin/testimonials", label: "Testimonials", icon: MessageSquare },
       { href: "/admin/team", label: "Team Members", icon: Users },
+      { href: "/admin/faqs", label: "FAQs", icon: HelpCircle },
     ],
   },
   {
-    title: "CRM",
+    title: "CRM & Billing",
     links: [
       { href: "/admin/leads", label: "Leads", icon: Inbox, badgeKey: "leads" },
       { href: "/admin/clients", label: "Clients", icon: UserPlus },
       { href: "/admin/projects", label: "Projects", icon: FolderOpen },
+      { href: "/admin/invoices", label: "Invoices", icon: Receipt },
+      { href: "/admin/newsletter", label: "Newsletter", icon: Mail },
     ],
   },
   {
@@ -69,6 +72,7 @@ const sidebarSections = [
       { href: "/admin/attendance", label: "Attendance", icon: Clock },
       { href: "/admin/leaves", label: "Leave Requests", icon: Calendar, badgeKey: "leaves" },
       { href: "/admin/payroll", label: "Payroll", icon: DollarSign },
+      { href: "/admin/jobs", label: "Job Postings", icon: BriefcaseBusiness },
     ],
   },
   {
