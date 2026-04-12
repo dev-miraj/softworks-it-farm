@@ -13,3 +13,7 @@ export * from "./projects";
 export * from "./clients";
 export * from "./licenses";
 export * from "./paymentMethods";
+export * from "./faqs";
+export * from "./invoices";
+export * from "./jobs";
+export * from "./newsletter";
