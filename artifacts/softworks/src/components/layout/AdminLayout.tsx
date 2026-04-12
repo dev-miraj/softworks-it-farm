@@ -166,9 +166,11 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <div className="min-h-screen bg-background flex">
-      {/* ── Desktop Sidebar ── */}
-      <aside className="hidden md:flex w-60 flex-shrink-0 flex-col bg-card/60 border-r border-white/8 h-screen sticky top-0 backdrop-blur-xl">
+    /* Root: full viewport height, no overflow — prevents page-level scroll */
+    <div className="h-screen overflow-hidden bg-background flex">
+
+      {/* ── Desktop Sidebar — fixed height, never scrolls with content ── */}
+      <aside className="hidden md:flex w-60 flex-shrink-0 flex-col bg-card/60 border-r border-white/8 h-full backdrop-blur-xl">
         <SidebarContent />
       </aside>
 
@@ -189,10 +191,10 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         <SidebarContent />
       </aside>
 
-      {/* ── Main area ── */}
-      <div className="flex-1 flex flex-col min-w-0">
+      {/* ── Main area: takes remaining width, scrolls independently ── */}
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
         {/* Mobile top bar */}
-        <header className="md:hidden sticky top-0 z-30 flex items-center justify-between px-4 py-3 bg-card/80 backdrop-blur-xl border-b border-white/8">
+        <header className="md:hidden flex-shrink-0 flex items-center justify-between px-4 py-3 bg-card/80 backdrop-blur-xl border-b border-white/8">
           <Link href="/admin" className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-primary/15 border border-primary/25 flex items-center justify-center">
               <Terminal className="w-3.5 h-3.5 text-primary" />
@@ -207,7 +209,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           </button>
         </header>
 
-        {/* Page content */}
+        {/* Page content — only this div scrolls */}
         <main className="flex-1 overflow-y-auto p-5 md:p-8">
           <div className="max-w-6xl mx-auto">{children}</div>
         </main>
