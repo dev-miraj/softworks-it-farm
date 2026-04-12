@@ -19,7 +19,7 @@ lib/
 ```
 
 ### Database (PostgreSQL via Drizzle ORM)
-Tables: `services`, `portfolio`, `blog`, `leads`, `testimonials`, `team`, `saas_products`, `employees`, `attendance`, `leaves`, `payroll`, `projects`, `clients`
+Tables: `services`, `portfolio`, `blog`, `leads`, `testimonials`, `team`, `saas_products`, `employees`, `attendance`, `leaves`, `payroll`, `projects`, `clients`, `licenses`, `license_products`, `license_activations`, `license_payments`, `license_logs`, `api_keys`, `payment_methods`, `faqs`, `invoices`, `jobs`, `newsletter_subscribers`
 
 Seed script: `lib/db/src/seed.ts` — run with:
 ```bash
@@ -48,6 +48,10 @@ cd lib/db && pnpm run push
 - `GET /api/dashboard/stats`
 - `GET /api/dashboard/recent-leads`
 - `GET /api/dashboard/project-summary`
+- `GET/POST /api/faqs`, `PUT/DELETE /api/faqs/:id`
+- `GET/POST /api/invoices`, `PUT/DELETE /api/invoices/:id`
+- `GET/POST /api/jobs`, `PUT/DELETE /api/jobs/:id`
+- `GET /api/newsletter`, `POST /api/newsletter/subscribe`, `DELETE /api/newsletter/:id`
 - `GET /api/dashboard/hr-summary`
 
 ### Frontend Routes
