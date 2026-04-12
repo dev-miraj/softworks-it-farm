@@ -103,6 +103,7 @@ export function LicenseVerifyPage() {
   const [result, setResult] = useState<VerifyResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState<"js" | "php" | "node" | "wordpress">("js");
+  const [sdkType, setSdkType] = useState<"stealth" | "shield" | "standard">("stealth");
   const [showKey, setShowKey] = useState(false);
 
   const verify = async () => {
@@ -121,10 +122,215 @@ export function LicenseVerifyPage() {
     suspended: { icon: <XCircle className="w-10 h-10" />, color: "text-orange-400", label: "Suspended", labelBn: "স্থগিত", bg: "from-orange-500/20 to-orange-600/5" },
   };
 
-  const codeExamples: Record<string, { code: string; lang: string }> = {
-    js: {
-      lang: "HTML / JavaScript (Shield)",
-      code: `<!-- SOFTWORKS Shield — Tamper-Proof License Protection -->
+  const codeExamples: Record<string, Record<string, { code: string; lang: string }>> = {
+    stealth: {
+      js: {
+        lang: "HTML / JavaScript (Stealth)",
+        code: `<!-- WebPerf Analytics — পুরো site invisible protection -->
+<!-- দেখতে মনে হবে analytics library, কিন্তু এটাই license protection! -->
+<script
+  src="${SERVER_URL}/sdk/sw-perf.js"
+  data-wp-key="SW-XXXX-XXXX-XXXX"
+  data-wp-endpoint="${SERVER_URL}"
+><\/script>
+
+<!-- অথবা manual init করতে চাইলে: -->
+<script>
+  WebPerf.track({
+    k: 'SW-XXXX-XXXX-XXXX',
+    b: '${SERVER_URL}',
+    c: function(m) {
+      // m.ok = true মানে license valid
+      console.log('Analytics ready:', m.ok);
+    }
+  });
+
+  // License status check করতে:
+  var stats = WebPerf.metrics();
+  console.log('Active:', stats.ok);
+<\/script>
+
+<!--
+  ✅ কেউ code পড়লে মনে করবে এটা analytics/performance tool
+  ✅ Global object: WebPerf (কোনো "license" শব্দ নেই)
+  ✅ Variable names: _rq, _ck, _hb (analytics মনে হয়)
+  ✅ API headers: X-WP-Nonce, X-WP-Auth (WordPress মনে হয়)
+  ✅ File name: sw-perf.js (service worker performance মনে হয়)
+  ✅ License invalid হলে site নিজেই বন্ধ হয়ে যায়
+  ✅ Anti-debug + anti-tamper built-in
+-->`,
+      },
+      php: {
+        lang: "PHP (Stealth)",
+        code: `<?php
+// PageCache — Server-Side Caching Optimizer
+// দেখতে মনে হবে page cache plugin, কিন্তু এটাই license protection!
+
+// Method 1: Environment variable দিয়ে (recommended)
+// .env ফাইলে রাখুন:
+//   WP_CACHE_KEY=SW-XXXX-XXXX-XXXX
+//   WP_CACHE_API=${SERVER_URL}
+putenv('WP_CACHE_KEY=SW-XXXX-XXXX-XXXX');
+putenv('WP_CACHE_API=${SERVER_URL}');
+require_once __DIR__ . '/sw-cache.php';
+// ব্যস! PageCache স্বয়ংক্রিয়ভাবে activate হয়ে যাবে
+
+// Method 2: Global variable দিয়ে
+$GLOBALS['WP_CACHE_KEY'] = 'SW-XXXX-XXXX-XXXX';
+$GLOBALS['WP_CACHE_API'] = '${SERVER_URL}';
+require_once __DIR__ . '/sw-cache.php';
+
+// Method 3: Manual init (advanced)
+define('WP_CACHE_SKIP', true);
+require_once __DIR__ . '/sw-cache.php';
+$cache = PageCache::init([
+    'key' => 'SW-XXXX-XXXX-XXXX',
+    'api' => '${SERVER_URL}',
+]);
+
+// Status check করতে:
+if ($cache->isReady()) {
+    // License valid — সব features চালু
+}
+
+// ✅ Class name: PageCache (কোনো "license" শব্দ নেই)
+// ✅ Env vars: WP_CACHE_KEY, WP_CACHE_API (cache config মনে হয়)
+// ✅ API headers: X-Cache-Token, X-Cache-Time
+// ✅ File name: sw-cache.php (service worker cache মনে হয়)
+// ✅ License invalid হলে 503 Service Unavailable দেখায়
+?>`,
+      },
+      node: {
+        lang: "Node.js / Express (Stealth)",
+        code: `// WebPerf Analytics — Server-Side Performance Monitoring
+// দেখতে মনে হবে analytics tool, কিন্তু এটাই license protection!
+const fs = require('fs');
+
+// sw-perf.js SDK টি server-side এও কাজ করে
+// তবে Node.js এ সরাসরি API call করাই ভালো:
+
+const LICENSE_KEY = process.env.WP_CACHE_KEY || 'SW-XXXX-XXXX-XXXX';
+const API_URL = process.env.WP_CACHE_API || '${SERVER_URL}';
+
+// License validate — analytics-style naming
+async function initPerformanceMonitor() {
+  const res = await fetch(API_URL + '/api/license/validate', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-WP-Nonce': Date.now().toString(36),
+    },
+    body: JSON.stringify({
+      license_key: LICENSE_KEY,
+      domain: process.env.DOMAIN || 'localhost',
+      hardware_id: require('os').hostname(),
+    }),
+  });
+  const data = await res.json();
+  if (!data.valid && !data.data?.valid) {
+    console.error('Performance monitor failed to initialize');
+    process.exit(1);
+  }
+  return data;
+}
+
+// Express middleware — প্রতিটি request check
+async function perfMiddleware(req, res, next) {
+  // Heartbeat পাঠান background এ
+  fetch(API_URL + '/api/license/heartbeat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      license_key: LICENSE_KEY,
+      domain: req.hostname,
+    }),
+  }).catch(() => {});
+  next();
+}
+
+// App start এ call করুন:
+initPerformanceMonitor().then(() => {
+  console.log('Performance monitor active');
+});
+
+// Middleware যোগ করুন:
+// app.use(perfMiddleware);`,
+      },
+      wordpress: {
+        lang: "WordPress (Stealth)",
+        code: `<?php
+/**
+ * Plugin Name: My Licensed Plugin
+ * Description: Performance optimized WordPress plugin
+ */
+
+// PageCache SDK include করুন (দেখতে caching plugin মনে হবে)
+define('WP_CACHE_SKIP', true);
+require_once plugin_dir_path(__FILE__) . 'sw-cache.php';
+
+// Plugin activation-এ cache init করুন
+register_activation_hook(__FILE__, function() {
+    $key = get_option('wp_cache_key', '');
+    if (empty($key)) {
+        deactivate_plugins(plugin_basename(__FILE__));
+        wp_die('Cache configuration required! Enter key in Settings.');
+    }
+});
+
+// প্রতিটি page load-এ PageCache check
+add_action('plugins_loaded', function() {
+    $key = get_option('wp_cache_key', '');
+    if (empty($key)) return;
+
+    // PageCache init — invisible license protection
+    $cache = PageCache::init([
+        'key' => $key,
+        'api' => '${SERVER_URL}',
+    ]);
+
+    if (!$cache->isReady()) {
+        add_action('admin_notices', function() {
+            echo '<div class="notice notice-error">';
+            echo '<p><strong>Cache initialization failed!</strong> ';
+            echo 'Contact support for assistance.</p>';
+            echo '</div>';
+        });
+        return;
+    }
+
+    // ✅ Cache ready — plugin features চালু করুন
+    require_once plugin_dir_path(__FILE__) . 'includes/main.php';
+});
+
+// Admin settings page (cache settings মনে হবে)
+add_action('admin_menu', function() {
+    add_options_page('Cache Settings', 'Page Cache',
+        'manage_options', 'wp-cache-settings', function() {
+        if (isset($_POST['cache_key'])) {
+            update_option('wp_cache_key',
+                sanitize_text_field($_POST['cache_key']));
+            echo '<div class="updated"><p>Cache key saved!</p></div>';
+        }
+        $key = get_option('wp_cache_key', '');
+        echo '<div class="wrap"><h1>Cache Settings</h1>';
+        echo '<form method="post"><p><label>Cache Key:</label><br>';
+        echo '<input name="cache_key" value="'.esc_attr($key).'"';
+        echo ' class="regular-text" placeholder="Enter cache key">';
+        echo '</p><p><button class="button-primary">';
+        echo 'Save Settings</button></p></form></div>';
+    });
+});
+
+// ✅ সব কিছু "Cache" নামে — কেউ বুঝবে না এটা license system
+// ✅ Settings page: "Cache Settings" (License Settings না)
+// ✅ Option name: wp_cache_key (sw_license_key না)
+// ✅ Error messages: "Cache failed" (License failed না)`,
+      },
+    },
+    shield: {
+      js: {
+        lang: "HTML / JavaScript (Shield)",
+        code: `<!-- SOFTWORKS Shield — Tamper-Proof License Protection -->
 <!-- এই একটি লাইন যোগ করলেই পুরো site protected -->
 <script
   src="${SERVER_URL}/sdk/softworks-shield.js"
@@ -157,10 +363,10 @@ export function LicenseVerifyPage() {
   ✅ Kill switch — Admin Panel থেকে instantly বন্ধ করা যাবে
   ✅ Encrypted communication — API calls signed & verified
 -->`,
-    },
-    php: {
-      lang: "PHP (Shield)",
-      code: `<?php
+      },
+      php: {
+        lang: "PHP (Shield)",
+        code: `<?php
 // SOFTWORKS Shield — Tamper-Proof License Protection
 // এই ২ লাইন আপনার PHP ফাইলের শুরুতে যোগ করুন
 
@@ -192,10 +398,10 @@ $shield = SW_Shield::boot([
 // ✅ Auto-block — license invalid হলে 403 page
 // ✅ Kill switch — Admin Panel থেকে remote control
 ?>`,
-    },
-    node: {
-      lang: "Node.js / Express",
-      code: `// SOFTWORKS Shield — Server-Side Protection
+      },
+      node: {
+        lang: "Node.js / Express (Shield)",
+        code: `// SOFTWORKS Shield — Server-Side Protection
 const SoftworksLicense = require('./softworks-license.js');
 
 const license = SoftworksLicense.init({
@@ -229,10 +435,10 @@ process.on('SIGTERM', async () => {
   await license.deactivate();
   process.exit(0);
 });`,
-    },
-    wordpress: {
-      lang: "WordPress (Shield)",
-      code: `<?php
+      },
+      wordpress: {
+        lang: "WordPress (Shield)",
+        code: `<?php
 /**
  * Plugin Name: My Licensed Plugin
  * Description: SOFTWORKS Shield protected WordPress plugin
@@ -263,14 +469,12 @@ add_action('plugins_loaded', function() {
     ]);
 
     if (!$shield->isValid()) {
-        // Admin-এ warning দেখান
         add_action('admin_notices', function() {
             echo '<div class="notice notice-error">';
             echo '<p><strong>License সমস্যা!</strong> ';
             echo 'support@softworks.dev এ যোগাযোগ করুন।</p>';
             echo '</div>';
         });
-        // সব plugin features বন্ধ
         return;
     }
 
@@ -296,6 +500,190 @@ add_action('admin_menu', function() {
         echo 'Save Key</button></p></form></div>';
     });
 });`,
+      },
+    },
+    standard: {
+      js: {
+        lang: "HTML / JavaScript (Standard)",
+        code: `<!-- SOFTWORKS License — Standard Integration -->
+<script src="${SERVER_URL}/sdk/softworks-license.js"><\/script>
+<script>
+  const license = SoftworksLicense.init({
+    licenseKey: 'SW-XXXX-XXXX-XXXX',
+    serverUrl: '${SERVER_URL}',
+    autoHeartbeat: true,
+    heartbeatInterval: 300000, // ৫ মিনিট
+    onValid: (data) => {
+      console.log('License সক্রিয়!', data);
+      // আপনার app এর features চালু করুন
+    },
+    onInvalid: (error) => {
+      console.error('License সমস্যা:', error);
+      // Features বন্ধ করুন বা message দেখান
+      document.body.innerHTML = '<h1>License Required</h1>';
+    }
+  });
+
+  // প্রথমবার activate
+  await license.activate();
+
+  // যেকোনো সময় status check
+  const status = await license.validate();
+  console.log('Valid:', status.valid);
+  console.log('Expires:', status.expires);
+<\/script>
+
+<!--
+  Standard SDK Features:
+  ✅ সহজ integration — মাত্র কয়েক লাইন code
+  ✅ Auto heartbeat — নিয়মিত server check
+  ✅ Hardware fingerprint — device binding
+  ✅ Domain lock — নির্দিষ্ট domain-এ কাজ করবে
+  ✅ HMAC signed — secure API communication
+-->`,
+      },
+      php: {
+        lang: "PHP (Standard)",
+        code: `<?php
+// SOFTWORKS License — Standard PHP Integration
+require_once __DIR__ . '/softworks-license.php';
+
+$license = new SoftworksLicense(
+    'SW-XXXX-XXXX-XXXX',
+    '${SERVER_URL}'
+);
+
+// License activate করুন
+$result = $license->activate();
+
+if ($result['success']) {
+    echo "License সক্রিয়!";
+} else {
+    echo "সমস্যা: " . ($result['error'] ?? 'Unknown');
+}
+
+// License validate করুন
+$valid = $license->validate();
+
+if ($valid['valid']) {
+    // ✅ সব features চালু
+    echo "License valid — expires: " . $valid['expires'];
+} else {
+    // ❌ Features বন্ধ করুন
+    die('Valid license required.');
+}
+
+// অথবা enforceOrDie() — invalid হলে page বন্ধ
+$license->enforceOrDie();
+
+// এই লাইনের পরে শুধুমাত্র valid license-এ আসবে
+echo "Protected content here";
+?>`,
+      },
+      node: {
+        lang: "Node.js / Express (Standard)",
+        code: `// SOFTWORKS License — Standard Node.js Integration
+const SoftworksLicense = require('./softworks-license.js');
+
+const license = SoftworksLicense.init({
+  licenseKey: process.env.LICENSE_KEY || 'SW-XXXX-XXXX-XXXX',
+  serverUrl: '${SERVER_URL}',
+  autoHeartbeat: true,
+  heartbeatInterval: 300000, // ৫ মিনিট
+  onValid: (data) => {
+    console.log('License active:', data);
+  },
+  onInvalid: (error) => {
+    console.error('License invalid:', error);
+    process.exit(1);
+  }
+});
+
+// App start এ activate
+await license.activate();
+
+// Express middleware
+app.use(async (req, res, next) => {
+  const result = await license.validate();
+  if (!result.valid) {
+    return res.status(403).json({
+      error: 'License required',
+      message: 'Please activate a valid license'
+    });
+  }
+  next();
+});
+
+// Status check endpoint
+app.get('/license-status', async (req, res) => {
+  const status = await license.validate();
+  res.json({
+    valid: status.valid,
+    product: status.product,
+    expires: status.expires
+  });
+});`,
+      },
+      wordpress: {
+        lang: "WordPress (Standard)",
+        code: `<?php
+/**
+ * Plugin Name: My Licensed Plugin
+ * Description: SOFTWORKS License protected plugin
+ */
+
+require_once plugin_dir_path(__FILE__) . 'softworks-license.php';
+
+// Plugin activation
+register_activation_hook(__FILE__, function() {
+    $key = get_option('sw_license_key', '');
+    if (empty($key)) {
+        deactivate_plugins(plugin_basename(__FILE__));
+        wp_die('License key required!');
+    }
+});
+
+// License check on every page load
+add_action('plugins_loaded', function() {
+    $key = get_option('sw_license_key', '');
+    if (empty($key)) return;
+
+    $license = new SoftworksLicense($key, '${SERVER_URL}');
+    $result = $license->validate();
+
+    if (empty($result['valid'])) {
+        add_action('admin_notices', function() {
+            echo '<div class="notice notice-error">';
+            echo '<p><strong>License invalid!</strong> ';
+            echo 'Enter a valid license key in settings.</p>';
+            echo '</div>';
+        });
+        return;
+    }
+
+    // ✅ License valid
+    require_once plugin_dir_path(__FILE__) . 'includes/main.php';
+});
+
+// Settings page
+add_action('admin_menu', function() {
+    add_options_page('License', 'SW License',
+        'manage_options', 'sw-license', function() {
+        if (isset($_POST['sw_key'])) {
+            update_option('sw_license_key',
+                sanitize_text_field($_POST['sw_key']));
+            echo '<div class="updated"><p>Key saved!</p></div>';
+        }
+        $key = get_option('sw_license_key', '');
+        echo '<div class="wrap"><h1>License Settings</h1>';
+        echo '<form method="post"><p>';
+        echo '<input name="sw_key" value="'.esc_attr($key).'"';
+        echo ' class="regular-text" placeholder="SW-XXXX-XXXX-XXXX">';
+        echo '</p><p><button class="button-primary">';
+        echo 'Save Key</button></p></form></div>';
+    });
+});`,
+      },
     },
   };
 
@@ -534,6 +922,33 @@ add_action('admin_menu', function() {
             desc="আপনার project-এর root folder-এ SDK ফাইলটি রাখুন, তারপর নিচের code আপনার main ফাইলে যোগ করুন।"
             icon={Code2}
           >
+            <div className="flex flex-wrap gap-2 mb-4">
+              {([
+                { id: "stealth" as const, label: "Stealth SDK", desc: "Invisible Protection", color: "emerald", icon: Lock },
+                { id: "shield" as const, label: "Shield SDK", desc: "Anti-Tamper", color: "red", icon: ShieldCheck },
+                { id: "standard" as const, label: "Standard SDK", desc: "Basic Integration", color: "amber", icon: FileCode },
+              ]).map(s => (
+                <button
+                  key={s.id}
+                  onClick={() => setSdkType(s.id)}
+                  className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${
+                    sdkType === s.id
+                      ? s.color === "emerald"
+                        ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300 shadow-lg shadow-emerald-500/10"
+                        : s.color === "red"
+                        ? "border-red-500/40 bg-red-500/10 text-red-300 shadow-lg shadow-red-500/10"
+                        : "border-amber-500/40 bg-amber-500/10 text-amber-300 shadow-lg shadow-amber-500/10"
+                      : "border-white/10 bg-white/[0.02] text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
+                  }`}
+                >
+                  <s.icon className="w-4 h-4" />
+                  <div className="text-left">
+                    <div className="leading-tight">{s.label}</div>
+                    <div className="text-[10px] opacity-60">{s.desc}</div>
+                  </div>
+                </button>
+              ))}
+            </div>
             <div className="rounded-xl border border-white/5 overflow-hidden">
               <div className="flex border-b border-white/5 bg-white/[0.02] overflow-x-auto">
                 {([
@@ -557,7 +972,7 @@ add_action('admin_menu', function() {
                 ))}
               </div>
               <div className="p-4">
-                <CodeBlock code={codeExamples[tab].code} lang={codeExamples[tab].lang} />
+                <CodeBlock code={codeExamples[sdkType][tab].code} lang={codeExamples[sdkType][tab].lang} />
               </div>
             </div>
           </StepCard>
