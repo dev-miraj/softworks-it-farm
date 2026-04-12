@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { Navbar } from "./Navbar";
 import { Footer } from "./Footer";
 import { ScrollToTop } from "./ScrollToTop";
+import { AiChatWidget } from "@/components/AiChatWidget";
 
 export function PublicLayout({ children }: { children: ReactNode }) {
   return (
@@ -12,6 +13,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
         {children}
       </main>
       <Footer />
+      <AiChatWidget />
     </div>
   );
 }

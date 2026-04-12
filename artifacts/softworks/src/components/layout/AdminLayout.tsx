@@ -31,6 +31,7 @@ import {
   Receipt,
   BriefcaseBusiness,
   Mail,
+  Sparkles,
 } from "lucide-react";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { useSiteSettings } from "@/contexts/SiteSettingsContext";
@@ -85,6 +86,12 @@ const sidebarSections = [
       { href: "/admin/license-payments", label: "Payments", icon: CreditCard },
       { href: "/admin/license-logs", label: "Audit Logs", icon: ScrollText },
       { href: "/admin/payment-methods", label: "Payment Methods", icon: CreditCard },
+    ],
+  },
+  {
+    title: "AI Tools",
+    links: [
+      { href: "/admin/ai-chat", label: "AI Assistant", icon: Sparkles },
     ],
   },
   {

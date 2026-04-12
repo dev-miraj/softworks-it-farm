@@ -75,6 +75,7 @@
     "zod": "catalog:"
   },
   "dependencies": {
-    "gsap": "^3.14.2"
+    "gsap": "^3.14.2",
+    "@workspace/integrations-openai-ai-react": "workspace:*"
   }
 }

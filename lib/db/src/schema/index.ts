@@ -17,3 +17,5 @@ export * from "./faqs";
 export * from "./invoices";
 export * from "./jobs";
 export * from "./newsletter";
+export * from "./conversations";
+export * from "./messages";

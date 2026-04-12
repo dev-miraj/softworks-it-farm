@@ -20,6 +20,7 @@ import faqsRouter from "./faqs";
 import invoicesRouter from "./invoices";
 import jobsRouter from "./jobs";
 import newsletterRouter from "./newsletter";
+import { openaiRouter } from "./openai";
 
 const router: IRouter = Router();
 
@@ -44,5 +45,6 @@ router.use(faqsRouter);
 router.use(invoicesRouter);
 router.use(jobsRouter);
 router.use(newsletterRouter);
+router.use("/openai", openaiRouter);
 
 export default router;

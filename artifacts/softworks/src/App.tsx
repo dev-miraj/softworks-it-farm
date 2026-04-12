@@ -42,6 +42,7 @@ import { FaqsPage } from "@/pages/admin/FaqsPage";
 import { InvoicesPage } from "@/pages/admin/InvoicesPage";
 import { JobsAdminPage } from "@/pages/admin/JobsAdminPage";
 import { NewsletterPage } from "@/pages/admin/NewsletterPage";
+import { AiChatAdminPage } from "@/pages/admin/AiChatAdminPage";
 import { CareersPage } from "@/pages/CareersPage";
 import { FaqPage } from "@/pages/FaqPage";
 import { LicenseVerifyPage } from "@/pages/LicenseVerifyPage";
@@ -136,6 +137,7 @@ function Router() {
       <Route path="/admin/invoices"><AdminRoute component={InvoicesPage} /></Route>
       <Route path="/admin/jobs"><AdminRoute component={JobsAdminPage} /></Route>
       <Route path="/admin/newsletter"><AdminRoute component={NewsletterPage} /></Route>
+      <Route path="/admin/ai-chat"><AdminRoute component={AiChatAdminPage} /></Route>
 
       <Route component={NotFound} />
     </Switch>

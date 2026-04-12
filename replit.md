@@ -52,6 +52,8 @@ cd lib/db && pnpm run push
 - `GET/POST /api/invoices`, `PUT/DELETE /api/invoices/:id`
 - `GET/POST /api/jobs`, `PUT/DELETE /api/jobs/:id`
 - `GET /api/newsletter`, `POST /api/newsletter/subscribe`, `DELETE /api/newsletter/:id`
+- `GET /api/openai/conversations`, `POST /api/openai/conversations`, `GET /api/openai/conversations/:id`
+- `POST /api/openai/conversations/:id/messages` (streaming SSE, GPT-5.2)
 - `GET /api/dashboard/hr-summary`
 
 ### Frontend Routes

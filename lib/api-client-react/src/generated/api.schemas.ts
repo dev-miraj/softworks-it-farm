@@ -368,6 +368,43 @@ export interface HrSummary {
   byDepartment: HrSummaryByDepartmentItem[];
 }
 
+export interface Conversation {
+  id: number;
+  title: string;
+  createdAt: string;
+}
+
+export type AiMessageRole = (typeof AiMessageRole)[keyof typeof AiMessageRole];
+
+export const AiMessageRole = {
+  user: "user",
+  assistant: "assistant",
+  system: "system",
+} as const;
+
+export interface AiMessage {
+  id: number;
+  conversationId: number;
+  role: AiMessageRole;
+  content: string;
+  createdAt: string;
+}
+
+export interface ConversationWithMessages {
+  id: number;
+  title: string;
+  createdAt: string;
+  messages: AiMessage[];
+}
+
+export interface CreateConversationBody {
+  title: string;
+}
+
+export interface SendOpenaiMessageBody {
+  content: string;
+}
+
 export type ListPortfolioParams = {
   category?: string;
 };

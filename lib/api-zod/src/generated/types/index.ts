@@ -6,14 +6,19 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from "./aiMessage";
+export * from "./aiMessageRole";
 export * from "./attendanceRecord";
 export * from "./blogPost";
 export * from "./client";
 export * from "./contactLead";
+export * from "./conversation";
+export * from "./conversationWithMessages";
 export * from "./createAttendanceBody";
 export * from "./createBlogPostBody";
 export * from "./createClientBody";
 export * from "./createContactBody";
+export * from "./createConversationBody";
 export * from "./createEmployeeBody";
 export * from "./createLeaveRequestBody";
 export * from "./createPayrollBody";
@@ -39,6 +44,7 @@ export * from "./project";
 export * from "./projectSummary";
 export * from "./projectSummaryByPriority";
 export * from "./saasProduct";
+export * from "./sendOpenaiMessageBody";
 export * from "./service";
 export * from "./teamMember";
 export * from "./testimonial";
