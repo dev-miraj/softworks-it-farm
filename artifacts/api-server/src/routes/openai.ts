@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { openai } from "@workspace/integrations-openai-ai-server";
+import { openai, isAiEnabled } from "../lib/ai.js";
 import { db } from "../lib/db.js";
 import { conversations, messages } from "@workspace/db";
 import { eq } from "drizzle-orm";
@@ -60,6 +60,11 @@ router.get("/conversations/:id", async (req, res) => {
 });
 
 router.post("/conversations/:id/messages", async (req, res) => {
+  if (!isAiEnabled()) {
+    res.status(503).json({ error: "AI service is not configured. Set OPENAI_API_KEY environment variable to enable AI chat." });
+    return;
+  }
+
   try {
     const conversationId = parseInt(req.params.id);
     const { content } = req.body as { content: string };
@@ -81,8 +86,8 @@ router.post("/conversations/:id/messages", async (req, res) => {
 
     let fullResponse = "";
 
-    const stream = await openai.chat.completions.create({
-      model: "gpt-5.2",
+    const stream = await openai!.chat.completions.create({
+      model: process.env["OPENAI_MODEL"] || "gpt-4o-mini",
       max_completion_tokens: 8192,
       messages: chatMessages,
       stream: true,
