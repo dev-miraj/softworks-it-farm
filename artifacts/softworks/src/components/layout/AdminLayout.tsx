@@ -25,9 +25,10 @@ import {
   ScrollText,
   Shield,
   ChevronRight,
+  BarChart2,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
+import { useListLeaveRequests, useListLeads } from "@workspace/api-client-react";
 
 const sidebarSections = [
   {
@@ -50,7 +51,7 @@ const sidebarSections = [
   {
     title: "CRM",
     links: [
-      { href: "/admin/leads", label: "Leads", icon: Inbox },
+      { href: "/admin/leads", label: "Leads", icon: Inbox, badgeKey: "leads" },
       { href: "/admin/clients", label: "Clients", icon: UserPlus },
       { href: "/admin/projects", label: "Projects", icon: FolderOpen },
     ],
@@ -60,7 +61,7 @@ const sidebarSections = [
     links: [
       { href: "/admin/employees", label: "Employees", icon: Users },
       { href: "/admin/attendance", label: "Attendance", icon: Clock },
-      { href: "/admin/leaves", label: "Leave Requests", icon: Calendar },
+      { href: "/admin/leaves", label: "Leave Requests", icon: Calendar, badgeKey: "leaves" },
       { href: "/admin/payroll", label: "Payroll", icon: DollarSign },
     ],
   },
@@ -79,6 +80,7 @@ const sidebarSections = [
   {
     title: "Settings",
     links: [
+      { href: "/admin/reports", label: "Reports & Exports", icon: BarChart2 },
       { href: "/admin/api-keys", label: "API Keys", icon: KeyRound },
     ],
   },
@@ -89,6 +91,17 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { logout } = useAdminAuth();
 
+  const { data: leaveRequests } = useListLeaveRequests();
+  const { data: leads } = useListLeads();
+
+  const pendingLeaves = (leaveRequests ?? []).filter(l => l.status === "pending").length;
+  const newLeads = (leads ?? []).filter(l => l.status === "new").length;
+
+  const badges: Record<string, number> = {
+    leaves: pendingLeaves,
+    leads: newLeads,
+  };
+
   const isActive = (href: string) =>
     href === "/admin"
       ? location === "/admin"
@@ -97,9 +110,9 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   const SidebarContent = () => (
     <>
       {/* Logo */}
-      <div className="flex items-center gap-3 px-4 py-5 border-b border-white/8">
+      <div className="flex items-center gap-3 px-4 py-5 border-b border-white/8 flex-shrink-0">
         <div className="w-9 h-9 rounded-xl bg-primary/15 border border-primary/25 flex items-center justify-center flex-shrink-0">
-          <Terminal className="w-4.5 h-4.5 text-primary" />
+          <Terminal className="w-4 h-4 text-primary" />
         </div>
         <div>
           <div className="text-sm font-black text-foreground tracking-tight leading-none">SOFTWORKS</div>
@@ -108,7 +121,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* Nav sections — scrollable */}
-      <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-1">
+      <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-1 min-h-0">
         {sidebarSections.map((section) => (
           <div key={section.title} className="mb-1">
             <div className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-[0.18em] px-3 py-2">
@@ -118,6 +131,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
               {section.links.map((link) => {
                 const Icon = link.icon;
                 const active = isActive(link.href);
+                const badge = link.badgeKey ? (badges[link.badgeKey] ?? 0) : 0;
                 return (
                   <Link
                     key={link.href}
@@ -134,9 +148,14 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                         active ? "text-primary" : "text-muted-foreground/60 group-hover:text-foreground"
                       }`}
                     />
-                    <span className="flex-1 font-medium leading-none">{link.label}</span>
-                    {active && (
-                      <ChevronRight className="w-3 h-3 text-primary/70" />
+                    <span className="flex-1 font-medium leading-none truncate">{link.label}</span>
+                    {badge > 0 && (
+                      <span className="flex-shrink-0 min-w-[18px] h-[18px] rounded-full bg-yellow-500/80 text-[10px] font-bold text-background flex items-center justify-center px-1">
+                        {badge > 99 ? "99+" : badge}
+                      </span>
+                    )}
+                    {active && badge === 0 && (
+                      <ChevronRight className="w-3 h-3 text-primary/70 flex-shrink-0" />
                     )}
                   </Link>
                 );
@@ -147,7 +166,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       </nav>
 
       {/* Footer */}
-      <div className="px-2 pb-4 pt-2 border-t border-white/8 space-y-0.5">
+      <div className="px-2 pb-4 pt-2 border-t border-white/8 flex-shrink-0 space-y-0.5">
         <Link href="/" target="_blank">
           <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-white/5 transition-all duration-150">
             <ExternalLink className="w-3.5 h-3.5 flex-shrink-0" />
@@ -166,10 +185,9 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    /* Root: full viewport height, no overflow — prevents page-level scroll */
     <div className="h-screen overflow-hidden bg-background flex">
 
-      {/* ── Desktop Sidebar — fixed height, never scrolls with content ── */}
+      {/* ── Desktop Sidebar ── */}
       <aside className="hidden md:flex w-60 flex-shrink-0 flex-col bg-card/60 border-r border-white/8 h-full backdrop-blur-xl">
         <SidebarContent />
       </aside>
@@ -191,7 +209,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         <SidebarContent />
       </aside>
 
-      {/* ── Main area: takes remaining width, scrolls independently ── */}
+      {/* ── Main area ── */}
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
         {/* Mobile top bar */}
         <header className="md:hidden flex-shrink-0 flex items-center justify-between px-4 py-3 bg-card/80 backdrop-blur-xl border-b border-white/8">
@@ -201,15 +219,22 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             </div>
             <span className="text-sm font-black text-primary tracking-tight">SOFTWORKS</span>
           </Link>
-          <button
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/8 transition-colors"
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          >
-            {isSidebarOpen ? <X className="w-4.5 h-4.5" /> : <Menu className="w-4.5 h-4.5" />}
-          </button>
+          <div className="flex items-center gap-2">
+            {(pendingLeaves + newLeads) > 0 && (
+              <span className="w-5 h-5 rounded-full bg-yellow-500/80 text-[10px] font-bold text-background flex items-center justify-center">
+                {pendingLeaves + newLeads}
+              </span>
+            )}
+            <button
+              className="w-8 h-8 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/8 transition-colors"
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            >
+              {isSidebarOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+            </button>
+          </div>
         </header>
 
-        {/* Page content — only this div scrolls */}
+        {/* Page content */}
         <main className="flex-1 overflow-y-auto p-5 md:p-8">
           <div className="max-w-6xl mx-auto">{children}</div>
         </main>
