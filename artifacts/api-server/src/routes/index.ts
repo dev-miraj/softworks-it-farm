@@ -16,6 +16,10 @@ import clientsRouter from "./clients";
 import dashboardRouter from "./dashboard";
 import licensesRouter from "./licenses";
 import paymentMethodsRouter from "./paymentMethods";
+import faqsRouter from "./faqs";
+import invoicesRouter from "./invoices";
+import jobsRouter from "./jobs";
+import newsletterRouter from "./newsletter";
 
 const router: IRouter = Router();
 
@@ -36,5 +40,9 @@ router.use(clientsRouter);
 router.use(dashboardRouter);
 router.use(licensesRouter);
 router.use(paymentMethodsRouter);
+router.use(faqsRouter);
+router.use(invoicesRouter);
+router.use(jobsRouter);
+router.use(newsletterRouter);
 
 export default router;
