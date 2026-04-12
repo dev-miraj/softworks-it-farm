@@ -38,6 +38,12 @@ import { PaymentMethodsPage } from "@/pages/admin/PaymentMethodsPage";
 import { ApiKeysPage } from "@/pages/admin/ApiKeysPage";
 import { ReportsPage } from "@/pages/admin/ReportsPage";
 import { SiteSettingsPage } from "@/pages/admin/SiteSettingsPage";
+import { FaqsPage } from "@/pages/admin/FaqsPage";
+import { InvoicesPage } from "@/pages/admin/InvoicesPage";
+import { JobsAdminPage } from "@/pages/admin/JobsAdminPage";
+import { NewsletterPage } from "@/pages/admin/NewsletterPage";
+import { CareersPage } from "@/pages/CareersPage";
+import { FaqPage } from "@/pages/FaqPage";
 import { LicenseVerifyPage } from "@/pages/LicenseVerifyPage";
 import NotFound from "@/pages/not-found";
 
@@ -91,6 +97,12 @@ function Router() {
       <Route path="/verify-license">
         <PublicLayout><LicenseVerifyPage /></PublicLayout>
       </Route>
+      <Route path="/careers">
+        <PublicLayout><CareersPage /></PublicLayout>
+      </Route>
+      <Route path="/faq">
+        <PublicLayout><FaqPage /></PublicLayout>
+      </Route>
 
       {/* Admin Login — public */}
       <Route path="/admin/login" component={LoginPage} />
@@ -120,6 +132,10 @@ function Router() {
       <Route path="/admin/api-keys"><AdminRoute component={ApiKeysPage} /></Route>
       <Route path="/admin/reports"><AdminRoute component={ReportsPage} /></Route>
       <Route path="/admin/settings"><AdminRoute component={SiteSettingsPage} /></Route>
+      <Route path="/admin/faqs"><AdminRoute component={FaqsPage} /></Route>
+      <Route path="/admin/invoices"><AdminRoute component={InvoicesPage} /></Route>
+      <Route path="/admin/jobs"><AdminRoute component={JobsAdminPage} /></Route>
+      <Route path="/admin/newsletter"><AdminRoute component={NewsletterPage} /></Route>
 
       <Route component={NotFound} />
     </Switch>

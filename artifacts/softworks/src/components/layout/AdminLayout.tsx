@@ -27,6 +27,10 @@ import {
   ChevronRight,
   BarChart2,
   Settings,
+  HelpCircle,
+  Receipt,
+  BriefcaseBusiness,
+  Mail,
 } from "lucide-react";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { useSiteSettings } from "@/contexts/SiteSettingsContext";
