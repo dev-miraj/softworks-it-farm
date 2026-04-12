@@ -800,4 +800,24 @@ router.post("/shield-verify", async (req, res) => {
   }
 });
 
+// ─── ADMIN: API KEY INFO ───
+// Returns the ECOMMERCE_API_KEY for display in the admin dashboard
+router.get("/admin/api-key", (req, res) => {
+  const key = process.env.ECOMMERCE_API_KEY ?? null;
+  if (!key) {
+    res.status(404).json({ success: false, error: "ECOMMERCE_API_KEY not configured in server .env" });
+    return;
+  }
+  // Return masked version by default; full key only if ?reveal=1
+  const reveal = req.query.reveal === "1";
+  const masked = key.slice(0, 8) + "••••••••••••••••••••••••••••••••" + key.slice(-6);
+  res.json({
+    success: true,
+    key: reveal ? key : masked,
+    revealed: reveal,
+    prefix: key.slice(0, 8),
+    length: key.length,
+  });
+});
+
 export default router;

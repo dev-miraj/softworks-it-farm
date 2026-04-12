@@ -75,6 +75,12 @@ const sidebarSections = [
       { href: "/admin/payment-methods", label: "Payment Methods", icon: CreditCard },
     ],
   },
+  {
+    title: "Settings",
+    links: [
+      { href: "/admin/api-keys", label: "API Keys", icon: KeyRound },
+    ],
+  },
 ];
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
