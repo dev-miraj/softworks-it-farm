@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useListLeads, useUpdateLead } from "@workspace/api-client-react";
+import { useListLeads, useUpdateLead, useDeleteLead } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Mail, Phone, Building2, MessageSquare } from "lucide-react";
+import { Mail, Phone, Building2, MessageSquare, Search, Trash2, Copy, Check } from "lucide-react";
+import { useState as useStateLocal } from "react";
 
 const statusColors: Record<string, string> = {
   new: "bg-blue-500/10 text-blue-400 border-blue-400/20",
@@ -14,80 +16,173 @@ const statusColors: Record<string, string> = {
   lost: "bg-red-500/10 text-red-400 border-red-400/20",
 };
 
+function CopyButton({ value }: { value: string }) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = () => {
+    navigator.clipboard.writeText(value);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+  return (
+    <button onClick={handleCopy} className="p-1 rounded hover:bg-muted/50 transition-colors text-muted-foreground hover:text-foreground">
+      {copied ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
+    </button>
+  );
+}
+
 export function LeadsPage() {
   const { data: leads, queryKey } = useListLeads();
   const updateLead = useUpdateLead();
+  const deleteLead = useDeleteLead();
   const qc = useQueryClient();
   const [expandedLead, setExpandedLead] = useState<number | null>(null);
+  const [search, setSearch] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
 
   const handleUpdateStatus = async (id: number, status: string) => {
     await updateLead.mutateAsync({ id, data: { status } });
     await qc.invalidateQueries({ queryKey });
   };
 
+  const handleDelete = async (id: number, name: string) => {
+    if (!confirm(`Delete lead "${name}"? This cannot be undone.`)) return;
+    await deleteLead.mutateAsync({ id });
+    await qc.invalidateQueries({ queryKey });
+  };
+
+  const filtered = useMemo(() => {
+    if (!leads) return [];
+    return leads.filter(l => {
+      const matchesSearch = !search ||
+        l.name.toLowerCase().includes(search.toLowerCase()) ||
+        l.email.toLowerCase().includes(search.toLowerCase()) ||
+        (l.company ?? "").toLowerCase().includes(search.toLowerCase());
+      const matchesStatus = filterStatus === "all" || l.status === filterStatus;
+      return matchesSearch && matchesStatus;
+    });
+  }, [leads, search, filterStatus]);
+
+  const counts = useMemo(() => {
+    if (!leads) return { new: 0, contacted: 0, converted: 0, lost: 0 };
+    return leads.reduce((acc, l) => { acc[l.status as keyof typeof acc] = (acc[l.status as keyof typeof acc] ?? 0) + 1; return acc; }, { new: 0, contacted: 0, converted: 0, lost: 0 });
+  }, [leads]);
+
   return (
     <AdminLayout>
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-3xl font-black text-foreground mb-1">Leads</h1>
           <p className="text-muted-foreground text-sm">Contact form submissions and inquiries</p>
         </div>
-        <Badge variant="outline" className="text-primary border-primary/30 bg-primary/10">
-          {leads?.length ?? 0} Total
-        </Badge>
+        <div className="flex items-center gap-2 flex-wrap">
+          {Object.entries(counts).map(([status, count]) => (
+            <Badge key={status} variant="outline" className={`capitalize text-xs cursor-pointer ${filterStatus === status ? statusColors[status] : ""}`} onClick={() => setFilterStatus(filterStatus === status ? "all" : status)}>
+              {status}: {count}
+            </Badge>
+          ))}
+        </div>
       </div>
 
-      <div className="flex flex-col gap-3">
-          {leads?.map((lead) => (
-            <div key={lead.id} className="gradient-border rounded-xl p-5 transition-all duration-200">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2 flex-wrap">
-                    <span className="font-bold text-foreground">{lead.name}</span>
-                    <Badge variant="outline" className={`text-xs capitalize ${statusColors[lead.status] ?? ""}`}>{lead.status}</Badge>
-                    {lead.service && <Badge variant="secondary" className="text-xs">{lead.service}</Badge>}
-                  </div>
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap mb-2">
-                    <span className="flex items-center gap-1"><Mail className="w-3 h-3" />{lead.email}</span>
-                    {lead.phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3" />{lead.phone}</span>}
-                    {lead.company && <span className="flex items-center gap-1"><Building2 className="w-3 h-3" />{lead.company}</span>}
-                    <span className="text-muted-foreground/60">{new Date(lead.createdAt).toLocaleDateString()}</span>
-                  </div>
-                  {expandedLead === lead.id && (
-                    <div className="mt-3 p-3 rounded-lg bg-muted/30 flex items-start gap-2 text-sm text-muted-foreground">
-                      <MessageSquare className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                      {lead.message}
-                    </div>
+      {/* Filters */}
+      <div className="flex items-center gap-3 mb-5 flex-wrap">
+        <div className="relative flex-1 min-w-48">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by name, email, company..."
+            className="pl-9 h-9"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+        </div>
+        <Select value={filterStatus} onValueChange={setFilterStatus}>
+          <SelectTrigger className="w-36 h-9">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="new">New</SelectItem>
+            <SelectItem value="contacted">Contacted</SelectItem>
+            <SelectItem value="converted">Converted</SelectItem>
+            <SelectItem value="lost">Lost</SelectItem>
+          </SelectContent>
+        </Select>
+        <span className="text-xs text-muted-foreground">{filtered.length} result{filtered.length !== 1 ? "s" : ""}</span>
+      </div>
+
+      <div className="flex flex-col gap-2.5">
+        {filtered.map((lead) => (
+          <div key={lead.id} className="gradient-border rounded-xl p-4 transition-all duration-200">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                  <span className="font-bold text-foreground">{lead.name}</span>
+                  <Badge variant="outline" className={`text-xs capitalize ${statusColors[lead.status] ?? ""}`}>{lead.status}</Badge>
+                  {lead.service && <Badge variant="secondary" className="text-xs">{lead.service}</Badge>}
+                </div>
+                <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap mb-1">
+                  <span className="flex items-center gap-1">
+                    <Mail className="w-3 h-3" />
+                    <span className="truncate max-w-48">{lead.email}</span>
+                    <CopyButton value={lead.email} />
+                  </span>
+                  {lead.phone && (
+                    <span className="flex items-center gap-1">
+                      <Phone className="w-3 h-3" />{lead.phone}
+                    </span>
                   )}
+                  {lead.company && (
+                    <span className="flex items-center gap-1">
+                      <Building2 className="w-3 h-3" />{lead.company}
+                    </span>
+                  )}
+                  <span className="text-muted-foreground/50">{new Date(lead.createdAt).toLocaleDateString()}</span>
                 </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setExpandedLead(expandedLead === lead.id ? null : lead.id)}
-                    className="text-xs text-muted-foreground"
-                  >
-                    {expandedLead === lead.id ? "Hide" : "View"}
-                  </Button>
-                  <Select onValueChange={(val) => handleUpdateStatus(lead.id, val)} defaultValue={lead.status}>
-                    <SelectTrigger className="w-32 h-8 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="new">New</SelectItem>
-                      <SelectItem value="contacted">Contacted</SelectItem>
-                      <SelectItem value="converted">Converted</SelectItem>
-                      <SelectItem value="lost">Lost</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                {expandedLead === lead.id && (
+                  <div className="mt-2 p-3 rounded-lg bg-muted/30 flex items-start gap-2 text-sm text-muted-foreground">
+                    <MessageSquare className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                    <span>{lead.message}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setExpandedLead(expandedLead === lead.id ? null : lead.id)}
+                  className="text-xs text-muted-foreground h-7 px-2"
+                >
+                  {expandedLead === lead.id ? "Hide" : "Message"}
+                </Button>
+                <Select onValueChange={(val) => handleUpdateStatus(lead.id, val)} defaultValue={lead.status}>
+                  <SelectTrigger className="w-32 h-7 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="new">New</SelectItem>
+                    <SelectItem value="contacted">Contacted</SelectItem>
+                    <SelectItem value="converted">Converted</SelectItem>
+                    <SelectItem value="lost">Lost</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 text-destructive/60 hover:text-destructive hover:bg-destructive/10"
+                  onClick={() => handleDelete(lead.id, lead.name)}
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </Button>
               </div>
             </div>
-          ))}
-          {(!leads || leads.length === 0) && (
-            <div className="text-center py-20 text-muted-foreground">No leads yet.</div>
-          )}
-        </div>
+          </div>
+        ))}
+        {filtered.length === 0 && (
+          <div className="text-center py-20 text-muted-foreground">
+            {search || filterStatus !== "all" ? "No leads match your filters." : "No leads yet."}
+          </div>
+        )}
+      </div>
     </AdminLayout>
   );
 }
