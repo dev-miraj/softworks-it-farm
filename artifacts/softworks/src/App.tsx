@@ -35,6 +35,7 @@ import { LicensePaymentsPage } from "@/pages/admin/LicensePaymentsPage";
 import { LicenseLogsPage } from "@/pages/admin/LicenseLogsPage";
 import { PaymentMethodsPage } from "@/pages/admin/PaymentMethodsPage";
 import { ApiKeysPage } from "@/pages/admin/ApiKeysPage";
+import { ReportsPage } from "@/pages/admin/ReportsPage";
 import { LicenseVerifyPage } from "@/pages/LicenseVerifyPage";
 import NotFound from "@/pages/not-found";
 
@@ -115,6 +116,7 @@ function Router() {
       <Route path="/admin/license-logs"><AdminRoute component={LicenseLogsPage} /></Route>
       <Route path="/admin/payment-methods"><AdminRoute component={PaymentMethodsPage} /></Route>
       <Route path="/admin/api-keys"><AdminRoute component={ApiKeysPage} /></Route>
+      <Route path="/admin/reports"><AdminRoute component={ReportsPage} /></Route>
 
       <Route component={NotFound} />
     </Switch>
