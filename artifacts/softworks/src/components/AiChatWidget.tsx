@@ -9,10 +9,10 @@ interface Message {
   streaming?: boolean;
 }
 
-const BASE_URL = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
+const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "");
 
 async function* streamMessage(conversationId: number, content: string): AsyncGenerator<string> {
-  const res = await fetch(`${BASE_URL}/api/openai/conversations/${conversationId}/messages`, {
+  const res = await fetch(`${API_BASE}/api/openai/conversations/${conversationId}/messages`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ content }),
