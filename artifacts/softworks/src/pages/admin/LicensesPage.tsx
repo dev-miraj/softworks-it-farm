@@ -22,7 +22,7 @@ import { PaymentMethodLogo } from "@/components/ui/PaymentMethodLogo";
 import {
   KeyRound, Plus, Search, Copy, Check, ShieldCheck, ShieldOff, Ban, Pencil, Trash2,
   Globe, Server, Cpu, Calendar, RefreshCw, Activity, AlertTriangle, CheckCircle2,
-  Clock, XCircle, Filter, DollarSign, CreditCard, CircleDollarSign, BadgeAlert,
+  Clock, XCircle, Filter, DollarSign, CreditCard, CircleDollarSign, BadgeAlert, ShoppingCart,
 } from "lucide-react";
 
 const API = import.meta.env.VITE_API_URL ?? "";
@@ -40,6 +40,7 @@ type License = {
   paymentMethodId: number | null; paymentMethodName: string | null;
   nextPaymentDue: string | null; lastPaymentDate: string | null;
   gracePeriodEnd: string | null; autoBlockEnabled: boolean;
+  metadata: { source?: string; store_id?: string; store_name?: string; provisioned_at?: string } | null;
   createdAt: string;
 };
 
@@ -101,6 +102,7 @@ export function LicensesPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("__all__");
   const [typeFilter, setTypeFilter] = useState("__all__");
+  const [sourceFilter, setSourceFilter] = useState("__all__");
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
@@ -171,10 +173,12 @@ export function LicensesPage() {
 
   const filtered = (licenses ?? []).filter(l => {
     const q = search.toLowerCase();
-    const ms = !q || l.licenseKey.toLowerCase().includes(q) || l.clientName.toLowerCase().includes(q) || l.productName.toLowerCase().includes(q) || (l.domain ?? "").toLowerCase().includes(q);
+    const storeName = (l.metadata?.store_name ?? "").toLowerCase();
+    const ms = !q || l.licenseKey.toLowerCase().includes(q) || l.clientName.toLowerCase().includes(q) || l.productName.toLowerCase().includes(q) || (l.domain ?? "").toLowerCase().includes(q) || storeName.includes(q);
     const mst = statusFilter === "__all__" || l.status === statusFilter;
     const mt = typeFilter === "__all__" || l.licenseType === typeFilter;
-    return ms && mst && mt;
+    const msrc = sourceFilter === "__all__" || (sourceFilter === "ecommerce" ? l.metadata?.source === "ecommerce" : l.metadata?.source !== "ecommerce");
+    return ms && mst && mt && msrc;
   });
 
   const stats = {
@@ -184,6 +188,7 @@ export function LicensesPage() {
     expired: licenses?.filter(l => l.status === "expired").length ?? 0,
     suspended: licenses?.filter(l => l.status === "suspended").length ?? 0,
     overdue: licenses?.filter(l => l.paymentStatus === "overdue").length ?? 0,
+    ecommerce: licenses?.filter(l => l.metadata?.source === "ecommerce").length ?? 0,
   };
 
   const openEdit = (l: License) => {
@@ -231,7 +236,7 @@ export function LicensesPage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
           {[
             { label: "Total", value: stats.total, icon: KeyRound, color: "text-violet-400", bg: "bg-violet-500/10 border-violet-500/20" },
             { label: "Active", value: stats.active, icon: CheckCircle2, color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20" },
@@ -239,8 +244,9 @@ export function LicensesPage() {
             { label: "Expired", value: stats.expired, icon: AlertTriangle, color: "text-amber-400", bg: "bg-amber-500/10 border-amber-500/20" },
             { label: "Suspended", value: stats.suspended, icon: ShieldOff, color: "text-red-400", bg: "bg-red-500/10 border-red-500/20" },
             { label: "Overdue Pay", value: stats.overdue, icon: BadgeAlert, color: "text-rose-400", bg: "bg-rose-500/10 border-rose-500/20" },
+            { label: "E-Commerce", value: stats.ecommerce, icon: ShoppingCart, color: "text-orange-400", bg: "bg-orange-500/10 border-orange-500/20" },
           ].map(({ label, value, icon: Icon, color, bg }) => (
-            <div key={label} className={`rounded-xl border p-4 ${bg}`}>
+            <div key={label} className={`rounded-xl border p-4 ${bg} cursor-pointer`} onClick={() => label === "E-Commerce" ? setSourceFilter(sourceFilter === "ecommerce" ? "__all__" : "ecommerce") : undefined}>
               <div className="flex items-center gap-2 mb-2"><Icon className={`w-4 h-4 ${color}`} /><span className="text-xs text-muted-foreground">{label}</span></div>
               <div className={`text-2xl font-bold ${color}`}>{value}</div>
             </div>
@@ -271,6 +277,14 @@ export function LicensesPage() {
               <SelectItem value="monthly">Monthly</SelectItem>
               <SelectItem value="yearly">Yearly</SelectItem>
               <SelectItem value="lifetime">Lifetime</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={sourceFilter} onValueChange={setSourceFilter}>
+            <SelectTrigger className="w-[160px]"><ShoppingCart className="w-3.5 h-3.5 mr-2 text-muted-foreground" /><SelectValue placeholder="Source" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">All Sources</SelectItem>
+              <SelectItem value="ecommerce">E-Commerce</SelectItem>
+              <SelectItem value="manual">Manual</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -313,8 +327,15 @@ export function LicensesPage() {
                               <CopyBtn text={l.licenseKey} />
                             </div>
                             <div className="text-xs font-medium text-foreground mt-1">{l.productName}</div>
+                            {l.metadata?.source === "ecommerce" && l.metadata.store_name && (
+                              <div className="text-[10px] text-orange-400/70 mt-0.5 flex items-center gap-1">
+                                <ShoppingCart className="w-2.5 h-2.5" />
+                                <span>{l.metadata.store_name}</span>
+                              </div>
+                            )}
                             <div className="flex items-center gap-1 mt-0.5">
                               <Badge className={`text-[10px] border capitalize px-1.5 py-0 ${typeColors[l.licenseType] ?? typeColors.lifetime}`}>{l.licenseType}</Badge>
+                              {l.metadata?.source === "ecommerce" && <Badge className="text-[10px] border bg-orange-500/10 text-orange-400 border-orange-500/20 px-1.5 py-0"><ShoppingCart className="w-2.5 h-2.5 inline mr-0.5" />E-Commerce</Badge>}
                               {l.isBlacklisted && <Badge className="text-[10px] border bg-rose-500/10 text-rose-400 border-rose-500/20 px-1.5 py-0"><Ban className="w-2.5 h-2.5 inline mr-0.5" />Blacklisted</Badge>}
                               {l.killSwitch && <Badge className="text-[10px] border bg-orange-500/10 text-orange-400 border-orange-500/20 px-1.5 py-0"><XCircle className="w-2.5 h-2.5 inline mr-0.5" />Kill Switch</Badge>}
                             </div>

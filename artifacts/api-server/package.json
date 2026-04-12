@@ -18,12 +18,14 @@
     "dotenv": "^17.4.1",
     "drizzle-orm": "catalog:",
     "esbuild": "^0.27.3",
-    "express": "^5"
+    "express": "^5",
+    "pg": "^8.20.0"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
-    "@types/node": "catalog:"
+    "@types/node": "catalog:",
+    "@types/pg": "^8.18.0"
   }
 }

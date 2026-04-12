@@ -1,6 +1,8 @@
-import { neon } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-http";
+import { drizzle } from "drizzle-orm/node-postgres";
+import pg from "pg";
 import * as schema from "@workspace/db/schema";
+
+const { Pool } = pg;
 
 function getConnectionUrl(): string {
   const url =
@@ -22,15 +24,28 @@ function getConnectionUrl(): string {
   }
 }
 
+let _pool: pg.Pool | null = null;
 let _db: ReturnType<typeof drizzle<typeof schema>> | null = null;
+
+function getPool(): pg.Pool {
+  if (!_pool) {
+    const url = getConnectionUrl();
+    const isNeon = url.includes("neon.tech");
+    _pool = new Pool({
+      connectionString: url,
+      ssl: isNeon ? { rejectUnauthorized: false } : undefined,
+      max: 5,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 10000,
+      allowExitOnIdle: true,
+    });
+  }
+  return _pool;
+}
 
 export function getDb() {
   if (!_db) {
-    const url = getConnectionUrl();
-    const sql = neon(url, {
-      fetchOptions: () => ({ signal: AbortSignal.timeout(12_000) }),
-    });
-    _db = drizzle(sql, { schema });
+    _db = drizzle(getPool(), { schema });
   }
   return _db;
 }
@@ -43,5 +58,10 @@ export const db = new Proxy({} as ReturnType<typeof drizzle<typeof schema>>, {
   },
 });
 
-// pool alias — not used with Neon HTTP driver, kept for any legacy compat
-export const pool = db as unknown as Record<string, unknown>;
+export const pool = new Proxy({} as pg.Pool, {
+  get(_t, prop) {
+    const p = getPool();
+    const v = (p as unknown as Record<string | symbol, unknown>)[prop];
+    return typeof v === "function" ? (v as Function).bind(p) : v;
+  },
+});

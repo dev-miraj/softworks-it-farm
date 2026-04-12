@@ -1,34 +1,29 @@
 #!/usr/bin/env node
 /**
  * github-push.mjs — Smart push via GitHub Git Data API
- * Compares local git tree (HEAD + working-tree changes) with GitHub's tree via API.
- * Only uploads blobs that actually changed. No rate-limit issues.
+ * Uses Replit GitHub Connector (OAuth) — no GITHUB_PAT needed.
+ * Compares local git tree with GitHub's tree and only uploads changed blobs.
  */
 
 import { execSync } from "child_process";
 import { readFileSync, statSync, readdirSync } from "fs";
 import { join } from "path";
+import { ReplitConnectors } from "@replit/connectors-sdk";
 
 const OWNER  = "dev-miraj";
 const REPO   = "softworks-it-farm";
 const BRANCH = "main";
-const TOKEN  = process.env.GITHUB_PAT || process.argv[2];
 
-if (!TOKEN) { console.error("❌ GITHUB_PAT not set."); process.exit(1); }
-
-const BASE = `https://api.github.com/repos/${OWNER}/${REPO}`;
-const H = {
-  Authorization: `token ${TOKEN}`,
-  Accept: "application/vnd.github+json",
-  "Content-Type": "application/json",
-  "User-Agent": "softworks-push-script",
-};
+const connectors = new ReplitConnectors();
 
 async function api(method, path, body) {
-  const res = await fetch(`${BASE}${path}`, {
-    method, headers: H,
-    body: body ? JSON.stringify(body) : undefined,
-  });
+  const opts = { method };
+  if (body) {
+    opts.body = JSON.stringify(body);
+    opts.headers = { "Content-Type": "application/json" };
+  }
+  // Uses Replit GitHub Connector — token injected automatically
+  const res = await connectors.proxy("github", `/repos/${OWNER}/${REPO}${path}`, opts);
   const json = await res.json();
   if (!res.ok) {
     console.error(`❌ ${res.status} ${method} ${path}: ${json.message}`);
@@ -38,6 +33,19 @@ async function api(method, path, body) {
 }
 
 async function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function expandPath(p) {
+  try {
+    if (statSync(p).isDirectory()) {
+      const entries = [];
+      for (const item of readdirSync(p, { withFileTypes: true })) {
+        entries.push(...expandPath(join(p, item.name)));
+      }
+      return entries;
+    }
+    return [p];
+  } catch { return []; }
+}
 
 async function main() {
   console.log("🚀  SOFTWORKS → GitHub push\n");
@@ -56,7 +64,7 @@ async function main() {
   const remoteCommit = await api("GET", `/git/commits/${remoteSHA}`);
   const remoteTreeSHA = remoteCommit.tree.sha;
   const remoteTreeResp = await api("GET", `/git/trees/${remoteTreeSHA}?recursive=1`);
-  
+
   // Build map: path → sha
   const remoteFiles = {};
   for (const item of remoteTreeResp.tree) {
@@ -68,9 +76,8 @@ async function main() {
   const localTreeLines = execSync("git ls-tree -r HEAD", { maxBuffer: 20*1024*1024 })
     .toString().trim().split("\n").filter(Boolean);
 
-  const localFiles = {}; // path → { gitSha, mode, fromDisk? }
+  const localFiles = {};
   for (const line of localTreeLines) {
-    // format: <mode> SP blob SP <sha> TAB <path>
     const [meta, filePath] = line.split("\t");
     const parts = meta.split(" ");
     const mode  = parts[0];
@@ -78,21 +85,7 @@ async function main() {
     localFiles[filePath] = { sha, mode };
   }
 
-  function expandPath(p) {
-    try {
-      if (statSync(p).isDirectory()) {
-        const entries = [];
-        const items = readdirSync(p, { withFileTypes: true });
-        for (const item of items) {
-          entries.push(...expandPath(join(p, item.name)));
-        }
-        return entries;
-      }
-      return [p];
-    } catch { return []; }
-  }
-
-  // Merge uncommitted working-tree changes (modified + new untracked files)
+  // Merge uncommitted working-tree changes
   try {
     const statusOut = execSync("git status --porcelain", { maxBuffer: 5*1024*1024 }).toString();
     for (const line of statusOut.split("\n").filter(Boolean)) {
@@ -101,8 +94,7 @@ async function main() {
       if (xy.includes("D")) {
         delete localFiles[filePath];
       } else if (!xy.startsWith("!")) {
-        const expanded = expandPath(filePath);
-        for (const fp of expanded) {
+        for (const fp of expandPath(filePath)) {
           localFiles[fp] = { sha: null, mode: "100644", fromDisk: true };
         }
       }
@@ -114,9 +106,7 @@ async function main() {
   const toDelete = [];
 
   for (const [path, { sha, mode, fromDisk }] of Object.entries(localFiles)) {
-    if (remoteFiles[path] !== sha) {
-      toUpload.push({ path, sha, mode, fromDisk });
-    }
+    if (remoteFiles[path] !== sha) toUpload.push({ path, sha, mode, fromDisk });
   }
   for (const path of Object.keys(remoteFiles)) {
     if (!localFiles[path]) toDelete.push(path);
@@ -135,11 +125,9 @@ async function main() {
     const { path, sha, mode, fromDisk } = toUpload[i];
     let content;
     try {
-      if (fromDisk || !sha) {
-        content = readFileSync(path);
-      } else {
-        content = execSync(`git cat-file blob ${sha}`, { maxBuffer: 50*1024*1024 });
-      }
+      content = (fromDisk || !sha)
+        ? readFileSync(path)
+        : execSync(`git cat-file blob ${sha}`, { maxBuffer: 50*1024*1024 });
     } catch {
       console.warn(`  ⚠️  Skip: ${path}`); continue;
     }
@@ -157,8 +145,6 @@ async function main() {
     });
 
     process.stdout.write(`  ✔ ${i+1}/${toUpload.length}  ${path}\n`);
-
-    // Rate-limit safety: small pause every 20 uploads
     if ((i + 1) % 20 === 0) await sleep(500);
   }
 

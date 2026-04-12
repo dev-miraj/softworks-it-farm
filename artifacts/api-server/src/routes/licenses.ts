@@ -598,6 +598,152 @@ router.get("/license-stats", async (req, res): Promise<void> => {
   });
 });
 
+// ─── E-COMMERCE PROVISIONING API ───
+
+function verifyProvisionKey(req: any): boolean {
+  const expectedKey = process.env.ECOMMERCE_API_KEY;
+  if (!expectedKey) return false;
+  const authHeader = req.headers.authorization as string | undefined;
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    return authHeader.slice(7) === expectedKey;
+  }
+  const apiKey = req.headers["x-api-key"] as string | undefined;
+  if (apiKey) return apiKey === expectedKey;
+  return false;
+}
+
+// Called by the e-commerce site when a client store creates/assigns a license
+router.post("/license/provision", async (req, res): Promise<void> => {
+  if (!verifyProvisionKey(req)) {
+    res.status(401).json({ success: false, error: "Unauthorized — invalid or missing API key" });
+    return;
+  }
+
+  const {
+    store_id, store_name, client_name, client_email, domain,
+    product_name, plan, billing_cycle, fee_amount, license_key,
+    trial_days, expiry_date, max_activations,
+  } = req.body;
+
+  if (!client_name || !client_email || !product_name) {
+    res.status(400).json({ success: false, error: "client_name, client_email, and product_name are required" });
+    return;
+  }
+
+  // If a store_id is given, check if license already exists for this store
+  if (store_id) {
+    const existing = await db.select().from(licensesTable).where(
+      sql`metadata->>'store_id' = ${String(store_id)}`
+    );
+    if (existing.length > 0) {
+      const lic = existing[0];
+      res.json({
+        success: true, already_exists: true,
+        license_key: lic.licenseKey, license_id: lic.id,
+        status: lic.status, expires: lic.expiryDate,
+      });
+      return;
+    }
+  }
+
+  const key = license_key || generateLicenseKey();
+  const isTrial = !!trial_days;
+  let trialEndsAt: Date | undefined;
+  if (isTrial) {
+    trialEndsAt = new Date();
+    trialEndsAt.setDate(trialEndsAt.getDate() + Number(trial_days));
+  }
+
+  const billingCycleVal = billing_cycle || "lifetime";
+  const feeAmountVal = fee_amount ? String(fee_amount) : "0";
+  const isFreePlan = !fee_amount || Number(fee_amount) === 0;
+
+  const licenseData: any = {
+    licenseKey: key,
+    productName: product_name,
+    clientName: client_name,
+    clientEmail: client_email,
+    domain: domain || null,
+    status: isTrial ? "trial" : "active",
+    licenseType: isTrial ? "trial" : billingCycleVal,
+    planType: plan || "standard",
+    maxDomains: 1,
+    maxActivations: Number(max_activations) || 3,
+    isTrial,
+    trialEndsAt: trialEndsAt || null,
+    expiryDate: expiry_date || (isTrial && trialEndsAt ? trialEndsAt.toISOString().slice(0, 10) : null),
+    feeAmount: feeAmountVal,
+    billingCycle: billingCycleVal,
+    paymentStatus: isFreePlan ? "free" : "pending",
+    nextPaymentDue: !isFreePlan && billingCycleVal !== "lifetime" ? getNextPaymentDue(billingCycleVal) : null,
+    metadata: {
+      source: "ecommerce",
+      store_id: store_id || null,
+      store_name: store_name || null,
+      provisioned_at: new Date().toISOString(),
+    },
+  };
+
+  try {
+    const [license] = await db.insert(licensesTable).values(licenseData).returning();
+    await logAction({
+      licenseId: license.id,
+      licenseKey: key,
+      action: "provisioned",
+      details: `E-Commerce auto-provision. Store: ${store_name || store_id || "N/A"}, Client: ${client_email}`,
+      status: "success",
+    });
+    res.status(201).json({
+      success: true, already_exists: false,
+      license_key: key, license_id: license.id,
+      status: license.status, expires: license.expiryDate,
+    });
+  } catch (err: any) {
+    if (err.code === "23505") { res.status(409).json({ success: false, error: "License key already exists" }); return; }
+    console.error("Provision error:", err);
+    res.status(500).json({ success: false, error: "Failed to provision license" });
+  }
+});
+
+// Look up license(s) by email or store_id — for e-commerce sync
+router.get("/license/lookup", async (req, res): Promise<void> => {
+  if (!verifyProvisionKey(req)) {
+    res.status(401).json({ success: false, error: "Unauthorized" });
+    return;
+  }
+
+  const { email, store_id } = req.query as { email?: string; store_id?: string };
+  if (!email && !store_id) {
+    res.status(400).json({ success: false, error: "Provide email or store_id as query param" });
+    return;
+  }
+
+  let licenses: any[] = [];
+  if (store_id) {
+    licenses = await db.select().from(licensesTable).where(
+      sql`metadata->>'store_id' = ${String(store_id)}`
+    );
+  } else if (email) {
+    licenses = await db.select().from(licensesTable).where(eq(licensesTable.clientEmail, String(email)));
+  }
+
+  res.json({
+    success: true,
+    count: licenses.length,
+    licenses: licenses.map(l => ({
+      license_id: l.id,
+      license_key: l.licenseKey,
+      status: l.status,
+      product: l.productName,
+      plan: l.planType,
+      expires: l.expiryDate,
+      is_trial: l.isTrial,
+      payment_status: l.paymentStatus,
+      metadata: l.metadata,
+    })),
+  });
+});
+
 router.post("/shield-verify", async (req, res) => {
   const { license_key, domain, hardware_id, sdk_version, shield_token, file_hash } = req.body;
 
