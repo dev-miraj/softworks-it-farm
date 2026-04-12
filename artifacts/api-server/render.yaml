@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: softworks-api
+    runtime: node
+    plan: free
+    region: oregon
+    rootDir: .
+    buildCommand: npm install -g pnpm && pnpm install && pnpm --filter @workspace/api-server run build
+    startCommand: node artifacts/api-server/dist/index.mjs
+    healthCheckPath: /api/healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEON_DATABASE_URL
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: LICENSE_SIGNING_SECRET
+        sync: false
+      - key: ECOMMERCE_API_KEY
+        sync: false
