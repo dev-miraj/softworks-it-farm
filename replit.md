@@ -52,6 +52,7 @@ cd lib/db && pnpm run push
 - `GET/POST /api/invoices`, `PUT/DELETE /api/invoices/:id`
 - `GET/POST /api/jobs`, `PUT/DELETE /api/jobs/:id`
 - `GET /api/newsletter`, `POST /api/newsletter/subscribe`, `DELETE /api/newsletter/:id`
+- **DB: Neon PostgreSQL** — `NEON_DATABASE_URL` env var (read before `DATABASE_URL` in `lib/db.ts`)
 - `GET /api/openai/conversations`, `POST /api/openai/conversations`, `GET /api/openai/conversations/:id`
 - `POST /api/openai/conversations/:id/messages` (streaming SSE, GPT-5.2)
 - `GET /api/dashboard/hr-summary`

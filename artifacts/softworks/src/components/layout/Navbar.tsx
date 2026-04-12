@@ -31,6 +31,7 @@ export function Navbar() {
     { href: "/faq", label: "FAQ" },
     { href: "/blog", label: "Blog" },
     { href: "/contact", label: "Contact" },
+    { href: "/verify-license", label: "License" },
   ];
 
   const LogoMark = ({ size = "md" }: { size?: "sm" | "md" }) => {
