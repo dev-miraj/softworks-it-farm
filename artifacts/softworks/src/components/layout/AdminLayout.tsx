@@ -26,8 +26,10 @@ import {
   Shield,
   ChevronRight,
   BarChart2,
+  Settings,
 } from "lucide-react";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
+import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 import { useListLeaveRequests, useListLeads } from "@workspace/api-client-react";
 
 const sidebarSections = [
@@ -80,6 +82,7 @@ const sidebarSections = [
   {
     title: "Settings",
     links: [
+      { href: "/admin/settings", label: "Site Settings", icon: Settings },
       { href: "/admin/reports", label: "Reports & Exports", icon: BarChart2 },
       { href: "/admin/api-keys", label: "API Keys", icon: KeyRound },
     ],
@@ -90,6 +93,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { logout } = useAdminAuth();
+  const { logoUrl, siteName } = useSiteSettings();
 
   const { data: leaveRequests } = useListLeaveRequests();
   const { data: leads } = useListLeads();

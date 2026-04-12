@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { PublicLayout } from "@/components/layout/PublicLayout";
 import { AdminAuthProvider, RequireAdminAuth } from "@/contexts/AdminAuthContext";
+import { SiteSettingsProvider } from "@/contexts/SiteSettingsContext";
 import { HomePage } from "@/pages/HomePage";
 import { ServicesPage } from "@/pages/ServicesPage";
 import { PortfolioPage } from "@/pages/PortfolioPage";
@@ -36,6 +37,7 @@ import { LicenseLogsPage } from "@/pages/admin/LicenseLogsPage";
 import { PaymentMethodsPage } from "@/pages/admin/PaymentMethodsPage";
 import { ApiKeysPage } from "@/pages/admin/ApiKeysPage";
 import { ReportsPage } from "@/pages/admin/ReportsPage";
+import { SiteSettingsPage } from "@/pages/admin/SiteSettingsPage";
 import { LicenseVerifyPage } from "@/pages/LicenseVerifyPage";
 import NotFound from "@/pages/not-found";
 
@@ -117,6 +119,7 @@ function Router() {
       <Route path="/admin/payment-methods"><AdminRoute component={PaymentMethodsPage} /></Route>
       <Route path="/admin/api-keys"><AdminRoute component={ApiKeysPage} /></Route>
       <Route path="/admin/reports"><AdminRoute component={ReportsPage} /></Route>
+      <Route path="/admin/settings"><AdminRoute component={SiteSettingsPage} /></Route>
 
       <Route component={NotFound} />
     </Switch>
@@ -126,14 +129,16 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AdminAuthProvider>
-        <TooltipProvider>
-          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-            <Router />
-          </WouterRouter>
-          <Toaster />
-        </TooltipProvider>
-      </AdminAuthProvider>
+      <SiteSettingsProvider>
+        <AdminAuthProvider>
+          <TooltipProvider>
+            <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+              <Router />
+            </WouterRouter>
+            <Toaster />
+          </TooltipProvider>
+        </AdminAuthProvider>
+      </SiteSettingsProvider>
     </QueryClientProvider>
   );
 }
