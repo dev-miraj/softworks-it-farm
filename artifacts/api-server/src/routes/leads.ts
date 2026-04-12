@@ -30,11 +30,15 @@ router.put("/leads/:id", async (req, res): Promise<void> => {
     return;
   }
   const [lead] = await db.update(leadsTable).set(body.data).where(eq(leadsTable.id, id)).returning();
-  if (!lead) {
-    res.status(404).json({ error: "Lead not found" });
-    return;
-  }
+  if (!lead) { res.status(404).json({ error: "Lead not found" }); return; }
   res.json(lead);
+});
+
+router.delete("/leads/:id", async (req, res): Promise<void> => {
+  const id = parseInt(req.params.id);
+  const [deleted] = await db.delete(leadsTable).where(eq(leadsTable.id, id)).returning();
+  if (!deleted) { res.status(404).json({ error: "Lead not found" }); return; }
+  res.json({ success: true });
 });
 
 export default router;
