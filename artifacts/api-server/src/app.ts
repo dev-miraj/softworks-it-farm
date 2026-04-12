@@ -14,7 +14,26 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-app.use(cors());
+const allowedOrigins = [
+  "https://softworksit.vercel.app",
+  /\.vercel\.app$/,
+  /\.replit\.dev$/,
+  /\.replit\.app$/,
+  /^http:\/\/localhost(:\d+)?$/,
+];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      const ok = allowedOrigins.some((o) =>
+        typeof o === "string" ? o === origin : o.test(origin),
+      );
+      callback(ok ? null : new Error("CORS: origin not allowed"), ok);
+    },
+    credentials: true,
+  }),
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
