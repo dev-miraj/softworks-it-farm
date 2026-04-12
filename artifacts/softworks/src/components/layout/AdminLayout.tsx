@@ -115,12 +115,14 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
     <>
       {/* Logo */}
       <div className="flex items-center gap-3 px-4 py-5 border-b border-white/8 flex-shrink-0">
-        <div className="w-9 h-9 rounded-xl bg-primary/15 border border-primary/25 flex items-center justify-center flex-shrink-0">
-          <Terminal className="w-4 h-4 text-primary" />
+        <div className="w-9 h-9 rounded-xl bg-primary/15 border border-primary/25 flex items-center justify-center flex-shrink-0 overflow-hidden">
+          {logoUrl
+            ? <img src={logoUrl} alt={siteName} className="w-full h-full object-contain p-0.5" />
+            : <Terminal className="w-4 h-4 text-primary" />}
         </div>
         <div>
-          <div className="text-sm font-black text-foreground tracking-tight leading-none">SOFTWORKS</div>
-          <div className="text-[10px] text-muted-foreground uppercase tracking-[0.15em] mt-0.5">IT Farm Admin</div>
+          <div className="text-sm font-black text-foreground tracking-tight leading-none">{siteName}</div>
+          <div className="text-[10px] text-muted-foreground uppercase tracking-[0.15em] mt-0.5">Admin Panel</div>
         </div>
       </div>
 
@@ -218,10 +220,12 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         {/* Mobile top bar */}
         <header className="md:hidden flex-shrink-0 flex items-center justify-between px-4 py-3 bg-card/80 backdrop-blur-xl border-b border-white/8">
           <Link href="/admin" className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-primary/15 border border-primary/25 flex items-center justify-center">
-              <Terminal className="w-3.5 h-3.5 text-primary" />
+            <div className="w-7 h-7 rounded-lg bg-primary/15 border border-primary/25 flex items-center justify-center overflow-hidden">
+              {logoUrl
+                ? <img src={logoUrl} alt={siteName} className="w-full h-full object-contain p-0.5" />
+                : <Terminal className="w-3.5 h-3.5 text-primary" />}
             </div>
-            <span className="text-sm font-black text-primary tracking-tight">SOFTWORKS</span>
+            <span className="text-sm font-black text-primary tracking-tight">{siteName}</span>
           </Link>
           <div className="flex items-center gap-2">
             {(pendingLeaves + newLeads) > 0 && (
