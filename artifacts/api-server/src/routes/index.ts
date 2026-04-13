@@ -29,6 +29,7 @@ import subscriptionsRouter from "./subscriptions";
 import featureFlagsRouter from "./featureFlags";
 import systemRouter from "./systemRoutes";
 import tenantsRouter from "./tenants";
+import adminSecurityRouter from "./adminSecurity";
 
 const router: IRouter = Router();
 
@@ -62,5 +63,6 @@ router.use(subscriptionsRouter);
 router.use(featureFlagsRouter);
 router.use(systemRouter);
 router.use(tenantsRouter);
+router.use(adminSecurityRouter);
 
 export default router;
