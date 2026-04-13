@@ -68,11 +68,16 @@ const SKIP_PATHS = new Set([
   "/api/auth/csrf",
   "/api/health",
   "/api/healthz",
+  "/api/voice-calls/initiate",
+  "/api/voice-calls/upload-audio",
+  "/api/voice-calls/tts",
 ]);
+const SKIP_PREFIXES = ["/api/voice-calls/session/"];
 
 export function csrfProtection(req: Request, res: Response, next: NextFunction): void {
   if (SAFE_METHODS.has(req.method)) return next();
   if (SKIP_PATHS.has(req.path)) return next();
+  if (SKIP_PREFIXES.some(p => req.path.startsWith(p))) return next();
 
   const hasAuthCookie = !!req.cookies?.["sw_access_token"];
   if (!hasAuthCookie) return next();
