@@ -1,0 +1,230 @@
+You are a senior full-stack architect and DevOps engineer.
+
+Your task is to build a **production-ready, enterprise-grade SaaS platform** for a software company named **Softworks IT Farm**.
+
+The system MUST be:
+
+* Vercel-first (for fast deployment now)
+* VPS/Docker-ready (for future migration)
+* Fully scalable, secure, and modular
+* NO dependency on Replit or any dev-only platform
+
+---
+
+# 🎯 CORE REQUIREMENTS
+
+Build a full-stack system with:
+
+1. Frontend: Next.js (App Router, latest version)
+2. Backend: Node.js (Express or Hono, modular architecture)
+3. Database: PostgreSQL (Neon for now, self-host ready later)
+4. Deployment:
+
+   * Vercel (initial)
+   * Docker + VPS (future)
+
+---
+
+# 📁 PROJECT STRUCTURE (MANDATORY)
+
+Use a monorepo structure:
+
+/apps
+/web (Next.js frontend)
+/api (backend API)
+
+/packages
+/db (database schema & ORM)
+/utils (shared functions)
+/types (TypeScript types)
+
+Also include:
+
+/docker
+/docker-compose.yml
+/vercel.json
+
+---
+
+# 🌐 FRONTEND REQUIREMENTS
+
+* Use Next.js (App Router)
+* Tailwind CSS for UI
+* Build a modern SaaS dashboard UI
+* Pages required:
+
+  * Landing page
+  * Login / Register
+  * Dashboard
+  * Admin panel
+  * Product / Order system UI
+* Use API routes like: /api/*
+* No hardcoded URLs (use env)
+
+---
+
+# ⚙️ BACKEND REQUIREMENTS
+
+* Build modular API (NO monolithic file)
+* Folder structure:
+
+/api
+/auth
+/user
+/product
+/order
+/admin
+/_lib
+
+* Each module must have separate route/controller
+* Use clean architecture principles
+
+---
+
+# 🔐 AUTHENTICATION SYSTEM
+
+* JWT-based authentication
+* Store token in HTTP-only cookies
+* Implement:
+
+  * Register
+  * Login
+  * Logout
+  * Protected routes
+* Role system:
+
+  * admin
+  * user
+
+---
+
+# 💾 DATABASE REQUIREMENTS
+
+* Use PostgreSQL (Neon)
+* Use Prisma or Drizzle ORM
+* Create models:
+
+  * User
+  * Product
+  * Order
+* Ensure future migration support (no vendor lock-in)
+
+---
+
+# 🔐 SECURITY (MANDATORY)
+
+Implement:
+
+* CORS (restricted to production domain)
+* Rate limiting
+* Input validation (Zod)
+* Helmet (secure headers)
+* Password hashing (bcrypt)
+* SQL injection protection
+
+---
+
+# ⚡ PERFORMANCE
+
+* Optimize for serverless (Vercel)
+* Reduce bundle size
+* Avoid unnecessary dependencies
+* Add caching strategy (optional Redis-ready)
+
+---
+
+# 🐳 DOCKER (VERY IMPORTANT)
+
+Make the system fully Dockerized:
+
+* Create Dockerfile for:
+
+  * frontend
+  * backend
+* Create docker-compose.yml with:
+
+  * web
+  * api
+  * postgres
+  * nginx
+
+---
+
+# 🌍 NGINX CONFIG
+
+* Route:
+  / → frontend
+  /api → backend
+
+---
+
+# 🔄 VERCEL DEPLOYMENT
+
+* Create vercel.json
+* Ensure API works as serverless functions
+* No Express server.listen() for Vercel
+* Use environment variables
+
+---
+
+# 🔐 ENVIRONMENT VARIABLES
+
+Use:
+
+DATABASE_URL=
+JWT_SECRET=
+NEXT_PUBLIC_API_URL=
+
+Never hardcode secrets.
+
+---
+
+# 🧾 ADMIN PANEL
+
+* Admin dashboard
+* Manage users
+* Manage products
+* Manage orders
+
+---
+
+# 📦 ADDITIONAL FEATURES
+
+* Logging system (basic)
+* Error handling middleware
+* Clean code + comments
+
+---
+
+# 🚀 FINAL GOAL
+
+The system must:
+
+* Run perfectly on Vercel
+* Be deployable on VPS using Docker without major changes
+* Be scalable for SaaS, ecommerce, and licensing systems
+
+---
+
+# 🛑 IMPORTANT RULES
+
+* No Replit references
+* No hardcoded domains
+* No monolithic backend
+* Follow best practices
+* Keep code clean and modular
+
+---
+
+# ✅ OUTPUT EXPECTATION
+
+Provide:
+
+1. Full folder structure
+2. All core files (frontend + backend)
+3. Docker setup
+4. Vercel config
+5. Sample API endpoints
+6. Setup instructions
+
+Make everything production-ready and easy to deploy.
