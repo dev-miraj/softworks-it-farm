@@ -20,6 +20,7 @@ import {
 } from "../lib/tokenStore.js";
 import { auditLog } from "../lib/auditLog.js";
 import { setCsrfCookie } from "../lib/csrf.js";
+import { checkLockout, recordFailedAttempt, clearLockout } from "../lib/lockout.js";
 import { logger } from "../lib/logger.js";
 
 const router = Router();
@@ -44,14 +45,47 @@ router.post("/auth/login", async (req, res) => {
   }
 
   const { username, password } = parse.data;
+  const ip = getIp(req);
+
+  const lockoutState = await checkLockout(username);
+  if (lockoutState.locked) {
+    const remainMs = lockoutState.lockedUntil
+      ? lockoutState.lockedUntil.getTime() - Date.now()
+      : 15 * 60 * 1000;
+    const remainMin = Math.ceil(remainMs / 60000);
+    res.status(429).json({
+      success: false,
+      error: `Account temporarily locked. Try again in ${remainMin} minute(s).`,
+      lockedUntil: lockoutState.lockedUntil,
+    });
+    return;
+  }
+
   const valid = await checkAdminCredentials(username, password);
 
   if (!valid) {
-    logger.warn({ username, ip: getIp(req) }, "Failed login attempt");
+    const attempt = await recordFailedAttempt(username, ip);
+    logger.warn({ username, ip, remaining: attempt.remainingAttempts }, "Failed login attempt");
     await auditLog({ username, action: "login_failed", status: "failure", req, details: "Invalid credentials" });
-    res.status(401).json({ success: false, error: "Invalid credentials" });
+
+    if (attempt.locked) {
+      res.status(429).json({
+        success: false,
+        error: "Too many failed attempts. Account locked for 15 minutes.",
+        lockedUntil: attempt.lockedUntil,
+      });
+      return;
+    }
+
+    res.status(401).json({
+      success: false,
+      error: "Invalid credentials",
+      remainingAttempts: attempt.remainingAttempts,
+    });
     return;
   }
+
+  await clearLockout(username);
 
   const { accessToken, refreshToken } = setAuthCookies(res, username, "admin");
 
