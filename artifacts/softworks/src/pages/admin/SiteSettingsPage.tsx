@@ -11,7 +11,7 @@ import { API } from "@/lib/apiUrl";
 import { useToast } from "@/hooks/use-toast";
 
 export function SiteSettingsPage() {
-  const { logoUrl, siteName, setLogoUrl, setSiteName, saveSettings, reloadSettings, apiLoaded } = useSiteSettings();
+  const { logoUrl, siteName, setLogoUrl, setSiteName, saveSettings, reloadSettings, apiLoaded, apiConnected } = useSiteSettings();
   const { changePassword } = useAdminAuth();
   const { toast } = useToast();
 
@@ -128,12 +128,24 @@ export function SiteSettingsPage() {
           </Button>
         </div>
 
-        {!apiLoaded && (
+        {apiLoaded && apiConnected && (
+          <div className="bg-green-500/10 border border-green-400/30 rounded-xl p-4 flex items-start gap-3">
+            <Terminal className="w-5 h-5 text-green-400 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-green-300 font-semibold text-sm">Database connected ✓</p>
+              <p className="text-green-200/60 text-xs mt-1">Settings are saved to the database and synced across all devices.</p>
+            </div>
+          </div>
+        )}
+        {!apiConnected && !apiLoaded && (
           <div className="bg-yellow-500/10 border border-yellow-400/30 rounded-xl p-4 flex items-start gap-3">
             <Terminal className="w-5 h-5 text-yellow-400 shrink-0 mt-0.5" />
             <div>
-              <p className="text-yellow-300 font-semibold text-sm">API not connected</p>
-              <p className="text-yellow-200/60 text-xs mt-1">Settings are using cached local values. Set <code className="text-yellow-300">VITE_API_URL</code> in Vercel environment variables and redeploy to persist settings in the database.</p>
+              <p className="text-yellow-300 font-semibold text-sm">API server not reachable</p>
+              <p className="text-yellow-200/60 text-xs mt-1">
+                Deploy your API server and set <code className="text-yellow-300">DATABASE_URL</code> (NeonDB) environment variable.
+                Settings are temporarily using cached local values.
+              </p>
             </div>
           </div>
         )}
