@@ -310,8 +310,8 @@ export function AiVoicePage() {
     }, 1900);
   }
 
-  function rejectCall() { ringtone.stop(); stopAudio(); resetCall(); }
-  function endCall() { ringtone.stop(); stopAudio(); resetCall(); }
+  function rejectCall() { try { ringtone.stop(); stopAudio(); } catch {} resetCall(); }
+  function endCall() { try { ringtone.stop(); stopAudio(); } catch {} resetCall(); }
   function resetCall() {
     setCallState("idle"); setSession(null); setChosen(null); setElapsed(0); setAiText("");
     setForm(f => ({ ...f, orderId: mkOrderId() }));
@@ -490,7 +490,7 @@ export function AiVoicePage() {
                     <h2 style={{ fontSize: 26, fontWeight: 800, color: "#fff", margin: "0 0 10px" }}>কল কানেক্ট হচ্ছে...</h2>
                     <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 14, lineHeight: 1.6 }}>রিং হচ্ছে, প্রতিনিধি কলটি রিসিভ করার জন্য তৈরি...</p>
                   </div>
-                  <button onClick={endCall} style={{ background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 50, padding: "13px 36px", color: "#f87171", fontSize: 14, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>
+                  <button onClick={endCall} onPointerDown={() => endCall()} style={{ background: "rgba(239,68,68,0.75)", border: "2px solid rgba(239,68,68,0.6)", borderRadius: 50, padding: "13px 36px", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, touchAction: "manipulation" }}>
                     <PhoneOff style={{ width: 16, height: 16 }} /> কল শেষ করুন
                   </button>
                 </div>
@@ -564,7 +564,7 @@ export function AiVoicePage() {
                       ))}
                     </div>
                   </div>
-                  <button onClick={endCall} style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.22)", borderRadius: 50, padding: "12px 30px", color: "#f87171", fontSize: 14, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>
+                  <button onClick={endCall} onPointerDown={() => endCall()} style={{ background: "rgba(239,68,68,0.75)", border: "2px solid rgba(239,68,68,0.6)", borderRadius: 50, padding: "12px 30px", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, touchAction: "manipulation" }}>
                     <PhoneOff style={{ width: 15, height: 15 }} /> কল শেষ করুন
                   </button>
                 </>
