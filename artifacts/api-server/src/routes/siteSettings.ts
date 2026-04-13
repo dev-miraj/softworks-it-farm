@@ -9,12 +9,16 @@ import crypto from "node:crypto";
 
 const router = Router();
 
-const UPLOADS_DIR = path.resolve(process.cwd(), "uploads", "settings");
-fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+const UPLOADS_DIR = process.env["VERCEL"]
+  ? path.join("/tmp", "uploads", "settings")
+  : path.resolve(process.cwd(), "uploads", "settings");
 
 const upload = multer({
   storage: multer.diskStorage({
-    destination: (_req, _file, cb) => cb(null, UPLOADS_DIR),
+    destination: (_req, _file, cb) => {
+      try { fs.mkdirSync(UPLOADS_DIR, { recursive: true }); } catch { /* ignore */ }
+      cb(null, UPLOADS_DIR);
+    },
     filename: (_req, file, cb) => {
       const ext = path.extname(file.originalname) || ".png";
       cb(null, `${Date.now()}-${crypto.randomBytes(4).toString("hex")}${ext}`);

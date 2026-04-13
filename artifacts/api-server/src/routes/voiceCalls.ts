@@ -10,11 +10,15 @@ import { openai, isAiEnabled } from "../lib/ai.js";
 
 const router = Router();
 
-const UPLOADS_DIR = path.resolve(process.cwd(), "uploads", "voice-calls");
-fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+const UPLOADS_DIR = process.env["VERCEL"]
+  ? path.join("/tmp", "uploads", "voice-calls")
+  : path.resolve(process.cwd(), "uploads", "voice-calls");
 
 const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, UPLOADS_DIR),
+  destination: (_req, _file, cb) => {
+    try { fs.mkdirSync(UPLOADS_DIR, { recursive: true }); } catch { /* ignore */ }
+    cb(null, UPLOADS_DIR);
+  },
   filename: (_req, file, cb) => {
     const ext = path.extname(file.originalname) || ".mp3";
     cb(null, `${Date.now()}-${crypto.randomBytes(6).toString("hex")}${ext}`);
