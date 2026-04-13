@@ -12,6 +12,7 @@ A premium digital platform for SOFTWORKS IT FARM — a tech studio. Built as a f
 8. **Production Hardening** — Graceful shutdown (SIGTERM/SIGINT drain), request timeout (30s), DB circuit breaker (5 failures → OPEN), API v1 versioning (/api/v1/...)
 9. **Usage Tracking** — Per-user hourly API call counting, subscription plan enforcement, usage stats API
 10. **Docker/VPS Ready** — docker-compose.yml + docker-compose.scale.yml (horizontal scaling), nginx.lb.conf (upstream cluster), multi-stage Dockerfiles, DB backup script
+11. **AI Voice Calling System** — Production DTMF order confirmation calls with Web Audio ringtone, Bangla TTS, session management, webhook relay, admin dashboard, and public demo page at `/ai-voice`
 
 ## Deployment Targets
 - **Vercel**: `vercel.json` + `scripts/build-vercel.mjs` → frontend static + `api/index.mjs` serverless
