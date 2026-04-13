@@ -62,11 +62,20 @@ export function setCsrfCookie(res: Response): string {
 }
 
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
-const SKIP_PATHS = ["/api/auth/login", "/api/auth/refresh"];
+const SKIP_PATHS = new Set([
+  "/api/auth/login",
+  "/api/auth/refresh",
+  "/api/auth/csrf",
+  "/api/health",
+  "/api/healthz",
+]);
 
 export function csrfProtection(req: Request, res: Response, next: NextFunction): void {
   if (SAFE_METHODS.has(req.method)) return next();
-  if (SKIP_PATHS.includes(req.path)) return next();
+  if (SKIP_PATHS.has(req.path)) return next();
+
+  const hasAuthCookie = !!req.cookies?.["sw_access_token"];
+  if (!hasAuthCookie) return next();
 
   const cookieToken = req.cookies?.[CSRF_COOKIE];
   const headerToken = req.headers[CSRF_HEADER] as string | undefined;

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from "react";
 import { useLocation } from "wouter";
 import { API } from "@/lib/apiUrl";
 
@@ -13,6 +13,7 @@ interface AdminAuthContextType {
   isLoading: boolean;
   login: (username: string, password: string) => Promise<{ ok: boolean; error?: string }>;
   logout: () => Promise<void>;
+  csrfFetch: (path: string, options?: RequestInit) => Promise<Response>;
 }
 
 const AdminAuthContext = createContext<AdminAuthContextType>({
@@ -21,52 +22,104 @@ const AdminAuthContext = createContext<AdminAuthContextType>({
   isLoading: true,
   login: async () => ({ ok: false }),
   logout: async () => {},
+  csrfFetch: async () => new Response(null, { status: 500 }),
 });
 
-async function apiFetch(path: string, options?: RequestInit) {
+function baseFetch(path: string, options?: RequestInit, csrfToken?: string) {
+  const extraHeaders: Record<string, string> = {};
+  if (csrfToken) extraHeaders["x-csrf-token"] = csrfToken;
   return fetch(`${API}${path}`, {
     ...options,
     credentials: "include",
-    headers: { "Content-Type": "application/json", ...(options?.headers ?? {}) },
+    headers: {
+      "Content-Type": "application/json",
+      ...(options?.headers ?? {}),
+      ...extraHeaders,
+    },
   });
 }
 
-async function tryRefresh(): Promise<boolean> {
+async function fetchCsrfToken(): Promise<string | null> {
   try {
-    const res = await apiFetch("/api/auth/refresh", { method: "POST" });
-    return res.ok;
-  } catch {
-    return false;
-  }
+    const res = await baseFetch("/api/auth/csrf");
+    if (res.ok) {
+      const data = await res.json();
+      return data.csrfToken ?? null;
+    }
+  } catch {}
+  return null;
 }
 
 export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AdminUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const csrfRef = useRef<string | null>(null);
+
+  const getCsrf = useCallback(async (): Promise<string | null> => {
+    if (csrfRef.current) return csrfRef.current;
+    const token = await fetchCsrfToken();
+    csrfRef.current = token;
+    return token;
+  }, []);
+
+  const csrfFetch = useCallback(
+    async (path: string, options?: RequestInit): Promise<Response> => {
+      const csrf = await getCsrf();
+      const res = await baseFetch(path, options, csrf ?? undefined);
+      if (res.status === 403) {
+        const body = await res.clone().json().catch(() => ({}));
+        if ((body as any)?.error?.includes("CSRF")) {
+          csrfRef.current = null;
+          const newCsrf = await fetchCsrfToken();
+          csrfRef.current = newCsrf;
+          return baseFetch(path, options, newCsrf ?? undefined);
+        }
+      }
+      return res;
+    },
+    [getCsrf],
+  );
+
+  const tryRefresh = useCallback(async (): Promise<boolean> => {
+    try {
+      const res = await baseFetch("/api/auth/refresh", { method: "POST" });
+      if (res.ok) {
+        const data = await res.json().catch(() => ({}));
+        if (data.csrfToken) csrfRef.current = data.csrfToken;
+        return true;
+      }
+    } catch {}
+    return false;
+  }, []);
 
   const checkSession = useCallback(async () => {
     try {
-      let res = await apiFetch("/api/auth/me");
+      let res = await baseFetch("/api/auth/me", undefined, csrfRef.current ?? undefined);
 
       if (res.status === 401) {
         const refreshed = await tryRefresh();
         if (refreshed) {
-          res = await apiFetch("/api/auth/me");
+          res = await baseFetch("/api/auth/me", undefined, csrfRef.current ?? undefined);
         }
       }
 
       if (res.ok) {
         const data = await res.json();
         setUser({ username: data.username, role: data.role });
+        if (!csrfRef.current) {
+          const token = await fetchCsrfToken();
+          csrfRef.current = token;
+        }
       } else {
         setUser(null);
+        csrfRef.current = null;
       }
     } catch {
       setUser(null);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [tryRefresh]);
 
   useEffect(() => {
     checkSession();
@@ -74,7 +127,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (username: string, password: string): Promise<{ ok: boolean; error?: string }> => {
     try {
-      const res = await apiFetch("/api/auth/login", {
+      const res = await baseFetch("/api/auth/login", {
         method: "POST",
         body: JSON.stringify({ username, password }),
       });
@@ -83,6 +136,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
 
       if (res.ok) {
         setUser({ username: data.username, role: data.role });
+        if (data.csrfToken) csrfRef.current = data.csrfToken;
         return { ok: true };
       }
 
@@ -94,9 +148,10 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
-      await apiFetch("/api/auth/logout", { method: "POST" });
+      await csrfFetch("/api/auth/logout", { method: "POST" });
     } catch {}
     setUser(null);
+    csrfRef.current = null;
   };
 
   return (
@@ -107,6 +162,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
         isLoading,
         login,
         logout,
+        csrfFetch,
       }}
     >
       {children}

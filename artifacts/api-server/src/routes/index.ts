@@ -24,6 +24,7 @@ import newsletterRouter from "./newsletter";
 import { openaiRouter } from "./openai";
 import { voiceCallsRouter } from "./voiceCalls";
 import { siteSettingsRouter } from "./siteSettings";
+import auditLogsRouter from "./auditLogs";
 
 const router: IRouter = Router();
 
@@ -52,5 +53,6 @@ router.use(newsletterRouter);
 router.use("/openai", openaiRouter);
 router.use("/voice-calls", voiceCallsRouter);
 router.use(siteSettingsRouter);
+router.use(auditLogsRouter);
 
 export default router;
