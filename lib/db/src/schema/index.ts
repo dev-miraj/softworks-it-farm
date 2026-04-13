@@ -20,3 +20,4 @@ export * from "./newsletter";
 export * from "./conversations";
 export * from "./messages";
 export * from "./voiceCalls";
+export * from "./siteSettings";
