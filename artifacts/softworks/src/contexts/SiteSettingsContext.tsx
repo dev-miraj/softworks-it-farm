@@ -114,7 +114,7 @@ export function SiteSettingsProvider({ children }: { children: ReactNode }) {
       setApiConnected(true);
     } catch (e) {
       console.warn("[SiteSettings] Could not load from API, using cached values:", e);
-      setApiLoaded(false);
+      setApiLoaded(true);
       setApiConnected(false);
     }
   }

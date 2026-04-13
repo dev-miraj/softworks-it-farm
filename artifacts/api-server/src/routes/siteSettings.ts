@@ -39,12 +39,29 @@ async function getSettings() {
   return inserted;
 }
 
+const DEFAULT_API_SETTINGS = {
+  siteName: "SOFTWORKS IT FARM",
+  logoUrl: null,
+  faviconUrl: null,
+  primaryColor: "#6366f1",
+  contactEmail: null,
+  contactPhone: null,
+  address: null,
+  socialFacebook: null,
+  socialInstagram: null,
+  socialLinkedin: null,
+  socialTwitter: null,
+  footerText: null,
+  seoTitle: null,
+  seoDescription: null,
+};
+
 router.get("/settings", async (_req, res) => {
   try {
     const settings = await getSettings();
     res.json(settings);
-  } catch (e) {
-    res.status(500).json({ error: "Failed to load settings" });
+  } catch {
+    res.json(DEFAULT_API_SETTINGS);
   }
 });
 

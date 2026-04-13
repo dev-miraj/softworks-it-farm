@@ -14,6 +14,7 @@ interface AdminAuthContextType {
   login: (username: string, password: string) => Promise<{ ok: boolean; error?: string }>;
   logout: () => Promise<void>;
   csrfFetch: (path: string, options?: RequestInit) => Promise<Response>;
+  changePassword: (currentPassword: string, newPassword: string) => { ok: boolean; message: string };
 }
 
 const AdminAuthContext = createContext<AdminAuthContextType>({
@@ -23,6 +24,7 @@ const AdminAuthContext = createContext<AdminAuthContextType>({
   login: async () => ({ ok: false }),
   logout: async () => {},
   csrfFetch: async () => new Response(null, { status: 500 }),
+  changePassword: () => ({ ok: false, message: "Not initialized" }),
 });
 
 function baseFetch(path: string, options?: RequestInit, csrfToken?: string) {

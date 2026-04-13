@@ -137,14 +137,15 @@ export function SiteSettingsPage() {
             </div>
           </div>
         )}
-        {!apiConnected && !apiLoaded && (
+        {apiLoaded && !apiConnected && (
           <div className="bg-yellow-500/10 border border-yellow-400/30 rounded-xl p-4 flex items-start gap-3">
             <Terminal className="w-5 h-5 text-yellow-400 shrink-0 mt-0.5" />
             <div>
-              <p className="text-yellow-300 font-semibold text-sm">API server not reachable</p>
+              <p className="text-yellow-300 font-semibold text-sm">Database not connected</p>
               <p className="text-yellow-200/60 text-xs mt-1">
-                Deploy your API server and set <code className="text-yellow-300">DATABASE_URL</code> (NeonDB) environment variable.
-                Settings are temporarily using cached local values.
+                Set <code className="bg-black/30 text-yellow-300 px-1 rounded">NEON_DATABASE_URL</code> and{" "}
+                <code className="bg-black/30 text-yellow-300 px-1 rounded">JWT_SECRET</code> in your Vercel project environment variables.
+                Settings shown are from local cache — saves will fail until DB is connected.
               </p>
             </div>
           </div>
