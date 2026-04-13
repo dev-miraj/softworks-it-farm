@@ -38,6 +38,7 @@ import { PaymentMethodsPage } from "@/pages/admin/PaymentMethodsPage";
 import { ApiKeysPage } from "@/pages/admin/ApiKeysPage";
 import { ReportsPage } from "@/pages/admin/ReportsPage";
 import { SiteSettingsPage } from "@/pages/admin/SiteSettingsPage";
+import { AdminUsersPage } from "@/pages/admin/AdminUsersPage";
 import { FaqsPage } from "@/pages/admin/FaqsPage";
 import { InvoicesPage } from "@/pages/admin/InvoicesPage";
 import { JobsAdminPage } from "@/pages/admin/JobsAdminPage";
@@ -137,6 +138,7 @@ function Router() {
       <Route path="/admin/api-keys"><AdminRoute component={ApiKeysPage} /></Route>
       <Route path="/admin/reports"><AdminRoute component={ReportsPage} /></Route>
       <Route path="/admin/settings"><AdminRoute component={SiteSettingsPage} /></Route>
+      <Route path="/admin/admin-users"><AdminRoute component={AdminUsersPage} /></Route>
       <Route path="/admin/faqs"><AdminRoute component={FaqsPage} /></Route>
       <Route path="/admin/invoices"><AdminRoute component={InvoicesPage} /></Route>
       <Route path="/admin/jobs"><AdminRoute component={JobsAdminPage} /></Route>

@@ -35,6 +35,7 @@ import {
   PhoneCall,
   PhoneIncoming,
   FileCode2,
+  Database,
 } from "lucide-react";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { useSiteSettings } from "@/contexts/SiteSettingsContext";
@@ -109,6 +110,7 @@ const sidebarSections = [
     title: "Settings",
     links: [
       { href: "/admin/settings", label: "Site Settings", icon: Settings },
+      { href: "/admin/admin-users", label: "Admin Users", icon: Database },
       { href: "/admin/reports", label: "Reports & Exports", icon: BarChart2 },
       { href: "/admin/api-keys", label: "API Keys", icon: KeyRound },
     ],
