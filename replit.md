@@ -5,6 +5,15 @@ A premium digital platform for SOFTWORKS IT FARM — a tech studio. Built as a f
 1. **Public Website** — Dark-mode glassmorphism design with all marketing pages
 2. **Admin CMS Panel** — Full content management for all website data
 3. **HR Management System** — Employees, Attendance, Leave Requests, Payroll
+4. **JWT Authentication** — Proper server-side auth (POST /api/auth/login, /logout, /me)
+5. **Security** — Helmet headers, rate limiting (200/min global, 20/15min for auth), CORS restricted
+6. **Docker/VPS Ready** — docker-compose.yml, docker/Dockerfile.api, docker/Dockerfile.web, docker/nginx.conf
+
+## Deployment Targets
+- **Vercel**: `vercel.json` + `scripts/build-vercel.mjs` → frontend static + `api/index.mjs` serverless
+- **Railway/Render**: `scripts/build-production.mjs` → unified server (API serves frontend static files)
+- **Docker/VPS**: `docker-compose.yml` → api + web (nginx) containers
+- **NO Replit dependency** in production code
 
 ## Architecture
 
