@@ -1,10 +1,11 @@
 import express, { type Express, type Request, type Response, type NextFunction } from "express";
 import cors from "cors";
+import path from "node:path";
+import fs from "node:fs";
 import router from "./routes";
 
 const app: Express = express();
 
-// Simple request logger — no pino workers/threads (safe for Vercel Lambda cold starts)
 app.use((req: Request, res: Response, next: NextFunction) => {
   const start = Date.now();
   res.on("finish", () => {
@@ -19,6 +20,8 @@ const allowedOrigins = [
   /\.vercel\.app$/,
   /\.replit\.dev$/,
   /\.replit\.app$/,
+  /\.railway\.app$/,
+  /\.onrender\.com$/,
   /^http:\/\/localhost(:\d+)?$/,
 ];
 
@@ -39,7 +42,29 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", router);
 
-// Global error handler — catches all thrown errors from async routes (Express 5)
+const isProduction = process.env["NODE_ENV"] === "production";
+
+if (isProduction) {
+  const candidatePaths = [
+    process.env["FRONTEND_DIST"],
+    path.resolve(process.cwd(), "dist/public"),
+    path.resolve(process.cwd(), "public"),
+    path.resolve(process.cwd(), "../softworks/dist/public"),
+  ].filter(Boolean) as string[];
+
+  const frontendDist = candidatePaths.find((p) => fs.existsSync(path.join(p, "index.html")));
+
+  if (frontendDist) {
+    console.log(`[static] Serving frontend from: ${frontendDist}`);
+    app.use(express.static(frontendDist, { maxAge: "1d", etag: true }));
+    app.get("*", (_req: Request, res: Response) => {
+      res.sendFile(path.join(frontendDist, "index.html"));
+    });
+  } else {
+    console.warn("[static] Frontend dist not found. Only API will be served.");
+  }
+}
+
 app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
   const message = err instanceof Error ? err.message : String(err);
   console.error("Unhandled route error:", message, "url:", req.url);

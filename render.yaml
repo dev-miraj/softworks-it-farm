@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: softworks-it-farm
+    runtime: node
+    buildCommand: npm install -g pnpm@9 && node scripts/build-production.mjs
+    startCommand: node artifacts/api-server/dist/index.mjs
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: PORT
+        value: 3000
