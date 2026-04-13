@@ -63,7 +63,7 @@ router.post("/auth/login", async (req, res) => {
     return;
   }
 
-  const valid = await checkAdminCredentials(username, password);
+  const { valid, role } = await checkAdminCredentials(username, password);
 
   if (!valid) {
     const attempt = await recordFailedAttempt(username, ip);
@@ -88,12 +88,13 @@ router.post("/auth/login", async (req, res) => {
   }
 
   await clearLockout(username);
+  await updateLastLogin(username).catch(() => {});
 
-  const { accessToken, refreshToken } = setAuthCookies(res, username, "admin");
+  const { accessToken, refreshToken } = setAuthCookies(res, username, role);
 
   await storeRefreshToken({
     username,
-    role: "admin",
+    role,
     token: refreshToken,
     ttlSeconds: REFRESH_TTL_SECONDS,
     ipAddress: getIp(req),
@@ -104,12 +105,12 @@ router.post("/auth/login", async (req, res) => {
 
   await auditLog({ username, action: "login", req });
 
-  logger.info({ username, ip: getIp(req) }, "Login successful");
+  logger.info({ username, role, ip: getIp(req) }, "Login successful");
 
   res.json({
     success: true,
     username,
-    role: "admin",
+    role,
     message: "Login successful",
     token: accessToken,
     csrfToken,
@@ -246,31 +247,24 @@ router.post("/auth/change-password", requireAuth, async (req, res) => {
     return;
   }
 
-  const expectedUser = process.env["ADMIN_USERNAME"] || "admin";
-  if (user.username !== expectedUser) {
-    res.status(403).json({ success: false, error: "Not authorized" });
+  const { valid: currentValid } = await checkAdminCredentials(user.username, currentPassword);
+
+  if (!currentValid) {
+    res.status(401).json({ success: false, error: "Current password is incorrect" });
     return;
   }
 
-  const storedPass = process.env["ADMIN_PASSWORD"] || "Softworks@2024";
-  const isBcrypt = storedPass.startsWith("$2b$") || storedPass.startsWith("$2a$");
-  let valid = false;
-  if (isBcrypt) {
-    const { default: bcrypt } = await import("bcrypt");
-    valid = await bcrypt.compare(currentPassword, storedPass);
-  } else {
-    valid = currentPassword === storedPass;
-  }
+  const result = await updateAdminPassword(user.username, newPassword);
 
-  if (!valid) {
-    res.status(401).json({ success: false, error: "Current password is incorrect" });
+  if (!result.ok) {
+    res.status(400).json({ success: false, error: result.error });
     return;
   }
 
   await auditLog({ username: user.username, action: "password_change", req });
   res.json({
     success: true,
-    message: "Password change acknowledged. Update ADMIN_PASSWORD environment variable to complete.",
+    message: "Password updated successfully in database.",
   });
 });
 
