@@ -153,12 +153,29 @@ function AudioRow({ label, desc, audioUrl, fieldKey, configId, onUpdated }: {
         </div>
       )}
       <input ref={fileRef} type="file" accept="audio/*" className="hidden" onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])} />
-      <Button size="sm" variant="outline" className="w-full border-white/15 text-white/60 text-xs" disabled={uploading} onClick={() => fileRef.current?.click()}>
-        {uploading ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Upload className="w-3 h-3 mr-1" />}
-        Upload Audio
-      </Button>
       <div className="flex gap-2">
-        <Input placeholder="Type text to generate voice..." value={genText} onChange={e => setGenText(e.target.value)}
+        <Button size="sm" variant="outline" className="flex-1 border-white/15 text-white/60 text-xs" disabled={uploading} onClick={() => fileRef.current?.click()}>
+          {uploading ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Upload className="w-3 h-3 mr-1" />}
+          Upload File
+        </Button>
+        <Button size="sm" variant="outline"
+          className={`border-white/15 text-xs px-3 ${isRecording ? "bg-red-500/20 border-red-400/40 text-red-300" : "text-white/60"}`}
+          onClick={isRecording ? stopRecord : startRecord}>
+          {isRecording ? <><MicOff className="w-3 h-3 mr-1" /> Stop</> : <><Mic className="w-3 h-3 mr-1" /> Record</>}
+          {isRecording && <span className="ml-1 w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse inline-block" />}
+        </Button>
+      </div>
+      {recordedUrl && (
+        <div className="flex items-center gap-2 bg-teal-500/10 border border-teal-400/20 rounded-lg p-2">
+          <audio src={recordedUrl} controls className="flex-1 h-7" />
+          <Button size="sm" className="bg-teal-500/20 hover:bg-teal-500/30 text-teal-300 text-xs px-3 h-7 border border-teal-400/30" disabled={uploading} onClick={uploadRecording}>
+            {uploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3 mr-1" />}
+            Save
+          </Button>
+        </div>
+      )}
+      <div className="flex gap-2">
+        <Input placeholder="Type text to generate AI voice..." value={genText} onChange={e => setGenText(e.target.value)}
           className="bg-white/5 border-white/10 text-white text-xs h-8 flex-1" />
         <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-xs px-3 h-8" disabled={genLoading || !genText.trim()} onClick={handleTts}>
           {genLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
