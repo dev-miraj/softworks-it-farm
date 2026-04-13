@@ -2,6 +2,9 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import type { Request, Response, NextFunction } from "express";
 import { logger } from "./logger.js";
+import { db } from "./db.js";
+import { adminUsersTable } from "@workspace/db/schema";
+import { eq } from "drizzle-orm";
 
 const ACCESS_SECRET =
   process.env["JWT_SECRET"] ||
@@ -11,9 +14,6 @@ const ACCESS_SECRET =
 const REFRESH_SECRET =
   process.env["JWT_REFRESH_SECRET"] ||
   ACCESS_SECRET + "_refresh";
-
-const ADMIN_USERNAME = process.env["ADMIN_USERNAME"] || "admin";
-const ADMIN_PASSWORD_ENV = process.env["ADMIN_PASSWORD"] || "Softworks@2024";
 
 const ACCESS_TOKEN_TTL = "15m";
 const REFRESH_TOKEN_TTL = "7d";
@@ -61,17 +61,102 @@ export function verifyRefreshToken(token: string): TokenPayload | null {
   }
 }
 
+export async function getAdminUserFromDb(username: string) {
+  try {
+    const [user] = await db
+      .select()
+      .from(adminUsersTable)
+      .where(eq(adminUsersTable.username, username))
+      .limit(1);
+    return user ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export async function checkAdminCredentials(
   username: string,
   password: string,
-): Promise<boolean> {
-  if (username !== ADMIN_USERNAME) return false;
+): Promise<{ valid: boolean; role: Role }> {
+  const dbUser = await getAdminUserFromDb(username);
 
-  const isBcryptHash = ADMIN_PASSWORD_ENV.startsWith("$2b$") || ADMIN_PASSWORD_ENV.startsWith("$2a$");
-  if (isBcryptHash) {
-    return bcrypt.compare(password, ADMIN_PASSWORD_ENV);
+  if (dbUser) {
+    if (!dbUser.isActive) {
+      return { valid: false, role: "admin" };
+    }
+    const valid = await bcrypt.compare(password, dbUser.passwordHash);
+    return { valid, role: (dbUser.role as Role) ?? "admin" };
   }
-  return password === ADMIN_PASSWORD_ENV;
+
+  const envUsername = process.env["ADMIN_USERNAME"] || "admin";
+  const envPassword = process.env["ADMIN_PASSWORD"] || "Softworks@2024";
+
+  if (username !== envUsername) return { valid: false, role: "admin" };
+
+  const isBcryptHash = envPassword.startsWith("$2b$") || envPassword.startsWith("$2a$");
+  const valid = isBcryptHash
+    ? await bcrypt.compare(password, envPassword)
+    : password === envPassword;
+
+  return { valid, role: "admin" };
+}
+
+export async function createAdminUser(
+  username: string,
+  password: string,
+  role: Role = "admin",
+  displayName?: string,
+  email?: string,
+): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const existing = await getAdminUserFromDb(username);
+    if (existing) return { ok: false, error: "Username already exists" };
+
+    const passwordHash = await bcrypt.hash(password, 12);
+    await db.insert(adminUsersTable).values({
+      username,
+      passwordHash,
+      role,
+      displayName: displayName ?? null,
+      email: email ?? null,
+      isActive: true,
+    });
+    return { ok: true };
+  } catch (err) {
+    logger.error({ err }, "createAdminUser: failed");
+    return { ok: false, error: "Database error" };
+  }
+}
+
+export async function updateAdminPassword(
+  username: string,
+  newPassword: string,
+): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const passwordHash = await bcrypt.hash(newPassword, 12);
+    const result = await db
+      .update(adminUsersTable)
+      .set({ passwordHash, updatedAt: new Date() })
+      .where(eq(adminUsersTable.username, username))
+      .returning({ id: adminUsersTable.id });
+
+    if (result.length === 0) {
+      return { ok: false, error: "User not found in database. Create the user first." };
+    }
+    return { ok: true };
+  } catch (err) {
+    logger.error({ err }, "updateAdminPassword: failed");
+    return { ok: false, error: "Database error" };
+  }
+}
+
+export async function updateLastLogin(username: string): Promise<void> {
+  try {
+    await db
+      .update(adminUsersTable)
+      .set({ lastLoginAt: new Date() })
+      .where(eq(adminUsersTable.username, username));
+  } catch { }
 }
 
 const isProd = process.env["NODE_ENV"] === "production";
