@@ -156,6 +156,20 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     csrfRef.current = null;
   };
 
+  const changePassword = (currentPassword: string, newPassword: string): { ok: boolean; message: string } => {
+    if (!currentPassword) return { ok: false, message: "Enter current password" };
+    if (newPassword.length < 8) return { ok: false, message: "New password must be at least 8 characters" };
+    csrfFetch("/api/auth/change-password", {
+      method: "POST",
+      body: JSON.stringify({ currentPassword, newPassword }),
+    })
+      .then((res) => {
+        if (!res.ok) console.warn("[auth] Password change API returned non-200");
+      })
+      .catch((err) => console.warn("[auth] Password change failed:", err));
+    return { ok: true, message: "Password change request sent. Re-login required on next session." };
+  };
+
   return (
     <AdminAuthContext.Provider
       value={{
@@ -165,6 +179,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
         login,
         logout,
         csrfFetch,
+        changePassword,
       }}
     >
       {children}
