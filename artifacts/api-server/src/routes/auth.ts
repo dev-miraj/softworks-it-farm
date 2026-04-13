@@ -8,11 +8,28 @@ import {
   verifyAccessToken,
   requireAuth,
   signAccessToken,
-  signRefreshToken,
+  REFRESH_TTL_SECONDS,
 } from "../lib/auth.js";
+import type { Role } from "../lib/auth.js";
+import {
+  storeRefreshToken,
+  validateAndRotateRefreshToken,
+  revokeAllTokensForUser,
+  revokeTokenById,
+  getActiveSessions,
+} from "../lib/tokenStore.js";
+import { auditLog } from "../lib/auditLog.js";
+import { setCsrfCookie } from "../lib/csrf.js";
 import { logger } from "../lib/logger.js";
 
 const router = Router();
+
+function getIp(req: Parameters<typeof auditLog>[0]["req"]): string | undefined {
+  return (
+    (req?.headers?.["x-forwarded-for"] as string)?.split(",")[0]?.trim() ||
+    req?.socket?.remoteAddress
+  );
+}
 
 const LoginSchema = z.object({
   username: z.string().min(1).max(64).trim(),
@@ -22,7 +39,7 @@ const LoginSchema = z.object({
 router.post("/auth/login", async (req, res) => {
   const parse = LoginSchema.safeParse(req.body);
   if (!parse.success) {
-    res.status(400).json({ error: "Invalid input", details: parse.error.flatten().fieldErrors });
+    res.status(400).json({ success: false, error: "Invalid input", details: parse.error.flatten().fieldErrors });
     return;
   }
 
@@ -30,14 +47,28 @@ router.post("/auth/login", async (req, res) => {
   const valid = await checkAdminCredentials(username, password);
 
   if (!valid) {
-    logger.warn({ username, ip: req.ip }, "Failed login attempt");
-    res.status(401).json({ error: "Invalid credentials" });
+    logger.warn({ username, ip: getIp(req) }, "Failed login attempt");
+    await auditLog({ username, action: "login_failed", status: "failure", req, details: "Invalid credentials" });
+    res.status(401).json({ success: false, error: "Invalid credentials" });
     return;
   }
 
-  const { accessToken } = setAuthCookies(res, username, "admin");
+  const { accessToken, refreshToken } = setAuthCookies(res, username, "admin");
 
-  logger.info({ username, ip: req.ip }, "Admin login successful");
+  await storeRefreshToken({
+    username,
+    role: "admin",
+    token: refreshToken,
+    ttlSeconds: REFRESH_TTL_SECONDS,
+    ipAddress: getIp(req),
+    userAgent: req.headers["user-agent"],
+  });
+
+  const csrfToken = setCsrfCookie(res);
+
+  await auditLog({ username, action: "login", req });
+
+  logger.info({ username, ip: getIp(req) }, "Login successful");
 
   res.json({
     success: true,
@@ -45,49 +76,125 @@ router.post("/auth/login", async (req, res) => {
     role: "admin",
     message: "Login successful",
     token: accessToken,
+    csrfToken,
   });
 });
 
-router.post("/auth/refresh", (req, res) => {
-  const refreshToken = req.cookies?.["sw_refresh_token"];
+router.post("/auth/refresh", async (req, res) => {
+  const oldRefreshToken = req.cookies?.["sw_refresh_token"];
 
-  if (!refreshToken) {
-    res.status(401).json({ error: "No refresh token provided" });
+  if (!oldRefreshToken) {
+    res.status(401).json({ success: false, error: "No refresh token provided" });
     return;
   }
 
-  const payload = verifyRefreshToken(refreshToken);
-  if (!payload) {
+  const jwtPayload = verifyRefreshToken(oldRefreshToken);
+  if (!jwtPayload) {
     clearAuthCookies(res);
-    res.status(401).json({ error: "Invalid or expired refresh token. Please login again." });
+    res.status(401).json({ success: false, error: "Invalid or expired refresh token. Please login again." });
     return;
   }
 
-  const newAccessToken = signAccessToken(payload.username, payload.role);
-  const newRefreshToken = signRefreshToken(payload.username, payload.role);
+  const dbPayload = await validateAndRotateRefreshToken(oldRefreshToken);
+  if (!dbPayload) {
+    clearAuthCookies(res);
+    logger.warn({ username: jwtPayload.username }, "Refresh token rotation failed — possible token reuse detected");
+    res.status(401).json({ success: false, error: "Session expired or reused. Please login again." });
+    return;
+  }
+
+  const newAccessToken = signAccessToken(dbPayload.username, dbPayload.role as Role);
   const isProd = process.env["NODE_ENV"] === "production";
-  const base = {
-    httpOnly: true,
-    secure: isProd,
-    sameSite: (isProd ? "strict" : "lax") as "strict" | "lax",
-    path: "/",
-  };
+  const base = { httpOnly: true, secure: isProd, sameSite: (isProd ? "strict" : "lax") as "strict" | "lax", path: "/" };
+
+  const jwt = await import("jsonwebtoken");
+  const REFRESH_SECRET = process.env["JWT_REFRESH_SECRET"] || process.env["JWT_SECRET"] + "_refresh" || "";
+  const newRefreshToken = jwt.default.sign(
+    { username: dbPayload.username, role: dbPayload.role, type: "refresh" },
+    REFRESH_SECRET,
+    { expiresIn: "7d" },
+  );
+
   res.cookie("sw_access_token", newAccessToken, { ...base, maxAge: 15 * 60 * 1000 });
   res.cookie("sw_refresh_token", newRefreshToken, { ...base, maxAge: 7 * 24 * 60 * 60 * 1000 });
 
-  res.json({ success: true, token: newAccessToken });
+  await storeRefreshToken({
+    username: dbPayload.username,
+    role: dbPayload.role,
+    token: newRefreshToken,
+    ttlSeconds: REFRESH_TTL_SECONDS,
+    ipAddress: getIp(req),
+    userAgent: req.headers["user-agent"],
+  });
+
+  const csrfToken = setCsrfCookie(res);
+
+  await auditLog({ username: dbPayload.username, action: "token_refresh", req });
+
+  res.json({ success: true, token: newAccessToken, csrfToken });
 });
 
-router.post("/auth/logout", (req, res) => {
+router.post("/auth/logout", requireAuth, async (req, res) => {
   const user = (req as any).user;
-  if (user) logger.info({ username: user.username }, "Admin logout");
+  const oldRefreshToken = req.cookies?.["sw_refresh_token"];
+
+  if (oldRefreshToken) {
+    await validateAndRotateRefreshToken(oldRefreshToken).catch(() => null);
+  }
+
   clearAuthCookies(res);
+  res.clearCookie("sw_csrf", { path: "/" });
+
+  await auditLog({ username: user.username, action: "logout", req });
+  logger.info({ username: user.username }, "Logout");
+
   res.json({ success: true, message: "Logged out successfully" });
+});
+
+router.post("/auth/logout-all", requireAuth, async (req, res) => {
+  const user = (req as any).user;
+  const count = await revokeAllTokensForUser(user.username);
+  clearAuthCookies(res);
+  res.clearCookie("sw_csrf", { path: "/" });
+
+  await auditLog({ username: user.username, action: "logout_all", req, details: `Revoked ${count} sessions` });
+  logger.info({ username: user.username, count }, "Logout from all devices");
+
+  res.json({ success: true, message: `Logged out from all devices (${count} sessions cleared)` });
+});
+
+router.get("/auth/sessions", requireAuth, async (req, res) => {
+  const user = (req as any).user;
+  const sessions = await getActiveSessions(user.username);
+  res.json({ success: true, data: sessions });
+});
+
+router.delete("/auth/sessions/:id", requireAuth, async (req, res) => {
+  const user = (req as any).user;
+  const id = Number(req.params["id"]);
+  if (isNaN(id)) {
+    res.status(400).json({ success: false, error: "Invalid session ID" });
+    return;
+  }
+
+  const ok = await revokeTokenById(id, user.username);
+  if (!ok) {
+    res.status(404).json({ success: false, error: "Session not found" });
+    return;
+  }
+
+  await auditLog({ username: user.username, action: "session_revoke", resourceId: id, req });
+  res.json({ success: true, message: "Session revoked" });
+});
+
+router.get("/auth/csrf", (req, res) => {
+  const token = setCsrfCookie(res);
+  res.json({ success: true, csrfToken: token });
 });
 
 router.get("/auth/me", requireAuth, (req, res) => {
   const user = (req as any).user;
-  res.json({ username: user.username, role: user.role });
+  res.json({ success: true, username: user.username, role: user.role });
 });
 
 router.post("/auth/verify", (req, res) => {
@@ -97,17 +204,17 @@ router.post("/auth/verify", (req, res) => {
   const t = cookieToken || (authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null) || bodyToken;
 
   if (!t) {
-    res.status(401).json({ valid: false, error: "No token provided" });
+    res.status(401).json({ success: false, valid: false, error: "No token provided" });
     return;
   }
 
   const payload = verifyAccessToken(t);
   if (!payload) {
-    res.status(401).json({ valid: false, error: "Invalid or expired token" });
+    res.status(401).json({ success: false, valid: false, error: "Invalid or expired token" });
     return;
   }
 
-  res.json({ valid: true, username: payload.username, role: payload.role });
+  res.json({ success: true, valid: true, username: payload.username, role: payload.role });
 });
 
 export default router;
