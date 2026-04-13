@@ -231,6 +231,47 @@ router.get("/auth/me", requireAuth, (req, res) => {
   res.json({ success: true, username: user.username, role: user.role });
 });
 
+router.post("/auth/change-password", requireAuth, async (req, res) => {
+  const user = (req as any).user;
+  const { currentPassword, newPassword } = req.body;
+
+  if (!currentPassword || !newPassword) {
+    res.status(400).json({ success: false, error: "currentPassword and newPassword are required" });
+    return;
+  }
+  if (newPassword.length < 8) {
+    res.status(400).json({ success: false, error: "New password must be at least 8 characters" });
+    return;
+  }
+
+  const expectedUser = process.env["ADMIN_USERNAME"] || "admin";
+  if (user.username !== expectedUser) {
+    res.status(403).json({ success: false, error: "Not authorized" });
+    return;
+  }
+
+  const storedPass = process.env["ADMIN_PASSWORD"] || "Softworks@2024";
+  const isBcrypt = storedPass.startsWith("$2b$") || storedPass.startsWith("$2a$");
+  let valid = false;
+  if (isBcrypt) {
+    const { default: bcrypt } = await import("bcrypt");
+    valid = await bcrypt.compare(currentPassword, storedPass);
+  } else {
+    valid = currentPassword === storedPass;
+  }
+
+  if (!valid) {
+    res.status(401).json({ success: false, error: "Current password is incorrect" });
+    return;
+  }
+
+  await auditLog({ username: user.username, action: "password_change", req });
+  res.json({
+    success: true,
+    message: "Password change acknowledged. Update ADMIN_PASSWORD environment variable to complete.",
+  });
+});
+
 router.post("/auth/verify", (req, res) => {
   const cookieToken = req.cookies?.["sw_access_token"];
   const authHeader = req.headers["authorization"];
