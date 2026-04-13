@@ -8,8 +8,10 @@ A premium digital platform for SOFTWORKS IT FARM — a tech studio. Built as a f
 4. **Enterprise Auth** — Dual-token JWT, bcrypt, CSRF, refresh token rotation (DB), session tracking, audit logs, account lockout, RBAC + permissions
 5. **SaaS Features** — Subscription plans (free/pro/enterprise), feature flags, multi-tenant foundation, job queue (DB-backed), SSE real-time events
 6. **Observability** — /ready endpoint, Prometheus metrics (/api/metrics), Swagger docs (/api/docs), structured JSON logging
-7. **Security** — Helmet, rate limiting, CORS, compression, account lockout after 5 failures
-8. **Docker/VPS Ready** — docker-compose.yml, multi-stage Dockerfiles, nginx.conf, DB backup script (scripts/backup-db.mjs)
+7. **Security** — Helmet, rate limiting, CORS, compression, account lockout, IP blacklist/whitelist, suspicious activity detection
+8. **Production Hardening** — Graceful shutdown (SIGTERM/SIGINT drain), request timeout (30s), DB circuit breaker (5 failures → OPEN), API v1 versioning (/api/v1/...)
+9. **Usage Tracking** — Per-user hourly API call counting, subscription plan enforcement, usage stats API
+10. **Docker/VPS Ready** — docker-compose.yml + docker-compose.scale.yml (horizontal scaling), nginx.lb.conf (upstream cluster), multi-stage Dockerfiles, DB backup script
 
 ## Deployment Targets
 - **Vercel**: `vercel.json` + `scripts/build-vercel.mjs` → frontend static + `api/index.mjs` serverless
