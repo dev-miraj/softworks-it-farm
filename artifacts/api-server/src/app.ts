@@ -11,6 +11,8 @@ import router from "./routes";
 import { csrfProtection } from "./lib/csrf.js";
 import { metricsMiddleware } from "./lib/metrics.js";
 import { swaggerSpec } from "./lib/swagger.js";
+import { requestTimeout } from "./lib/requestTimeout.js";
+import { ipSecurityMiddleware, suspiciousActivityDetection } from "./lib/ipSecurity.js";
 import { logger } from "./lib/logger.js";
 
 const app: Express = express();
@@ -19,13 +21,16 @@ app.set("trust proxy", 1);
 
 app.use(compression({ threshold: 1024 }));
 app.use(metricsMiddleware);
+app.use(requestTimeout(30_000));
 
 app.use((req: Request, res: Response, next: NextFunction) => {
   const start = Date.now();
   res.on("finish", () => {
     const ms = Date.now() - start;
     const urlPath = req.url?.split("?")[0];
-    logger.info({ method: req.method, path: urlPath, status: res.statusCode, ms }, "request");
+    if (urlPath !== "/api/health" && urlPath !== "/api/healthz" && urlPath !== "/api/ready") {
+      logger.info({ method: req.method, path: urlPath, status: res.statusCode, ms }, "request");
+    }
   });
   next();
 });
@@ -34,16 +39,23 @@ app.use(
   helmet({
     crossOriginEmbedderPolicy: false,
     contentSecurityPolicy: false,
+    hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
   }),
 );
+
+app.use(ipSecurityMiddleware);
+app.use(suspiciousActivityDetection);
 
 const globalLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 200,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { error: "Too many requests, please try again later." },
-  skip: (req) => req.path === "/api/health" || req.path === "/api/healthz",
+  message: { success: false, error: "Too many requests, please try again later." },
+  skip: (req) => {
+    const p = req.path;
+    return p === "/api/health" || p === "/api/healthz" || p === "/api/ready";
+  },
 });
 app.use(globalLimiter);
 
@@ -52,9 +64,10 @@ const authLimiter = rateLimit({
   max: 20,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { error: "Too many login attempts, please try again later." },
+  message: { success: false, error: "Too many login attempts, please try again later." },
 });
 app.use("/api/auth/login", authLimiter);
+app.use("/api/v1/auth/login", authLimiter);
 
 const allowedOrigins: (string | RegExp)[] = [
   "https://softworksit.vercel.app",
@@ -88,7 +101,6 @@ app.use(
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
-
 app.use(csrfProtection);
 
 app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
@@ -97,6 +109,7 @@ app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
 }));
 
 app.use("/api", router);
+app.use("/api/v1", router);
 
 const isProduction = process.env["NODE_ENV"] === "production";
 const isVercel = !!process.env["VERCEL"];
@@ -113,24 +126,24 @@ if (isProduction && !isVercel) {
   const frontendDist = candidatePaths.find((p) => fs.existsSync(path.join(p, "index.html")));
 
   if (frontendDist) {
-    console.log(`[static] Serving frontend from: ${frontendDist}`);
+    logger.info({ frontendDist }, "[static] Serving frontend");
     app.use(express.static(frontendDist, { maxAge: "1d", etag: true }));
     app.get("*", (_req: Request, res: Response) => {
       res.sendFile(path.join(frontendDist, "index.html"));
     });
   } else {
-    console.warn("[static] Frontend dist not found. Only API will be served.");
+    logger.warn("[static] Frontend dist not found. Only API will be served.");
   }
 }
 
 app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
   const message = err instanceof Error ? err.message : String(err);
   if (message !== "CORS: origin not allowed") {
-    console.error("Unhandled route error:", message, "url:", req.url);
+    logger.error({ err: message, url: req.url, method: req.method }, "Unhandled route error");
   }
   if (!res.headersSent) {
     const status = (err as any)?.status || 500;
-    res.status(status).json({ error: "Internal server error", detail: message });
+    res.status(status).json({ success: false, error: "Internal server error" });
   }
 });
 
