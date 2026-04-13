@@ -47,8 +47,9 @@ const isProduction = process.env["NODE_ENV"] === "production";
 if (isProduction) {
   const candidatePaths = [
     process.env["FRONTEND_DIST"],
+    path.resolve(__dirname, "public"),
+    path.resolve(process.cwd(), "artifacts/api-server/dist/public"),
     path.resolve(process.cwd(), "dist/public"),
-    path.resolve(process.cwd(), "public"),
     path.resolve(process.cwd(), "../softworks/dist/public"),
   ].filter(Boolean) as string[];
 
