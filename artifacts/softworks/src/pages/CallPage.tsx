@@ -108,10 +108,22 @@ export function CallPage() {
     if (!window.speechSynthesis) { onEnd?.(); return; }
     window.speechSynthesis.cancel();
     const utt = new SpeechSynthesisUtterance(text);
-    utt.rate = 0.9; utt.pitch = 1; utt.volume = 1;
+    utt.rate = 0.88; utt.pitch = 1.05; utt.volume = 1;
     const voices = window.speechSynthesis.getVoices();
-    const preferred = voices.find(v => v.lang.startsWith("en") && v.name.toLowerCase().includes("female"))
-      || voices.find(v => v.lang.startsWith("en")) || voices[0];
+    const isBangla = /[\u0980-\u09FF]/.test(text);
+    let preferred: SpeechSynthesisVoice | undefined;
+    if (isBangla) {
+      preferred = voices.find(v => v.lang === "bn-BD" && v.name.toLowerCase().includes("female"))
+        || voices.find(v => v.lang === "bn-BD")
+        || voices.find(v => v.lang === "bn-IN" && v.name.toLowerCase().includes("female"))
+        || voices.find(v => v.lang === "bn-IN")
+        || voices.find(v => v.lang.startsWith("bn"));
+    }
+    if (!preferred) {
+      preferred = voices.find(v => v.lang.startsWith("en") && v.name.toLowerCase().includes("female"))
+        || voices.find(v => v.lang.startsWith("en"))
+        || voices[0];
+    }
     if (preferred) utt.voice = preferred;
     if (onEnd) { utt.onend = () => onEnd(); utt.onerror = () => onEnd(); }
     window.speechSynthesis.speak(utt);
@@ -517,6 +529,68 @@ export function CallPage() {
             {/* MENU buttons — Confirm / Cancel / End Call */}
             {callState === "menu" && (
               <div className="space-y-3 w-full">
+
+                {/* Keyboard shortcut key badges */}
+                {enabledOptions.length > 0 && (
+                  <div className="flex items-center justify-center gap-3 py-1">
+                    {enabledOptions.map(opt => (
+                      <button
+                        key={opt.key}
+                        onClick={() => handleRespond(opt)}
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl transition-all active:scale-95 hover:opacity-90 group"
+                        style={{
+                          background: opt.action === "confirmed"
+                            ? "rgba(0,212,200,0.08)"
+                            : opt.action === "cancelled"
+                            ? "rgba(239,68,68,0.08)"
+                            : "rgba(255,255,255,0.05)",
+                          border: opt.action === "confirmed"
+                            ? "1px solid rgba(0,212,200,0.25)"
+                            : opt.action === "cancelled"
+                            ? "1px solid rgba(239,68,68,0.25)"
+                            : "1px solid rgba(255,255,255,0.1)",
+                        }}
+                      >
+                        <span
+                          className="w-7 h-7 rounded-lg flex items-center justify-center text-sm font-bold font-mono"
+                          style={{
+                            background: opt.action === "confirmed"
+                              ? "rgba(0,212,200,0.2)"
+                              : opt.action === "cancelled"
+                              ? "rgba(239,68,68,0.2)"
+                              : "rgba(255,255,255,0.1)",
+                            color: opt.action === "confirmed"
+                              ? "#00d4c8"
+                              : opt.action === "cancelled"
+                              ? "#f87171"
+                              : "rgba(255,255,255,0.6)",
+                            boxShadow: opt.action === "confirmed"
+                              ? "0 0 8px rgba(0,212,200,0.3), inset 0 1px 0 rgba(255,255,255,0.15)"
+                              : opt.action === "cancelled"
+                              ? "0 0 8px rgba(239,68,68,0.2), inset 0 1px 0 rgba(255,255,255,0.1)"
+                              : "inset 0 1px 0 rgba(255,255,255,0.1)",
+                          }}
+                        >
+                          {opt.key}
+                        </span>
+                        <span
+                          className="text-xs font-medium"
+                          style={{
+                            color: opt.action === "confirmed"
+                              ? "rgba(0,212,200,0.8)"
+                              : opt.action === "cancelled"
+                              ? "rgba(248,113,113,0.8)"
+                              : "rgba(255,255,255,0.4)",
+                          }}
+                        >
+                          {opt.label}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Main action buttons */}
                 <div className="flex gap-3">
                   {confirmOpt && (
                     <button onClick={() => handleRespond(confirmOpt)}
@@ -532,7 +606,6 @@ export function CallPage() {
                       {cancelOpt.label}
                     </button>
                   )}
-                  {/* Extra options beyond confirm/cancel */}
                   {enabledOptions
                     .filter(o => o.action !== "confirmed" && o.action !== "cancelled")
                     .map(opt => (
@@ -556,7 +629,7 @@ export function CallPage() {
                     }}
                   >
                     {isRecording ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
-                    {isRecording ? "Stop" : "Record"}
+                    {isRecording ? "Stop Recording" : "Voice Note"}
                     {isRecording && (
                       <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
                     )}
@@ -572,10 +645,6 @@ export function CallPage() {
                   style={{ background: "rgba(239,68,68,0.85)" }}>
                   End Call
                 </button>
-
-                <p className="text-center text-white/15 text-[10px]">
-                  Press {enabledOptions.map(o => o.key).join(" / ")} on keyboard
-                </p>
               </div>
             )}
 

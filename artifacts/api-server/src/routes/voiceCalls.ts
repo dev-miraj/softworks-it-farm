@@ -345,6 +345,40 @@ router.get("/", async (_req, res) => {
   }
 });
 
+router.post("/:id/resend-webhook", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const [session] = await db.select().from(voiceCallSessionsTable).where(eq(voiceCallSessionsTable.id, id));
+    if (!session) return res.status(404).json({ error: "Session not found" });
+    if (!session.ecommerceWebhookUrl) return res.status(400).json({ error: "No webhook URL configured for this session" });
+    if (session.status !== "completed") return res.status(400).json({ error: "Session not completed yet" });
+    const result = await sendWebhook(session, session.actionTaken || "completed");
+    await db.update(voiceCallSessionsTable)
+      .set({ webhookSent: true, webhookResponse: result, updatedAt: new Date() })
+      .where(eq(voiceCallSessionsTable.id, id));
+    res.json({ success: true, result });
+  } catch (e) {
+    res.status(500).json({ error: "Failed to resend webhook" });
+  }
+});
+
+router.patch("/:id/status", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const { actionTaken } = req.body as { actionTaken: string };
+    if (!["confirmed", "cancelled"].includes(actionTaken)) return res.status(400).json({ error: "actionTaken must be confirmed or cancelled" });
+    const dtmf = actionTaken === "confirmed" ? "1" : "2";
+    const [updated] = await db.update(voiceCallSessionsTable)
+      .set({ actionTaken, dtmfInput: dtmf, status: "completed", updatedAt: new Date() })
+      .where(eq(voiceCallSessionsTable.id, id))
+      .returning();
+    if (!updated) return res.status(404).json({ error: "Session not found" });
+    res.json(updated);
+  } catch {
+    res.status(500).json({ error: "Failed to update status" });
+  }
+});
+
 router.delete("/bulk", async (req, res) => {
   try {
     const { ids } = req.body as { ids: number[] };
