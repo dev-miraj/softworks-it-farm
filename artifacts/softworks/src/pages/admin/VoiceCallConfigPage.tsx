@@ -59,12 +59,19 @@ function AudioRow({ label, desc, audioUrl, fieldKey, configId, onUpdated }: {
       });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error);
-      const r2 = await fetch(`${API}/api/voice-calls/upload-audio`, {
-        method: "POST",
-        body: (() => { const fd = new FormData(); fd.append("audioUrl", d.url); fd.append("field", fieldKey); return fd; })(),
-      });
-      onUpdated(d.url);
-      toast({ title: "Voice generated!", description: "TTS audio saved." });
+      if (d.useBrowserTts || !d.url) {
+        window.speechSynthesis?.cancel();
+        const utt = new SpeechSynthesisUtterance(genText);
+        utt.rate = 0.95;
+        const voices = window.speechSynthesis?.getVoices() || [];
+        const v = voices.find(v => v.lang.startsWith("en")) || voices[0];
+        if (v) utt.voice = v;
+        window.speechSynthesis?.speak(utt);
+        toast({ title: "Browser TTS preview", description: "Playing via browser voice. Upload an audio file to save permanently." });
+      } else {
+        onUpdated(d.url);
+        toast({ title: "Voice generated!", description: "TTS audio saved." });
+      }
     } catch (e) {
       toast({ title: "TTS failed", description: e instanceof Error ? e.message : "", variant: "destructive" });
     } finally { setGenLoading(false); }
@@ -78,6 +85,7 @@ function AudioRow({ label, desc, audioUrl, fieldKey, configId, onUpdated }: {
     });
     const d = await r.json();
     if (!r.ok) throw new Error(d.error);
+    if (d.useBrowserTts || !d.url) return null;
     return d.url as string;
   }
 
@@ -241,10 +249,21 @@ export function VoiceCallConfigPage() {
       });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error);
-      const opts = [...config.options];
-      opts[idx] = { ...opts[idx], responseAudioUrl: d.url };
-      setConfig({ ...config, options: opts });
-      toast({ title: "Voice generated!" });
+      if (d.useBrowserTts || !d.url) {
+        window.speechSynthesis?.cancel();
+        const utt = new SpeechSynthesisUtterance(text);
+        utt.rate = 0.95;
+        const voices = window.speechSynthesis?.getVoices() || [];
+        const v = voices.find(v => v.lang.startsWith("en")) || voices[0];
+        if (v) utt.voice = v;
+        window.speechSynthesis?.speak(utt);
+        toast({ title: "Browser TTS preview", description: "Audio played via browser. Set OPENAI_API_KEY to save audio files." });
+      } else {
+        const opts = [...config.options];
+        opts[idx] = { ...opts[idx], responseAudioUrl: d.url };
+        setConfig({ ...config, options: opts });
+        toast({ title: "Voice generated!" });
+      }
     } catch (e) { toast({ title: "TTS failed", description: e instanceof Error ? e.message : "", variant: "destructive" }); }
     finally { setTtsLoading(p => ({ ...p, [idx]: false })); }
   }
@@ -352,7 +371,9 @@ export function VoiceCallConfigPage() {
             {/* AUDIO TAB */}
             {activeTab === "audio" && (
               <div className="space-y-4">
-                <p className="text-white/40 text-sm">Upload MP3/WAV files or type text to generate human voice with TTS.</p>
+                <div className="bg-indigo-500/10 border border-indigo-400/20 rounded-xl px-4 py-3 text-sm text-indigo-300">
+                  🔊 <strong>Browser TTS active</strong> — Text-to-speech works using the browser's built-in voice engine. No API key needed. Upload custom audio files for higher quality.
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <AudioRow label="Welcome Audio" desc="Plays when call starts" audioUrl={config.welcomeAudioUrl} fieldKey="welcome" configId={config.id}
                     onUpdated={url => setConfig({ ...config, welcomeAudioUrl: url })} />
