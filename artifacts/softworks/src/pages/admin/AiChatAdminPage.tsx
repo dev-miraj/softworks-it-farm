@@ -118,7 +118,7 @@ export function AiChatAdminPage() {
           <h1 className="text-3xl font-black text-foreground mb-1 flex items-center gap-3">
             <Sparkles className="w-7 h-7 text-primary" />AI Assistant
           </h1>
-          <p className="text-muted-foreground text-sm">Chat with SOFTWORKS AI · {conversations?.length ?? 0} conversations</p>
+          <p className="text-muted-foreground text-sm">Custom AI Engine (self-hosted, no API key needed) · {conversations?.length ?? 0} conversations</p>
         </div>
         <Button onClick={createNewConversation} className="bg-primary hover:bg-primary/90 gap-2">
           <MessageSquare className="w-4 h-4" />New Chat
