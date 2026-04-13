@@ -52,14 +52,42 @@ export function CallPage() {
   const [dots, setDots] = useState(".");
   const [elapsed, setElapsed] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const synthRef = useRef<SpeechSynthesisUtterance | null>(null);
 
-  function playAudio(url: string | null | undefined, onEnd?: () => void) {
-    if (!url) { onEnd?.(); return; }
-    if (audioRef.current) { audioRef.current.pause(); }
-    const a = new Audio(url);
-    audioRef.current = a;
-    if (onEnd) a.addEventListener("ended", onEnd, { once: true });
-    a.play().catch(() => onEnd?.());
+  function stopAudio() {
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+    if (window.speechSynthesis?.speaking) { window.speechSynthesis.cancel(); }
+  }
+
+  function speakText(text: string | null | undefined, onEnd?: () => void) {
+    if (!text?.trim()) { onEnd?.(); return; }
+    if (!window.speechSynthesis) { onEnd?.(); return; }
+    window.speechSynthesis.cancel();
+    const utt = new SpeechSynthesisUtterance(text);
+    utt.rate = 0.95;
+    utt.pitch = 1;
+    utt.volume = 1;
+    const voices = window.speechSynthesis.getVoices();
+    const preferred = voices.find(v => v.lang.startsWith("en") && v.name.toLowerCase().includes("female"))
+      || voices.find(v => v.lang.startsWith("en"))
+      || voices[0];
+    if (preferred) utt.voice = preferred;
+    if (onEnd) { utt.onend = () => onEnd(); utt.onerror = () => onEnd(); }
+    synthRef.current = utt;
+    window.speechSynthesis.speak(utt);
+  }
+
+  function playAudio(url: string | null | undefined, onEnd?: () => void, fallbackText?: string | null) {
+    stopAudio();
+    if (url) {
+      const a = new Audio(url);
+      audioRef.current = a;
+      if (onEnd) a.addEventListener("ended", onEnd, { once: true });
+      a.play().catch(() => fallbackText ? speakText(fallbackText, onEnd) : onEnd?.());
+      return;
+    }
+    if (fallbackText) { speakText(fallbackText, onEnd); return; }
+    onEnd?.();
   }
 
   useEffect(() => {
@@ -85,8 +113,8 @@ export function CallPage() {
         setTimeout(() => {
           setCallState("menu");
           playAudio(d.config.welcomeAudioUrl, () => {
-            setTimeout(() => playAudio(d.config.announcementAudioUrl), 400);
-          });
+            setTimeout(() => playAudio(d.config.announcementAudioUrl, undefined, d.config.announcementText), 400);
+          }, d.config.welcomeText);
         }, 3200);
       })
       .catch(() => { setCallState("error"); setErrorMsg("Call session not found or has expired."); });
@@ -125,7 +153,7 @@ export function CallPage() {
         body: JSON.stringify({ dtmf: option.key }),
       });
       setChosenOption(option);
-      playAudio(option.responseAudioUrl);
+      playAudio(option.responseAudioUrl, undefined, option.responseText);
       setCallState("done");
       setTimeout(() => {
         postMsgToParent({ sw_call: "completed", action: option.action, orderId: session.orderId, dtmfInput: option.key });
