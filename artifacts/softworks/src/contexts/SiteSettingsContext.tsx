@@ -1,44 +1,179 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useRef, ReactNode } from "react";
+import { API } from "@/lib/apiUrl";
 
-const LOGO_KEY = "sw_site_logo";
-const SITE_NAME_KEY = "sw_site_name";
-const FAVICON_KEY = "sw_site_favicon";
+const LS_LOGO = "sw_site_logo";
+const LS_NAME = "sw_site_name";
+const LS_SETTINGS_CACHE = "sw_settings_cache";
 
-interface SiteSettingsContextType {
-  logoUrl: string | null;
+export interface SiteSettings {
   siteName: string;
+  logoUrl: string | null;
+  faviconUrl: string | null;
+  primaryColor: string;
+  contactEmail: string | null;
+  contactPhone: string | null;
+  address: string | null;
+  socialFacebook: string | null;
+  socialInstagram: string | null;
+  socialLinkedin: string | null;
+  socialTwitter: string | null;
+  footerText: string | null;
+  seoTitle: string | null;
+  seoDescription: string | null;
+}
+
+const DEFAULT_SETTINGS: SiteSettings = {
+  siteName: "SOFTWORKS IT FARM",
+  logoUrl: null,
+  faviconUrl: null,
+  primaryColor: "#6366f1",
+  contactEmail: null,
+  contactPhone: null,
+  address: null,
+  socialFacebook: null,
+  socialInstagram: null,
+  socialLinkedin: null,
+  socialTwitter: null,
+  footerText: null,
+  seoTitle: null,
+  seoDescription: null,
+};
+
+interface SiteSettingsContextType extends SiteSettings {
+  apiLoaded: boolean;
   setLogoUrl: (url: string | null) => void;
   setSiteName: (name: string) => void;
+  saveSettings: (patch: Partial<SiteSettings>) => Promise<void>;
+  reloadSettings: () => Promise<void>;
 }
 
 const SiteSettingsContext = createContext<SiteSettingsContextType>({
-  logoUrl: null,
-  siteName: "SOFTWORKS IT FARM",
+  ...DEFAULT_SETTINGS,
+  apiLoaded: false,
   setLogoUrl: () => {},
   setSiteName: () => {},
+  saveSettings: async () => {},
+  reloadSettings: async () => {},
 });
 
+function getCachedSettings(): SiteSettings {
+  try {
+    const raw = localStorage.getItem(LS_SETTINGS_CACHE);
+    if (raw) return { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
+  } catch {}
+  return {
+    ...DEFAULT_SETTINGS,
+    logoUrl: localStorage.getItem(LS_LOGO) || null,
+    siteName: localStorage.getItem(LS_NAME) || "SOFTWORKS IT FARM",
+  };
+}
+
+function cacheSettings(s: SiteSettings) {
+  try {
+    localStorage.setItem(LS_SETTINGS_CACHE, JSON.stringify(s));
+    if (s.logoUrl) localStorage.setItem(LS_LOGO, s.logoUrl);
+    else localStorage.removeItem(LS_LOGO);
+    localStorage.setItem(LS_NAME, s.siteName);
+  } catch {}
+}
+
 export function SiteSettingsProvider({ children }: { children: ReactNode }) {
-  const [logoUrl, setLogoUrlState] = useState<string | null>(() =>
-    localStorage.getItem(LOGO_KEY) || null
-  );
-  const [siteName, setSiteNameState] = useState<string>(() =>
-    localStorage.getItem(SITE_NAME_KEY) || "SOFTWORKS IT FARM"
-  );
+  const [settings, setSettingsState] = useState<SiteSettings>(getCachedSettings);
+  const [apiLoaded, setApiLoaded] = useState(false);
+  const hasFetched = useRef(false);
+
+  async function loadFromApi() {
+    if (!API) return;
+    try {
+      const r = await fetch(`${API}/api/settings`, { signal: AbortSignal.timeout(8000) });
+      if (!r.ok) return;
+      const data = await r.json();
+      const merged: SiteSettings = {
+        siteName: data.siteName || DEFAULT_SETTINGS.siteName,
+        logoUrl: data.logoUrl || null,
+        faviconUrl: data.faviconUrl || null,
+        primaryColor: data.primaryColor || DEFAULT_SETTINGS.primaryColor,
+        contactEmail: data.contactEmail || null,
+        contactPhone: data.contactPhone || null,
+        address: data.address || null,
+        socialFacebook: data.socialFacebook || null,
+        socialInstagram: data.socialInstagram || null,
+        socialLinkedin: data.socialLinkedin || null,
+        socialTwitter: data.socialTwitter || null,
+        footerText: data.footerText || null,
+        seoTitle: data.seoTitle || null,
+        seoDescription: data.seoDescription || null,
+      };
+      setSettingsState(merged);
+      cacheSettings(merged);
+      setApiLoaded(true);
+    } catch (e) {
+      console.warn("[SiteSettings] Could not load from API, using cached values:", e);
+      setApiLoaded(false);
+    }
+  }
+
+  useEffect(() => {
+    if (!hasFetched.current) {
+      hasFetched.current = true;
+      loadFromApi();
+    }
+  }, []);
+
+  const saveSettings = async (patch: Partial<SiteSettings>) => {
+    if (!API) return;
+    try {
+      const r = await fetch(`${API}/api/settings`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patch),
+      });
+      if (!r.ok) throw new Error("Save failed");
+      const updated = await r.json();
+      const merged: SiteSettings = { ...settings, ...updated };
+      setSettingsState(merged);
+      cacheSettings(merged);
+    } catch (e) {
+      console.error("[SiteSettings] Save failed:", e);
+      throw e;
+    }
+  };
 
   const setLogoUrl = (url: string | null) => {
-    setLogoUrlState(url);
-    if (url) localStorage.setItem(LOGO_KEY, url);
-    else localStorage.removeItem(LOGO_KEY);
+    const next = { ...settings, logoUrl: url };
+    setSettingsState(next);
+    cacheSettings(next);
+    if (API) {
+      fetch(`${API}/api/settings`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ logoUrl: url }),
+      }).catch(() => {});
+    }
   };
 
   const setSiteName = (name: string) => {
-    setSiteNameState(name);
-    localStorage.setItem(SITE_NAME_KEY, name);
+    const next = { ...settings, siteName: name || "SOFTWORKS IT FARM" };
+    setSettingsState(next);
+    cacheSettings(next);
+    if (API) {
+      fetch(`${API}/api/settings`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ siteName: next.siteName }),
+      }).catch(() => {});
+    }
   };
 
   return (
-    <SiteSettingsContext.Provider value={{ logoUrl, siteName, setLogoUrl, setSiteName }}>
+    <SiteSettingsContext.Provider value={{
+      ...settings,
+      apiLoaded,
+      setLogoUrl,
+      setSiteName,
+      saveSettings,
+      reloadSettings: loadFromApi,
+    }}>
       {children}
     </SiteSettingsContext.Provider>
   );
