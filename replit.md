@@ -34,7 +34,9 @@ lib/
 ### Database (PostgreSQL via Drizzle ORM)
 Tables: `services`, `portfolio`, `blog`, `leads`, `testimonials`, `team`, `saas_products`, `employees`, `attendance`, `leaves`, `payroll`, `projects`, `clients`, `licenses`, `license_products`, `license_activations`, `license_payments`, `license_logs`, `api_keys`, `payment_methods`, `faqs`, `invoices`, `jobs`, `newsletter_subscribers`
 
-Auth tables: `refresh_tokens` (token_hash, username, role, ip, user_agent, expires_at, is_revoked), `audit_logs` (username, action, resource, ip, status, created_at)
+Auth tables: `refresh_tokens` (token_hash, username, role, ip, user_agent, expires_at, is_revoked), `audit_logs` (username, action, resource, ip, status, created_at), `admin_users` (username, password_hash, role, display_name, email, is_active, last_login_at)
+
+**Admin credentials**: DB-backed via `admin_users` table (bcrypt-hashed). Falls back to `ADMIN_USERNAME`/`ADMIN_PASSWORD` env vars if user not in DB. Admin user `admin` seeded in Neon DB with `Softworks@2024`.
 
 Seed script: `lib/db/src/seed.ts` — run with:
 ```bash
