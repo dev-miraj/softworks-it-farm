@@ -5,9 +5,11 @@ A premium digital platform for SOFTWORKS IT FARM — a tech studio. Built as a f
 1. **Public Website** — Dark-mode glassmorphism design with all marketing pages
 2. **Admin CMS Panel** — Full content management for all website data
 3. **HR Management System** — Employees, Attendance, Leave Requests, Payroll
-4. **Enterprise Auth** — Dual-token JWT (httpOnly cookies), bcrypt, CSRF protection, refresh token rotation with DB storage, session tracking, audit logs, RBAC + permissions
-5. **Security** — Helmet, rate limiting, CORS, compression (gzip), CSRF double-submit cookie pattern
-6. **Docker/VPS Ready** — docker-compose.yml, docker/Dockerfile.api, docker/Dockerfile.web, docker/nginx.conf
+4. **Enterprise Auth** — Dual-token JWT, bcrypt, CSRF, refresh token rotation (DB), session tracking, audit logs, account lockout, RBAC + permissions
+5. **SaaS Features** — Subscription plans (free/pro/enterprise), feature flags, multi-tenant foundation, job queue (DB-backed), SSE real-time events
+6. **Observability** — /ready endpoint, Prometheus metrics (/api/metrics), Swagger docs (/api/docs), structured JSON logging
+7. **Security** — Helmet, rate limiting, CORS, compression, account lockout after 5 failures
+8. **Docker/VPS Ready** — docker-compose.yml, multi-stage Dockerfiles, nginx.conf, DB backup script (scripts/backup-db.mjs)
 
 ## Deployment Targets
 - **Vercel**: `vercel.json` + `scripts/build-vercel.mjs` → frontend static + `api/index.mjs` serverless
