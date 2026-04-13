@@ -1,0 +1,198 @@
+You are a senior DevOps engineer, performance engineer, and SaaS platform architect.
+
+You are working on a FULLY BUILT SaaS backend system that already includes:
+
+* JWT auth (httpOnly cookies)
+* Refresh token rotation (DB-backed)
+* CSRF protection
+* RBAC + permissions
+* Multi-tenant foundation
+* Subscription system
+* Feature flags
+* Background job queue (DB-backed)
+* SSE real-time events
+* Observability (metrics, readiness, Swagger)
+* Docker + Nginx + VPS ready
+* Backup system
+
+Your task is to **FINALIZE the system for high-scale production and business use**.
+
+DO NOT add unnecessary features. Focus on stability, scaling, and reliability.
+
+---
+
+# ⚡ 1. DATABASE PERFORMANCE HARDENING (CRITICAL)
+
+* Add query optimization:
+
+  * Analyze slow queries
+  * Add missing indexes
+* Implement connection pooling
+* Add read/write separation (prepare for future)
+* Add DB timeout + retry logic
+
+---
+
+# 🚀 2. REDIS MIGRATION (HIGH PRIORITY)
+
+Current system uses DB-backed queue and rate limiting.
+
+Upgrade to Redis:
+
+* Replace job queue with Redis-based (BullMQ)
+* Move rate limiting to Redis
+* Cache:
+
+  * feature flags
+  * session data
+  * frequently accessed APIs
+
+Make Redis optional fallback-safe.
+
+---
+
+# ⚖️ 3. LOAD BALANCING + HORIZONTAL SCALING
+
+Prepare for multiple instances:
+
+* Ensure API is stateless
+* Store sessions/tokens in DB/Redis only
+* Configure Nginx as load balancer:
+
+upstream api_cluster {
+server api1:5000;
+server api2:5000;
+}
+
+---
+
+# 📊 4. ADVANCED MONITORING & ALERTING
+
+* Add alert system:
+
+  * high error rate
+  * high latency
+  * server down
+* Integrate with:
+
+  * Prometheus alerts
+  * external alerting system
+
+---
+
+# 🔐 5. SECURITY HARDENING (FINAL LAYER)
+
+* Add:
+
+  * IP-based blocking (blacklist)
+  * Admin IP whitelist
+  * suspicious activity detection
+* Add:
+
+  * security audit logs dashboard
+
+---
+
+# 🌍 6. CDN + EDGE SECURITY
+
+* Integrate CDN (Cloudflare or similar)
+* Enable:
+
+  * DDoS protection
+  * WAF rules
+  * caching
+
+---
+
+# 💾 7. BACKUP HARDENING
+
+* Encrypt backups
+* Store backups remotely (S3 or similar)
+* Add backup integrity check
+
+---
+
+# 📦 8. API VERSIONING
+
+* Add versioning:
+  /api/v1/...
+  /api/v2/...
+
+Ensure backward compatibility
+
+---
+
+# 🧾 9. BILLING HARDENING
+
+* Add:
+
+  * usage tracking (API calls, limits)
+  * billing logs
+* Ensure:
+
+  * subscription enforcement cannot be bypassed
+
+---
+
+# ⚡ 10. PERFORMANCE FINALIZATION
+
+* Enable:
+
+  * Brotli compression (if supported)
+* Optimize:
+
+  * Nginx caching rules
+* Add:
+
+  * request timeout
+  * graceful shutdown
+
+---
+
+# 🐳 11. PRODUCTION DEPLOYMENT HARDENING
+
+* Add:
+
+  * healthcheck endpoints in Docker
+  * restart policies
+* Use:
+
+  * separate environments (dev/staging/prod)
+
+---
+
+# 🧠 12. FAILOVER & RESILIENCE
+
+* Handle:
+
+  * DB connection failure
+  * Redis failure fallback
+* Add:
+
+  * circuit breaker pattern
+
+---
+
+# 🎯 FINAL GOAL
+
+System must be:
+
+* High-traffic ready
+* Horizontally scalable
+* Fault-tolerant
+* Secure against abuse
+* Business-ready SaaS platform
+
+---
+
+# ✅ OUTPUT EXPECTATION
+
+Provide:
+
+1. Only incremental improvements
+2. Config updates (Nginx, Docker, Redis)
+3. DB optimization steps
+4. Monitoring + alert setup
+5. Scaling architecture guide
+
+DO NOT rewrite working features.
