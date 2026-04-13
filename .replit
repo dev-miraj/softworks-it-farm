@@ -85,7 +85,7 @@ channel = "stable-25_05"
 [userenv]
 
 [userenv.shared]
-NEON_DATABASE_URL = "postgresql://neondb_owner:npg_LG3gZFBoT6rt@ep-flat-frog-amjifzm2-pooler.c-5.us-east-1.aws.neon.tech/neondb?channel_binding=require&sslmode=require"
+NEON_DATABASE_URL = "postgresql://neondb_owner:npg_LG3gZFBoT6rt@ep-flat-frog-amjifzm2-pooler.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require"
 
 [userenv.development]
 NODE_ENV = "development"
