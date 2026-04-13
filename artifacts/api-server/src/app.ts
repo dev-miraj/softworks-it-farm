@@ -1,10 +1,15 @@
 import express, { type Express, type Request, type Response, type NextFunction } from "express";
 import cors from "cors";
+import helmet from "helmet";
+import { rateLimit } from "express-rate-limit";
+import cookieParser from "cookie-parser";
 import path from "node:path";
 import fs from "node:fs";
 import router from "./routes";
 
 const app: Express = express();
+
+app.set("trust proxy", 1);
 
 app.use((req: Request, res: Response, next: NextFunction) => {
   const start = Date.now();
@@ -15,12 +20,43 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
+app.use(
+  helmet({
+    crossOriginEmbedderPolicy: false,
+    contentSecurityPolicy: false,
+  }),
+);
+
+const globalLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many requests, please try again later." },
+  skip: (req) => req.path === "/api/health" || req.path === "/api/healthz",
+});
+app.use(globalLimiter);
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many login attempts, please try again later." },
+});
+app.use("/api/auth/login", authLimiter);
+
 const allowedOrigins: (string | RegExp)[] = [
   "https://softworksit.vercel.app",
   /\.vercel\.app$/,
   /^http:\/\/localhost(:\d+)?$/,
   /^http:\/\/127\.0\.0\.1(:\d+)?$/,
 ];
+
+const extraOrigins = process.env["ALLOWED_ORIGINS"];
+if (extraOrigins) {
+  extraOrigins.split(",").forEach((o) => allowedOrigins.push(o.trim()));
+}
 
 if (process.env["NODE_ENV"] !== "production") {
   allowedOrigins.push(/\.replit\.dev$/, /\.replit\.app$/);
@@ -38,8 +74,10 @@ app.use(
     credentials: true,
   }),
 );
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+app.use(cookieParser());
 
 app.use("/api", router);
 
@@ -70,9 +108,12 @@ if (isProduction && !isVercel) {
 
 app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
   const message = err instanceof Error ? err.message : String(err);
-  console.error("Unhandled route error:", message, "url:", req.url);
+  if (message !== "CORS: origin not allowed") {
+    console.error("Unhandled route error:", message, "url:", req.url);
+  }
   if (!res.headersSent) {
-    res.status(500).json({ error: "Internal server error", detail: message });
+    const status = (err as any)?.status || 500;
+    res.status(status).json({ error: "Internal server error", detail: message });
   }
 });
 
