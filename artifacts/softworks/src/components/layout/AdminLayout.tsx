@@ -32,6 +32,8 @@ import {
   BriefcaseBusiness,
   Mail,
   Sparkles,
+  PhoneCall,
+  PhoneIncoming,
 } from "lucide-react";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { useSiteSettings } from "@/contexts/SiteSettingsContext";
@@ -92,6 +94,13 @@ const sidebarSections = [
     title: "AI Tools",
     links: [
       { href: "/admin/ai-chat", label: "AI Assistant", icon: Sparkles },
+    ],
+  },
+  {
+    title: "Auto Calling",
+    links: [
+      { href: "/admin/voice-calls", label: "Call Sessions", icon: PhoneIncoming },
+      { href: "/admin/voice-call-config", label: "Call Config", icon: PhoneCall },
     ],
   },
   {
