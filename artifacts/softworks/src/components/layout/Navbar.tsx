@@ -26,6 +26,7 @@ export function Navbar() {
     { href: "/about", label: "About" },
     { href: "/services", label: "Services" },
     { href: "/portfolio", label: "Portfolio" },
+    { href: "/ai-voice", label: "AI কলিং" },
     { href: "/saas", label: "SaaS" },
     { href: "/careers", label: "Careers" },
     { href: "/faq", label: "FAQ" },
