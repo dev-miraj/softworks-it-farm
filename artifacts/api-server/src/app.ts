@@ -3,19 +3,25 @@ import cors from "cors";
 import helmet from "helmet";
 import { rateLimit } from "express-rate-limit";
 import cookieParser from "cookie-parser";
+import compression from "compression";
 import path from "node:path";
 import fs from "node:fs";
 import router from "./routes";
+import { csrfProtection } from "./lib/csrf.js";
+import { logger } from "./lib/logger.js";
 
 const app: Express = express();
 
 app.set("trust proxy", 1);
 
+app.use(compression({ threshold: 1024 }));
+
 app.use((req: Request, res: Response, next: NextFunction) => {
   const start = Date.now();
   res.on("finish", () => {
     const ms = Date.now() - start;
-    console.log(`${req.method} ${req.url?.split("?")[0]} ${res.statusCode} ${ms}ms`);
+    const path = req.url?.split("?")[0];
+    logger.info({ method: req.method, path, status: res.statusCode, ms }, "request");
   });
   next();
 });
@@ -78,6 +84,8 @@ app.use(
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
+
+app.use(csrfProtection);
 
 app.use("/api", router);
 
