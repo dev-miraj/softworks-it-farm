@@ -1,0 +1,234 @@
+You are a senior full-stack engineer and security expert.
+
+You are working on an EXISTING production system (DO NOT rebuild from scratch).
+
+The system already has:
+
+* React + Vite frontend (29 admin pages, AI chat, voice calling, HR, license, ecommerce)
+* Node.js API
+* JWT authentication (basic)
+* Docker setup (API + Web + Nginx)
+* Vercel deployment support
+* Security basics (Helmet, Rate limiting, CORS)
+
+Your task is to **UPGRADE and HARDEN the existing system to enterprise-grade level**.
+
+---
+
+# 🛑 IMPORTANT RULES
+
+* DO NOT rebuild the project
+* DO NOT remove existing features
+* DO NOT break existing UI or functionality
+* ONLY improve, refactor, and secure
+
+---
+
+# 🔐 AUTHENTICATION FIX (CRITICAL)
+
+Current issue:
+JWT token is stored in localStorage (INSECURE)
+
+### Fix:
+
+* Remove all JWT storage from localStorage
+
+* Use ONLY HTTP-only cookies
+
+* Set cookie with:
+
+  * HttpOnly
+  * Secure
+  * SameSite=Strict
+
+* Update frontend API calls to:
+  fetch(..., { credentials: "include" })
+
+---
+
+# 🔄 ADD REFRESH TOKEN SYSTEM
+
+Implement:
+
+* Access Token (short expiry: 15 min)
+* Refresh Token (long expiry: 7 days)
+
+Endpoints:
+
+/api/auth/refresh
+/api/auth/logout (invalidate refresh token)
+
+Store refresh token securely (DB or httpOnly cookie)
+
+---
+
+# 🔐 ADMIN SECURITY FIX
+
+Current issue:
+Admin credentials are stored as plain text in environment variables
+
+### Fix:
+
+* Hash admin password using bcrypt
+* Use bcrypt.compare() during login
+* Never store plain passwords
+
+---
+
+# 🛡️ SECURITY HARDENING (UPGRADE)
+
+Enhance existing security:
+
+1. Rate Limiting:
+
+   * Add IP + user-based limiting
+   * Add stricter rules for login/register
+
+2. Add CAPTCHA (Google reCAPTCHA or alternative) on login
+
+3. Add request validation using Zod on ALL endpoints
+
+4. Add CSRF protection (important for cookie-based auth)
+
+5. Add request size limit (prevent abuse)
+
+---
+
+# 🧠 ROLE-BASED ACCESS CONTROL (RBAC)
+
+Implement role system:
+
+roles:
+
+* admin
+* manager
+* user
+
+Create middleware:
+
+* requireAuth
+* requireRole("admin")
+
+Protect:
+
+* admin routes
+* sensitive APIs
+
+---
+
+# 📦 API STRUCTURE REFACTOR
+
+Ensure backend is modular:
+
+/api
+/auth
+/user
+/product
+/order
+/license
+/hr
+/ai
+/voice
+/admin
+/_lib
+
+Each module must have:
+
+* controller
+* service
+* route
+
+---
+
+# 💾 DATABASE IMPROVEMENTS
+
+* Use ORM (Prisma or Drizzle)
+* Add proper relations
+* Add indexes for performance
+* Add migration system
+
+---
+
+# 📊 LOGGING & MONITORING (MUST ADD)
+
+Implement:
+
+1. Error logging (Winston or similar)
+2. Request logging (middleware)
+3. Integrate Sentry for production error tracking
+
+---
+
+# ⚡ PERFORMANCE OPTIMIZATION
+
+* Reduce bundle size
+* Remove unused dependencies
+* Add response caching (Redis-ready structure)
+* Optimize API response time
+
+---
+
+# 🐳 DOCKER IMPROVEMENTS
+
+Upgrade Docker setup:
+
+* Use multi-stage builds
+* Use non-root user (already done ✔)
+* Add healthcheck
+* Optimize image size
+
+---
+
+# 🌍 NGINX IMPROVEMENTS
+
+* Add gzip compression
+* Add cache headers for static files
+* Add basic rate limiting (optional)
+
+---
+
+# 🔐 ENVIRONMENT SECURITY
+
+* Validate env variables at startup
+* Use a config loader
+* Never expose secrets to frontend
+
+---
+
+# 🧾 ADMIN PANEL IMPROVEMENTS
+
+* Add role-based UI restrictions
+* Hide admin-only features from non-admin users
+
+---
+
+# 🔄 BACKUP & RECOVERY
+
+* Add database backup strategy
+* Add restore instructions
+
+---
+
+# 🚀 FINAL GOAL
+
+After upgrade, the system must be:
+
+* Fully secure (no major vulnerabilities)
+* Scalable (SaaS-ready)
+* Docker + VPS ready
+* Vercel compatible
+* Clean, modular, maintainable
+
+---
+
+# ✅ OUTPUT EXPECTATION
+
+Provide:
+
+1. Updated code snippets (only changed parts)
+2. Folder restructuring if needed
+3. Security improvements implementation
+4. Middleware examples
+5. Deployment notes (Vercel + VPS)
+
+Do NOT rewrite everything — only upgrade intelligently.
