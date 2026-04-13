@@ -1,0 +1,254 @@
+You are a senior backend architect and DevSecOps engineer.
+
+You are working on an EXISTING, UPGRADED system with:
+
+* JWT auth using httpOnly cookies (access + refresh tokens)
+* bcrypt password hashing
+* RBAC (role-based access control)
+* Zod validation
+* Docker (API + Web + Nginx)
+* Vercel deployment support
+* Basic rate limiting, helmet, CORS
+
+Your task is to take this system to **enterprise-grade SaaS level**.
+
+DO NOT rebuild anything. ONLY extend, harden, and optimize.
+
+---
+
+# 🔐 1. ADVANCED AUTH SECURITY
+
+Implement:
+
+### ✅ Refresh Token Rotation (CRITICAL)
+
+* Every time /api/auth/refresh is called:
+
+  * Invalidate old refresh token
+  * Issue a new refresh token
+* Store refresh tokens in database (NOT just cookie)
+* Add fields:
+
+  * token
+  * userId
+  * expiresAt
+  * device info (optional)
+
+---
+
+### ✅ Logout From All Devices
+
+* Create endpoint:
+  POST /api/auth/logout-all
+* Delete all refresh tokens for user from DB
+
+---
+
+### ✅ Device & Session Tracking
+
+* Track:
+
+  * IP address
+  * User-Agent
+* Create endpoint:
+  GET /api/auth/sessions
+* Allow user to revoke sessions
+
+---
+
+# 🛡️ 2. CSRF PROTECTION (MANDATORY)
+
+Since using cookies:
+
+* Implement CSRF token system
+* Send CSRF token via header (X-CSRF-Token)
+* Validate on all POST/PUT/DELETE requests
+
+---
+
+# 🔐 3. ADVANCED RATE LIMITING
+
+Upgrade current system:
+
+* Use Redis-based rate limiting (scalable)
+* Different limits:
+
+  * login: strict
+  * API: moderate
+  * admin routes: strict
+* Block IP temporarily after abuse
+
+---
+
+# ⚡ 4. REDIS INTEGRATION (IMPORTANT)
+
+Add Redis for:
+
+* Rate limiting
+* Session caching
+* API caching (optional)
+
+Make Redis optional but pluggable
+
+---
+
+# 📊 5. LOGGING & MONITORING (PRODUCTION MUST)
+
+Implement:
+
+### Logging:
+
+* Use Winston or Pino
+* Log:
+
+  * errors
+  * requests
+  * auth events
+
+### Monitoring:
+
+* Integrate Sentry
+
+### Log format:
+
+* JSON structured logs
+
+---
+
+# 💾 6. DATABASE HARDENING
+
+* Add indexes for:
+
+  * user email
+  * tokens
+* Add soft delete (deletedAt field)
+* Add audit fields:
+
+  * createdAt
+  * updatedAt
+
+---
+
+# 🔄 7. BACKUP SYSTEM
+
+Implement:
+
+* Daily database backup strategy
+* Backup script (cron-ready)
+* Restore instructions
+
+---
+
+# ⚡ 8. PERFORMANCE OPTIMIZATION
+
+* Add response compression (gzip/brotli)
+* Add API caching layer (Redis)
+* Optimize slow queries
+* Add pagination for all list APIs
+
+---
+
+# 🧠 9. ADVANCED RBAC
+
+Enhance RBAC:
+
+* Add permission system:
+
+  * role → permissions mapping
+* Example:
+  admin → all
+  manager → limited
+  user → basic
+
+Middleware:
+
+* requirePermission("manage_users")
+
+---
+
+# 🐳 10. DOCKER HARDENING
+
+Improve Docker:
+
+* Add healthcheck endpoints
+* Use multi-stage builds
+* Limit container resources
+* Add restart policies
+
+---
+
+# 🌍 11. NGINX SECURITY
+
+Enhance Nginx config:
+
+* Rate limiting (basic)
+* Security headers
+* Hide server tokens
+* Enable gzip & caching
+
+---
+
+# 🔐 12. ENV SECURITY
+
+* Validate ALL env vars strictly
+* Fail fast if invalid
+* Separate dev/prod configs
+
+---
+
+# 📦 13. API STANDARDIZATION
+
+Ensure:
+
+* Consistent response format:
+  { success: true, data, error }
+
+* Central error handler
+
+---
+
+# 🧾 14. AUDIT LOG SYSTEM
+
+Track:
+
+* login
+* logout
+* admin actions
+* critical changes
+
+Store in DB
+
+---
+
+# 🚀 15. SCALABILITY PREPARATION
+
+Prepare system for:
+
+* Horizontal scaling
+* Stateless API (important for VPS cluster)
+
+---
+
+# 🎯 FINAL GOAL
+
+System must be:
+
+* Secure against XSS, CSRF, brute-force
+* Multi-device session aware
+* Scalable with Redis
+* Fully Docker/VPS ready
+* SaaS-grade backend
+
+---
+
+# ✅ OUTPUT EXPECTATION
+
+Provide:
+
+1. Only incremental code updates
+2. New modules (Redis, logging, CSRF, etc.)
+3. DB schema changes
+4. Middleware examples
+5. Deployment updates
+
+DO NOT rewrite existing working code.
