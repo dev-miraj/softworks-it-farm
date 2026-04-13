@@ -6,7 +6,7 @@ import {
   Globe, Server, Cpu, ArrowUpRight, Sparkles,
 } from "lucide-react";
 
-const API = import.meta.env.VITE_API_URL ?? "";
+import { API } from "@/lib/apiUrl";
 
 type Stats = {
   totalLicenses: number; active: number; trial: number; expired: number;

@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-const API = import.meta.env.VITE_API_URL ?? "";
+import { API } from "@/lib/apiUrl";
 
 // Fallback: shown when the API server's env var is not configured (e.g. on Vercel)
 const FALLBACK_KEY = "swec-d587e1c6760bf65438cae1fe80724145c98c0069";

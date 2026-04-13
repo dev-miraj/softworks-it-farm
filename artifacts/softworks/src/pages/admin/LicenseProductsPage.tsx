@@ -10,7 +10,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useToast } from "@/hooks/use-toast";
 import { Package, Plus, Pencil, Trash2, Check, RefreshCw, Search } from "lucide-react";
 
-const API = import.meta.env.VITE_API_URL ?? "";
+import { API } from "@/lib/apiUrl";
 
 type Product = {
   id: number; name: string; slug: string; description: string | null; category: string;

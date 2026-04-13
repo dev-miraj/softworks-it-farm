@@ -48,7 +48,7 @@ import {
   Landmark,
 } from "lucide-react";
 
-const API = import.meta.env.VITE_API_URL ?? "";
+import { API } from "@/lib/apiUrl";
 
 type PaymentMethod = {
   id: number;

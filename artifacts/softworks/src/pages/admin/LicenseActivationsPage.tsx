@@ -4,7 +4,7 @@ import { Activity, Globe, Monitor, Wifi, Clock } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 
-const API = import.meta.env.VITE_API_URL ?? "";
+import { API } from "@/lib/apiUrl";
 
 type Activation = {
   id: number; licenseId: number; licenseKey: string; domain: string | null;

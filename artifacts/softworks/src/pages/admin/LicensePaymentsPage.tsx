@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { DollarSign, Plus, Check, RefreshCw, Search } from "lucide-react";
 
-const API = import.meta.env.VITE_API_URL ?? "";
+import { API } from "@/lib/apiUrl";
 
 type Payment = {
   id: number; licenseId: number; licenseKey: string; clientEmail: string | null;

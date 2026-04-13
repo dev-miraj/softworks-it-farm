@@ -4,7 +4,7 @@ import { ScrollText, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 
-const API = import.meta.env.VITE_API_URL ?? "";
+import { API } from "@/lib/apiUrl";
 
 type LogEntry = {
   id: number; licenseId: number | null; licenseKey: string | null;

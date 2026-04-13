@@ -9,7 +9,7 @@ import {
 import { Download, FileText, Users, DollarSign, Inbox, Briefcase, Calendar, Shield } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
-const API = import.meta.env.VITE_API_URL ?? "";
+import { API } from "@/lib/apiUrl";
 
 function useLicenses() {
   return useQuery({ queryKey: ["licenses-all"], queryFn: async () => { const r = await fetch(`${API}/api/licenses`); return r.json(); } });

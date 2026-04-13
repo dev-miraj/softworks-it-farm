@@ -7,7 +7,7 @@ import { useListLeads, useUpdateLead } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Mail, Phone, Building2, MessageSquare, Search, Trash2, Copy, Check } from "lucide-react";
 
-const API = import.meta.env.VITE_API_URL ?? "";
+import { API } from "@/lib/apiUrl";
 
 const statusColors: Record<string, string> = {
   new: "bg-blue-500/10 text-blue-400 border-blue-400/20",

@@ -25,7 +25,7 @@ import {
   Clock, XCircle, Filter, DollarSign, CreditCard, CircleDollarSign, BadgeAlert, ShoppingCart,
 } from "lucide-react";
 
-const API = import.meta.env.VITE_API_URL ?? "";
+import { API } from "@/lib/apiUrl";
 
 type License = {
   id: number; licenseKey: string; productName: string; clientName: string; clientEmail: string;
