@@ -17,6 +17,7 @@ const ADMIN_PASSWORD_ENV = process.env["ADMIN_PASSWORD"] || "Softworks@2024";
 
 const ACCESS_TOKEN_TTL = "15m";
 const REFRESH_TOKEN_TTL = "7d";
+export const REFRESH_TTL_SECONDS = 7 * 24 * 60 * 60;
 const ACCESS_COOKIE = "sw_access_token";
 const REFRESH_COOKIE = "sw_refresh_token";
 
