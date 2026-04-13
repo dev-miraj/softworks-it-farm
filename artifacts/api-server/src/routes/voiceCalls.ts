@@ -319,12 +319,41 @@ router.post("/session/:token/respond", async (req, res) => {
   }
 });
 
+router.get("/stats", async (_req, res) => {
+  try {
+    const sessions = await db.select().from(voiceCallSessionsTable);
+    const total = sessions.length;
+    const confirmed = sessions.filter(s => s.actionTaken === "confirmed").length;
+    const cancelled = sessions.filter(s => s.actionTaken === "cancelled").length;
+    const pending = sessions.filter(s => s.status === "pending").length;
+    const completed = sessions.filter(s => s.status === "completed").length;
+    const conversionRate = total > 0 ? Math.round((confirmed / total) * 100) : 0;
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const todayCount = sessions.filter(s => new Date(s.createdAt!) >= today).length;
+    res.json({ total, confirmed, cancelled, pending, completed, conversionRate, todayCount });
+  } catch {
+    res.status(500).json({ error: "Failed to get stats" });
+  }
+});
+
 router.get("/", async (_req, res) => {
   try {
     const sessions = await db.select().from(voiceCallSessionsTable).orderBy(voiceCallSessionsTable.createdAt);
     res.json(sessions.reverse());
   } catch {
     res.status(500).json({ error: "Failed to list sessions" });
+  }
+});
+
+router.delete("/bulk", async (req, res) => {
+  try {
+    const { ids } = req.body as { ids: number[] };
+    if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ error: "ids array required" });
+    const { inArray } = await import("drizzle-orm");
+    await db.delete(voiceCallSessionsTable).where(inArray(voiceCallSessionsTable.id, ids));
+    res.json({ success: true, deleted: ids.length });
+  } catch {
+    res.status(500).json({ error: "Failed to bulk delete" });
   }
 });
 
