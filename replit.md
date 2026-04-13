@@ -5,8 +5,8 @@ A premium digital platform for SOFTWORKS IT FARM — a tech studio. Built as a f
 1. **Public Website** — Dark-mode glassmorphism design with all marketing pages
 2. **Admin CMS Panel** — Full content management for all website data
 3. **HR Management System** — Employees, Attendance, Leave Requests, Payroll
-4. **JWT Authentication** — Proper server-side auth (POST /api/auth/login, /logout, /me)
-5. **Security** — Helmet headers, rate limiting (200/min global, 20/15min for auth), CORS restricted
+4. **Enterprise Auth** — Dual-token JWT (httpOnly cookies), bcrypt, CSRF protection, refresh token rotation with DB storage, session tracking, audit logs, RBAC + permissions
+5. **Security** — Helmet, rate limiting, CORS, compression (gzip), CSRF double-submit cookie pattern
 6. **Docker/VPS Ready** — docker-compose.yml, docker/Dockerfile.api, docker/Dockerfile.web, docker/nginx.conf
 
 ## Deployment Targets
@@ -29,6 +29,8 @@ lib/
 
 ### Database (PostgreSQL via Drizzle ORM)
 Tables: `services`, `portfolio`, `blog`, `leads`, `testimonials`, `team`, `saas_products`, `employees`, `attendance`, `leaves`, `payroll`, `projects`, `clients`, `licenses`, `license_products`, `license_activations`, `license_payments`, `license_logs`, `api_keys`, `payment_methods`, `faqs`, `invoices`, `jobs`, `newsletter_subscribers`
+
+Auth tables: `refresh_tokens` (token_hash, username, role, ip, user_agent, expires_at, is_revoked), `audit_logs` (username, action, resource, ip, status, created_at)
 
 Seed script: `lib/db/src/seed.ts` — run with:
 ```bash
