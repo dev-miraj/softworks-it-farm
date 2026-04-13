@@ -5,7 +5,6 @@
  */
 import { Router } from "express";
 import { z } from "zod";
-import bcrypt from "bcryptjs";
 import { requireAuth, requireRole, createAdminUser, updateAdminPassword } from "../lib/auth.js";
 import { db } from "../lib/db.js";
 import { adminUsersTable } from "@workspace/db/schema";
