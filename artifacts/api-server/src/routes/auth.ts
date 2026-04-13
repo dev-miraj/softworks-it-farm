@@ -2,6 +2,8 @@ import { Router } from "express";
 import { z } from "zod";
 import {
   checkAdminCredentials,
+  updateAdminPassword,
+  updateLastLogin,
   setAuthCookies,
   clearAuthCookies,
   verifyRefreshToken,
