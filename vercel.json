@@ -1,6 +1,6 @@
 {
   "installCommand": "corepack enable && pnpm install --no-frozen-lockfile",
-  "buildCommand": "node scripts/build-vercel.mjs",
+  "buildCommand": "pnpm --filter @workspace/softworks run build && pnpm --filter @workspace/api-server run build && mkdir -p api && cp artifacts/api-server/dist/serverless.mjs api/index.mjs",
   "outputDirectory": "artifacts/softworks/dist/public",
   "functions": {
     "api/index.mjs": {
