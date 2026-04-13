@@ -123,17 +123,18 @@ router.get("/audio/:filename", (req, res) => {
 });
 
 router.post("/tts", async (req, res) => {
-  if (!isAiEnabled()) {
-    return res.status(503).json({ error: "OpenAI not configured. Set OPENAI_API_KEY to use TTS." });
-  }
-  try {
-    const { text, voice = "nova" } = req.body as { text: string; voice?: string };
-    if (!text?.trim()) return res.status(400).json({ error: "text is required" });
+  const { text, voice = "nova" } = req.body as { text: string; voice?: string };
+  if (!text?.trim()) return res.status(400).json({ error: "text is required" });
 
+  if (!isAiEnabled() || !openai) {
+    return res.json({ url: null, text, useBrowserTts: true, voice });
+  }
+
+  try {
     const validVoices = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"];
     const selectedVoice = validVoices.includes(voice) ? voice : "nova";
 
-    const mp3 = await openai!.audio.speech.create({
+    const mp3 = await openai.audio.speech.create({
       model: "tts-1-hd",
       voice: selectedVoice as "nova" | "alloy" | "echo" | "fable" | "onyx" | "shimmer",
       input: text,
@@ -146,10 +147,10 @@ router.post("/tts", async (req, res) => {
 
     const base = getApiBase(req as any);
     const url = `${base}/api/voice-calls/audio/${filename}`;
-    res.json({ url, filename });
+    res.json({ url, filename, useBrowserTts: false });
   } catch (e) {
     console.error("TTS error:", e);
-    res.status(500).json({ error: e instanceof Error ? e.message : "TTS generation failed" });
+    res.json({ url: null, text, useBrowserTts: true, voice });
   }
 });
 
