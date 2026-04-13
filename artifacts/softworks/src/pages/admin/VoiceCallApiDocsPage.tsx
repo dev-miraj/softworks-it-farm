@@ -3,7 +3,7 @@ import { AdminLayout } from "@/components/layout/AdminLayout";
 import { FileCode2, Copy, CheckCircle2, Globe, Zap, ShoppingCart, Code2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-const API = import.meta.env.VITE_API_URL || (import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "");
+import { API } from "@/lib/apiUrl";
 const FRONTEND = typeof window !== "undefined" ? window.location.origin : "https://softworksit.vercel.app";
 
 function CodeBlock({ code, lang = "js" }: { code: string; lang?: string }) {
