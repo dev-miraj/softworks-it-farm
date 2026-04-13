@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { AdminLayout } from "@/components/layout/AdminLayout";
-import { Phone, Upload, Save, Settings, Volume2, Link2, CheckCircle2, Copy, Loader2, Play, Plus, Trash2, Sparkles, Wand2, Mic, MicOff, Square } from "lucide-react";
+import { Phone, Upload, Save, Settings, Volume2, Link2, CheckCircle2, Copy, Loader2, Play, Plus, Trash2, Sparkles, Wand2, Mic, MicOff, Square, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -247,6 +247,33 @@ function TestPanel() {
 
   return (
     <div className="space-y-5">
+
+      {/* AI Voice Demo Page Banner */}
+      <div className="rounded-xl p-4 flex items-start gap-3" style={{ background: "linear-gradient(135deg,rgba(0,212,200,0.12),rgba(79,70,229,0.1))", border: "1px solid rgba(0,212,200,0.25)" }}>
+        <Globe className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: "#00d4c8" }} />
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold" style={{ color: "#00d4c8" }}>পাবলিক AI Calling Demo পেজ</p>
+          <p className="text-xs mt-0.5 mb-3" style={{ color: "rgba(0,212,200,0.6)" }}>
+            এই URL টি client-দের শেয়ার করুন — ভিজিট করলে সব package ও interactive demo দেখতে পাবেন।
+          </p>
+          <div className="flex items-center gap-2">
+            <code className="flex-1 text-xs bg-black/30 rounded-lg px-3 py-2 truncate" style={{ color: "rgba(255,255,255,0.7)" }}>
+              {FRONTEND}/ai-voice
+            </code>
+            <button onClick={() => navigator.clipboard.writeText(`${FRONTEND}/ai-voice`)}
+              className="p-2 rounded-lg flex-shrink-0"
+              style={{ background: "rgba(0,212,200,0.15)", color: "#00d4c8" }}
+              title="Copy link">
+              <Copy className="w-3.5 h-3.5" />
+            </button>
+            <a href={`${FRONTEND}/ai-voice`} target="_blank" rel="noreferrer"
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold flex-shrink-0"
+              style={{ background: "rgba(0,212,200,0.2)", color: "#00d4c8" }}>
+              Open ↗
+            </a>
+          </div>
+        </div>
+      </div>
 
       {/* Demo info banner */}
       <div className="bg-teal-500/10 border border-teal-400/20 rounded-xl px-4 py-3 flex items-start gap-3">

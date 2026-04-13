@@ -352,10 +352,14 @@ export function CallPage() {
             {/* RINGING */}
             {callState === "ringing" && (
               <>
+                <div className="absolute top-5 left-5" style={{
+                  background: "rgba(0,212,200,0.1)", border: "1px solid rgba(0,212,200,0.25)",
+                  borderRadius: 20, padding: "4px 12px", fontSize: 12, color: "#00d4c8", fontWeight: 600,
+                }}>⚡ ধাপ ১/৩</div>
                 <RingPulse state="ringing" />
                 <div className="text-center space-y-2">
                   <h2 className="text-2xl font-bold text-white">
-                    {config?.companyName || "SOFTWORKS"}
+                    {config?.companyName || "SOFTWORKS AI"}
                   </h2>
                   {session?.customerPhone && (
                     <p className="text-white/40 text-sm font-mono">{session.customerPhone}</p>
@@ -363,23 +367,50 @@ export function CallPage() {
                   <p className="text-xs font-semibold tracking-[0.2em] mt-3" style={{ color: "#00d4c8" }}>
                     INCOMING WEB CALL
                   </p>
+                  <p className="text-white/30 text-sm mt-2">রিং হচ্ছে, কল রিসিভ করুন...</p>
                 </div>
               </>
+            )}
+
+            {/* ACCEPTING (কল কানেক্ট হচ্ছে) */}
+            {callState === "accepting" && (
+              <div className="flex flex-col items-center gap-6 py-8">
+                <div className="absolute top-5 left-5" style={{
+                  background: "rgba(0,212,200,0.1)", border: "1px solid rgba(0,212,200,0.25)",
+                  borderRadius: 20, padding: "4px 12px", fontSize: 12, color: "#00d4c8", fontWeight: 600,
+                }}>⚡ ধাপ ২/৩</div>
+                <div className="w-24 h-24 rounded-full flex items-center justify-center"
+                  style={{
+                    background: "linear-gradient(135deg,#f59e0b,#fbbf24)",
+                    boxShadow: "0 0 50px rgba(245,158,11,0.5)",
+                    animation: "waveBar 1.5s ease-in-out infinite alternate",
+                  }}>
+                  <Phone className="w-10 h-10 text-white" />
+                </div>
+                <div className="text-center">
+                  <h2 className="text-2xl font-bold text-white">কল কানেক্ট হচ্ছে...</h2>
+                  <p className="text-white/40 text-sm mt-2">রিং হচ্ছে, প্রতিনিধি কলটি রিসিভ করার জন্য তৈরি...</p>
+                </div>
+              </div>
             )}
 
             {/* CONNECTED */}
             {callState === "connected" && (
               <>
+                <div className="absolute top-5 left-5" style={{
+                  background: "rgba(0,212,200,0.1)", border: "1px solid rgba(0,212,200,0.25)",
+                  borderRadius: 20, padding: "4px 12px", fontSize: 12, color: "#00d4c8", fontWeight: 600,
+                }}>⚡ ধাপ ২/৩</div>
                 <RingPulse state="connected" />
                 <div className="text-center space-y-2">
                   <h2 className="text-2xl font-bold text-white">
-                    {config?.companyName || "SOFTWORKS"}
+                    {config?.companyName || "SOFTWORKS AI"}
                   </h2>
                   {session?.customerPhone && (
                     <p className="text-white/40 text-sm font-mono">{session.customerPhone}</p>
                   )}
                   <p className="text-xs font-semibold tracking-[0.2em] mt-3" style={{ color: "#00d4c8" }}>
-                    CONNECTED
+                    সংযুক্ত হচ্ছে...
                   </p>
                 </div>
                 <div className="mt-2">
