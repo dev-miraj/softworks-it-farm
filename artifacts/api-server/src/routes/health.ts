@@ -5,7 +5,7 @@ import { db } from "../lib/db";
 
 const router: IRouter = Router();
 
-router.get("/healthz", async (_req, res) => {
+router.get(["/health", "/healthz"], async (_req, res) => {
   try {
     await db.execute(sql`SELECT 1`);
     const data = HealthCheckResponse.parse({ status: "ok" });
