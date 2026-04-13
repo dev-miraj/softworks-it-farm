@@ -34,6 +34,7 @@ import {
   Sparkles,
   PhoneCall,
   PhoneIncoming,
+  FileCode2,
 } from "lucide-react";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { useSiteSettings } from "@/contexts/SiteSettingsContext";
@@ -101,6 +102,7 @@ const sidebarSections = [
     links: [
       { href: "/admin/voice-calls", label: "Call Sessions", icon: PhoneIncoming },
       { href: "/admin/voice-call-config", label: "Call Config", icon: PhoneCall },
+      { href: "/admin/voice-call-api-docs", label: "API Docs", icon: FileCode2 },
     ],
   },
   {
