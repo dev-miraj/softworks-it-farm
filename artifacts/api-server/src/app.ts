@@ -8,6 +8,7 @@ import path from "node:path";
 import fs from "node:fs";
 import router from "./routes";
 import { csrfProtection } from "./lib/csrf.js";
+import { metricsMiddleware } from "./lib/metrics.js";
 import { logger } from "./lib/logger.js";
 
 const app: Express = express();
@@ -15,13 +16,14 @@ const app: Express = express();
 app.set("trust proxy", 1);
 
 app.use(compression({ threshold: 1024 }));
+app.use(metricsMiddleware);
 
 app.use((req: Request, res: Response, next: NextFunction) => {
   const start = Date.now();
   res.on("finish", () => {
     const ms = Date.now() - start;
-    const path = req.url?.split("?")[0];
-    logger.info({ method: req.method, path, status: res.statusCode, ms }, "request");
+    const urlPath = req.url?.split("?")[0];
+    logger.info({ method: req.method, path: urlPath, status: res.statusCode, ms }, "request");
   });
   next();
 });

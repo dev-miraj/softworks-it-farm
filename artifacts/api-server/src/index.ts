@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { validateEnv } from "./lib/env.js";
 import { logger } from "./lib/logger.js";
+import { startWorker } from "./lib/queue.js";
 
 const config = validateEnv();
 
@@ -12,4 +13,8 @@ app.listen(config.PORT, (err?: Error) => {
     process.exit(1);
   }
   logger.info({ port: config.PORT, env: config.NODE_ENV }, "Server listening");
+
+  if (config.NODE_ENV !== "test") {
+    startWorker();
+  }
 });
