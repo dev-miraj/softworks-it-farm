@@ -4,11 +4,13 @@ import helmet from "helmet";
 import { rateLimit } from "express-rate-limit";
 import cookieParser from "cookie-parser";
 import compression from "compression";
+import swaggerUi from "swagger-ui-express";
 import path from "node:path";
 import fs from "node:fs";
 import router from "./routes";
 import { csrfProtection } from "./lib/csrf.js";
 import { metricsMiddleware } from "./lib/metrics.js";
+import { swaggerSpec } from "./lib/swagger.js";
 import { logger } from "./lib/logger.js";
 
 const app: Express = express();
@@ -88,6 +90,11 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
 
 app.use(csrfProtection);
+
+app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  customSiteTitle: "SOFTWORKS API Docs",
+  customCss: ".swagger-ui .topbar { background: #0a0a1a; } .swagger-ui .topbar-wrapper img { content: none; }",
+}));
 
 app.use("/api", router);
 
