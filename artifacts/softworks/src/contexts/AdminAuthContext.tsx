@@ -1,56 +1,91 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useLocation } from "wouter";
+import { API } from "@/lib/apiUrl";
 
 const STORAGE_KEY = "sw_admin_auth";
-const PASS_KEY = "sw_admin_pass";
-const DEFAULT_USER = "admin";
-const DEFAULT_PASS = "Softworks@2024";
+const TOKEN_KEY = "sw_admin_token";
 
 interface AdminAuthContextType {
   isAuthenticated: boolean;
-  login: (username: string, password: string) => boolean;
-  logout: () => void;
+  login: (username: string, password: string) => Promise<boolean>;
+  logout: () => Promise<void>;
   changePassword: (current: string, next: string) => boolean;
+  token: string | null;
 }
 
 const AdminAuthContext = createContext<AdminAuthContextType>({
   isAuthenticated: false,
-  login: () => false,
-  logout: () => {},
+  login: async () => false,
+  logout: async () => {},
   changePassword: () => false,
+  token: null,
 });
-
-function getStoredPass() {
-  return localStorage.getItem(PASS_KEY) || DEFAULT_PASS;
-}
 
 export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return localStorage.getItem(STORAGE_KEY) === "true";
+    return (
+      localStorage.getItem(STORAGE_KEY) === "true" ||
+      !!localStorage.getItem(TOKEN_KEY)
+    );
   });
+  const [token, setToken] = useState<string | null>(() =>
+    localStorage.getItem(TOKEN_KEY)
+  );
 
-  const login = (username: string, password: string): boolean => {
-    if (username === DEFAULT_USER && password === getStoredPass()) {
+  useEffect(() => {
+    const stored = localStorage.getItem(TOKEN_KEY);
+    if (stored && !token) {
+      setToken(stored);
       setIsAuthenticated(true);
-      localStorage.setItem(STORAGE_KEY, "true");
-      return true;
     }
+  }, []);
+
+  const login = async (username: string, password: string): Promise<boolean> => {
+    try {
+      const res = await fetch(`${API}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ username, password }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.token) {
+          localStorage.setItem(TOKEN_KEY, data.token);
+          localStorage.setItem(STORAGE_KEY, "true");
+          setToken(data.token);
+          setIsAuthenticated(true);
+          return true;
+        }
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await fetch(`${API}/api/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+    } catch {
+    }
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(STORAGE_KEY);
+    setToken(null);
+    setIsAuthenticated(false);
+  };
+
+  const changePassword = (_current: string, _next: string): boolean => {
     return false;
   };
 
-  const logout = () => {
-    setIsAuthenticated(false);
-    localStorage.removeItem(STORAGE_KEY);
-  };
-
-  const changePassword = (current: string, next: string): boolean => {
-    if (current !== getStoredPass()) return false;
-    localStorage.setItem(PASS_KEY, next);
-    return true;
-  };
-
   return (
-    <AdminAuthContext.Provider value={{ isAuthenticated, login, logout, changePassword }}>
+    <AdminAuthContext.Provider value={{ isAuthenticated, login, logout, changePassword, token }}>
       {children}
     </AdminAuthContext.Provider>
   );
