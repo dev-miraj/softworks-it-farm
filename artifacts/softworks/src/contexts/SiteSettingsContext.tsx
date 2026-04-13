@@ -41,6 +41,7 @@ const DEFAULT_SETTINGS: SiteSettings = {
 
 interface SiteSettingsContextType extends SiteSettings {
   apiLoaded: boolean;
+  apiConnected: boolean;
   setLogoUrl: (url: string | null) => void;
   setSiteName: (name: string) => void;
   saveSettings: (patch: Partial<SiteSettings>) => Promise<void>;
@@ -50,6 +51,7 @@ interface SiteSettingsContextType extends SiteSettings {
 const SiteSettingsContext = createContext<SiteSettingsContextType>({
   ...DEFAULT_SETTINGS,
   apiLoaded: false,
+  apiConnected: false,
   setLogoUrl: () => {},
   setSiteName: () => {},
   saveSettings: async () => {},
@@ -77,16 +79,18 @@ function cacheSettings(s: SiteSettings) {
   } catch {}
 }
 
+const SETTINGS_URL = `${API}/api/settings`;
+
 export function SiteSettingsProvider({ children }: { children: ReactNode }) {
   const [settings, setSettingsState] = useState<SiteSettings>(getCachedSettings);
   const [apiLoaded, setApiLoaded] = useState(false);
+  const [apiConnected, setApiConnected] = useState(false);
   const hasFetched = useRef(false);
 
   async function loadFromApi() {
-    if (!API) return;
     try {
-      const r = await fetch(`${API}/api/settings`, { signal: AbortSignal.timeout(8000) });
-      if (!r.ok) return;
+      const r = await fetch(SETTINGS_URL, { signal: AbortSignal.timeout(10000) });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const data = await r.json();
       const merged: SiteSettings = {
         siteName: data.siteName || DEFAULT_SETTINGS.siteName,
@@ -107,9 +111,11 @@ export function SiteSettingsProvider({ children }: { children: ReactNode }) {
       setSettingsState(merged);
       cacheSettings(merged);
       setApiLoaded(true);
+      setApiConnected(true);
     } catch (e) {
       console.warn("[SiteSettings] Could not load from API, using cached values:", e);
       setApiLoaded(false);
+      setApiConnected(false);
     }
   }
 
@@ -121,9 +127,8 @@ export function SiteSettingsProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const saveSettings = async (patch: Partial<SiteSettings>) => {
-    if (!API) return;
     try {
-      const r = await fetch(`${API}/api/settings`, {
+      const r = await fetch(SETTINGS_URL, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(patch),
@@ -133,6 +138,7 @@ export function SiteSettingsProvider({ children }: { children: ReactNode }) {
       const merged: SiteSettings = { ...settings, ...updated };
       setSettingsState(merged);
       cacheSettings(merged);
+      setApiConnected(true);
     } catch (e) {
       console.error("[SiteSettings] Save failed:", e);
       throw e;
@@ -143,32 +149,29 @@ export function SiteSettingsProvider({ children }: { children: ReactNode }) {
     const next = { ...settings, logoUrl: url };
     setSettingsState(next);
     cacheSettings(next);
-    if (API) {
-      fetch(`${API}/api/settings`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ logoUrl: url }),
-      }).catch(() => {});
-    }
+    fetch(SETTINGS_URL, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ logoUrl: url }),
+    }).catch(() => {});
   };
 
   const setSiteName = (name: string) => {
     const next = { ...settings, siteName: name || "SOFTWORKS IT FARM" };
     setSettingsState(next);
     cacheSettings(next);
-    if (API) {
-      fetch(`${API}/api/settings`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ siteName: next.siteName }),
-      }).catch(() => {});
-    }
+    fetch(SETTINGS_URL, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ siteName: next.siteName }),
+    }).catch(() => {});
   };
 
   return (
     <SiteSettingsContext.Provider value={{
       ...settings,
       apiLoaded,
+      apiConnected,
       setLogoUrl,
       setSiteName,
       saveSettings,
