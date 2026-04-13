@@ -27,17 +27,30 @@ function getConnectionUrl(): string {
 let _pool: pg.Pool | null = null;
 let _db: ReturnType<typeof drizzle<typeof schema>> | null = null;
 
-function getPool(): pg.Pool {
+export function getPool(): pg.Pool {
   if (!_pool) {
     const url = getConnectionUrl();
     const isNeon = url.includes("neon.tech");
     _pool = new Pool({
       connectionString: url,
       ssl: isNeon ? { rejectUnauthorized: false } : undefined,
-      max: 5,
-      idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 10000,
+      max: Number(process.env["DB_POOL_MAX"] ?? 10),
+      min: Number(process.env["DB_POOL_MIN"] ?? 2),
+      idleTimeoutMillis: 30_000,
+      connectionTimeoutMillis: 10_000,
+      statement_timeout: 30_000,
+      query_timeout: 30_000,
       allowExitOnIdle: true,
+    });
+
+    _pool.on("error", (err) => {
+      console.error("[db-pool] Unexpected pool error:", err.message);
+    });
+
+    _pool.on("connect", () => {
+      if (process.env["NODE_ENV"] === "development") {
+        console.log("[db-pool] New client connected");
+      }
     });
   }
   return _pool;
