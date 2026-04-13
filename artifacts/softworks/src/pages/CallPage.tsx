@@ -1,23 +1,19 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useSearch } from "wouter";
-import { Phone, PhoneOff, CheckCircle2, XCircle, Loader2, Volume2, Package, Truck } from "lucide-react";
-
+import { Phone, PhoneOff, CheckCircle2, XCircle, Loader2, Package, Truck, Mic, MicOff } from "lucide-react";
 import { API } from "@/lib/apiUrl";
 
 interface VoiceOption {
-  key: string;
-  label: string;
-  action: string;
+  key: string; label: string; action: string;
   color: "green" | "red" | "yellow" | "blue" | "purple";
-  responseText: string;
-  responseAudioUrl: string | null;
-  enabled: boolean;
+  responseText: string; responseAudioUrl: string | null; enabled: boolean;
 }
-interface Product { name: string; price: number; quantity: number; deliveryDays?: number; }
+interface Product { name: string; price: number; quantity: number; deliveryDays?: number; imageUrl?: string; }
 interface Session {
-  token: string; orderId: string; customerName: string | null; orderAmount: string | null;
-  orderDetails: string | null; status: string; actionTaken: string | null;
-  products: Product[] | null; deliveryInfo: string | null; ecommerceSiteUrl: string | null;
+  token: string; orderId: string; customerName: string | null; customerPhone: string | null;
+  orderAmount: string | null; orderDetails: string | null; status: string;
+  actionTaken: string | null; products: Product[] | null; deliveryInfo: string | null;
+  ecommerceSiteUrl: string | null;
 }
 interface Config {
   companyName: string; logoUrl: string | null; welcomeAudioUrl: string | null;
@@ -27,13 +23,57 @@ interface Config {
 
 type CallState = "loading" | "ringing" | "connected" | "menu" | "processing" | "done" | "expired" | "error";
 
-const COLOR_MAP: Record<string, { bg: string; border: string; text: string }> = {
-  green:  { bg: "bg-green-500/20",  border: "border-green-400/50",  text: "text-green-300" },
-  red:    { bg: "bg-red-500/20",    border: "border-red-400/50",    text: "text-red-300" },
-  yellow: { bg: "bg-yellow-500/20", border: "border-yellow-400/50", text: "text-yellow-300" },
-  blue:   { bg: "bg-blue-500/20",   border: "border-blue-400/50",   text: "text-blue-300" },
-  purple: { bg: "bg-purple-500/20", border: "border-purple-400/50", text: "text-purple-300" },
-};
+function WaveformBars({ active }: { active: boolean }) {
+  const bars = [0.4, 0.7, 1, 0.6, 0.9, 0.5, 0.8, 0.45, 0.75, 0.55];
+  return (
+    <div className="flex items-center justify-center gap-[3px] h-12">
+      {bars.map((h, i) => (
+        <div
+          key={i}
+          className="w-[3px] rounded-full"
+          style={{
+            backgroundColor: "#00d4c8",
+            height: active ? `${h * 48}px` : "8px",
+            animation: active ? `waveBar 0.8s ease-in-out ${i * 0.08}s infinite alternate` : "none",
+            transition: "height 0.3s ease",
+            opacity: active ? 1 : 0.3,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function RingPulse({ state }: { state: "ringing" | "connected" | "idle" }) {
+  return (
+    <div className="relative flex items-center justify-center">
+      {state === "ringing" && (
+        <>
+          <div className="absolute w-36 h-36 rounded-full border-2 border-[#00d4c8]/20 animate-ping" />
+          <div className="absolute w-44 h-44 rounded-full border border-[#00d4c8]/10 animate-ping [animation-delay:0.3s]" />
+        </>
+      )}
+      {state === "connected" && (
+        <>
+          <div className="absolute w-36 h-36 rounded-full border-2 border-[#00d4c8]/50 animate-pulse" />
+          <div className="absolute w-40 h-40 rounded-full border border-[#00d4c8]/25" />
+        </>
+      )}
+      <div
+        className="relative w-28 h-28 rounded-full flex items-center justify-center"
+        style={{
+          background: "linear-gradient(135deg, #1a1f2e 0%, #252b3a 100%)",
+          border: state === "connected" ? "3px solid #00d4c8" : state === "ringing" ? "3px solid rgba(0,212,200,0.4)" : "3px solid rgba(255,255,255,0.1)",
+          boxShadow: state === "connected" ? "0 0 30px rgba(0,212,200,0.3)" : "none",
+        }}
+      >
+        <svg viewBox="0 0 24 24" className="w-12 h-12 text-white/60" fill="none" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+        </svg>
+      </div>
+    </div>
+  );
+}
 
 function postMsgToParent(data: Record<string, unknown>) {
   try { window.parent.postMessage({ sw_call: data.sw_call, ...data }, "*"); } catch {}
@@ -49,10 +89,14 @@ export function CallPage() {
   const [callState, setCallState] = useState<CallState>("loading");
   const [chosenOption, setChosenOption] = useState<VoiceOption | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
-  const [dots, setDots] = useState(".");
   const [elapsed, setElapsed] = useState(0);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
+  const [voiceNote, setVoiceNote] = useState<string | null>(null);
+
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const synthRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const mediaRecRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<BlobPart[]>([]);
 
   function stopAudio() {
     if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
@@ -64,24 +108,19 @@ export function CallPage() {
     if (!window.speechSynthesis) { onEnd?.(); return; }
     window.speechSynthesis.cancel();
     const utt = new SpeechSynthesisUtterance(text);
-    utt.rate = 0.95;
-    utt.pitch = 1;
-    utt.volume = 1;
+    utt.rate = 0.9; utt.pitch = 1; utt.volume = 1;
     const voices = window.speechSynthesis.getVoices();
     const preferred = voices.find(v => v.lang.startsWith("en") && v.name.toLowerCase().includes("female"))
-      || voices.find(v => v.lang.startsWith("en"))
-      || voices[0];
+      || voices.find(v => v.lang.startsWith("en")) || voices[0];
     if (preferred) utt.voice = preferred;
     if (onEnd) { utt.onend = () => onEnd(); utt.onerror = () => onEnd(); }
-    synthRef.current = utt;
     window.speechSynthesis.speak(utt);
   }
 
   function playAudio(url: string | null | undefined, onEnd?: () => void, fallbackText?: string | null) {
     stopAudio();
     if (url) {
-      const a = new Audio(url);
-      audioRef.current = a;
+      const a = new Audio(url); audioRef.current = a;
       if (onEnd) a.addEventListener("ended", onEnd, { once: true });
       a.play().catch(() => fallbackText ? speakText(fallbackText, onEnd) : onEnd?.());
       return;
@@ -115,16 +154,10 @@ export function CallPage() {
           playAudio(d.config.welcomeAudioUrl, () => {
             setTimeout(() => playAudio(d.config.announcementAudioUrl, undefined, d.config.announcementText), 400);
           }, d.config.welcomeText);
-        }, 3200);
+        }, 3400);
       })
       .catch(() => { setCallState("error"); setErrorMsg("Call session not found or has expired."); });
   }, [token]);
-
-  useEffect(() => {
-    if (callState !== "ringing") return;
-    const t = setInterval(() => setDots(d => d.length >= 3 ? "." : d + "."), 500);
-    return () => clearInterval(t);
-  }, [callState]);
 
   useEffect(() => {
     if (callState !== "menu") return;
@@ -164,242 +197,406 @@ export function CallPage() {
     }
   }
 
+  function handleEndCall() {
+    stopAudio();
+    postMsgToParent({ sw_call: "close" });
+    setCallState("expired");
+  }
+
+  const startRecording = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const rec = new MediaRecorder(stream, { mimeType: "audio/webm;codecs=opus" });
+      chunksRef.current = [];
+      rec.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
+      rec.onstop = () => {
+        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+        setRecordedBlob(blob);
+        setVoiceNote(URL.createObjectURL(blob));
+        stream.getTracks().forEach(t => t.stop());
+      };
+      rec.start();
+      mediaRecRef.current = rec;
+      setIsRecording(true);
+    } catch {
+      alert("Microphone access denied");
+    }
+  }, []);
+
+  const stopRecording = useCallback(() => {
+    if (mediaRecRef.current?.state === "recording") {
+      mediaRecRef.current.stop();
+      setIsRecording(false);
+    }
+  }, []);
+
   const fmtTime = (s: number) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
-  const actionBg = (action: string) => {
-    if (action === "confirmed") return "from-green-950 to-[#0a0a1a]";
-    if (action === "cancelled") return "from-red-950 to-[#0a0a1a]";
-    return "from-indigo-950 to-[#0a0a1a]";
-  };
+  const enabledOptions = (config?.options || []).filter(o => o.enabled !== false);
+  const confirmOpt = enabledOptions.find(o => o.action === "confirmed");
+  const cancelOpt = enabledOptions.find(o => o.action === "cancelled");
+
+  const bgGradient = callState === "done" && chosenOption?.action === "confirmed"
+    ? "radial-gradient(ellipse at 30% 20%, rgba(0,212,200,0.08) 0%, #0a0c14 60%)"
+    : callState === "done" && chosenOption?.action === "cancelled"
+    ? "radial-gradient(ellipse at 30% 20%, rgba(239,68,68,0.06) 0%, #0a0c14 60%)"
+    : "radial-gradient(ellipse at 30% 20%, rgba(0,212,200,0.05) 0%, #0a0c14 60%)";
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 transition-all duration-700"
-      style={{ background: `radial-gradient(ellipse at top, ${callState === "done" && chosenOption?.action === "confirmed" ? "#052e16" : callState === "done" ? "#450a0a" : "#1a1040"} 0%, #0a0a1a 70%)` }}>
-      <div className="w-full max-w-sm">
-        <div className="relative backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
-          <div className="absolute inset-0 bg-gradient-to-b from-white/3 to-transparent pointer-events-none" />
+    <>
+      <style>{`
+        @keyframes waveBar {
+          0% { transform: scaleY(0.3); }
+          100% { transform: scaleY(1); }
+        }
+        @keyframes ringPulse {
+          0% { transform: scale(1); opacity: 0.6; }
+          100% { transform: scale(1.4); opacity: 0; }
+        }
+      `}</style>
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: bgGradient, backgroundColor: "#0a0c14" }}
+      >
+        <div className="w-full max-w-[360px] px-5 py-8 flex flex-col items-center min-h-screen justify-between">
 
-          {/* Header bar */}
-          <div className="relative bg-black/20 border-b border-white/10 px-5 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              {config?.logoUrl ? (
-                <img src={config.logoUrl} className="h-5 w-auto rounded" alt="logo" />
-              ) : (
-                <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-              )}
-              <span className="text-white/70 text-xs font-medium truncate max-w-[180px]">
-                {config?.companyName || "Loading..."}
-              </span>
-            </div>
-            {callState === "menu" && (
-              <span className="text-white/30 text-xs font-mono">{fmtTime(elapsed)}</span>
-            )}
-          </div>
+          {/* Top spacer */}
+          <div className="h-8" />
 
-          <div className="relative p-6">
+          {/* Main card area */}
+          <div className="flex flex-col items-center gap-6 w-full">
+
             {/* LOADING */}
             {callState === "loading" && (
-              <div className="flex flex-col items-center gap-4 py-12">
-                <Loader2 className="w-10 h-10 animate-spin text-indigo-400" />
-                <p className="text-white/50 text-sm">Connecting...</p>
+              <div className="flex flex-col items-center gap-6 py-16">
+                <div className="w-24 h-24 rounded-full flex items-center justify-center"
+                  style={{ background: "linear-gradient(135deg, #1a1f2e 0%, #252b3a 100%)" }}>
+                  <Loader2 className="w-10 h-10 animate-spin" style={{ color: "#00d4c8" }} />
+                </div>
+                <p className="text-white/40 text-sm tracking-wider">CONNECTING</p>
               </div>
             )}
 
             {/* EXPIRED */}
             {callState === "expired" && (
-              <div className="flex flex-col items-center gap-4 py-10 text-center">
-                <PhoneOff className="w-14 h-14 text-white/20" />
-                <h2 className="text-xl font-bold text-white">Session Expired</h2>
-                <p className="text-white/40 text-sm">This call link has expired.</p>
+              <div className="flex flex-col items-center gap-6 py-16 text-center">
+                <div className="w-24 h-24 rounded-full flex items-center justify-center"
+                  style={{ background: "linear-gradient(135deg, #1a1f2e 0%, #252b3a 100%)" }}>
+                  <PhoneOff className="w-10 h-10 text-white/20" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-white mb-2">Call Ended</h2>
+                  <p className="text-white/30 text-sm">This session has expired.</p>
+                </div>
               </div>
             )}
 
             {/* ERROR */}
             {callState === "error" && (
-              <div className="flex flex-col items-center gap-4 py-10 text-center">
-                <XCircle className="w-14 h-14 text-red-400" />
-                <h2 className="text-xl font-bold text-white">Connection Failed</h2>
-                <p className="text-white/50 text-sm">{errorMsg}</p>
+              <div className="flex flex-col items-center gap-6 py-16 text-center">
+                <div className="w-24 h-24 rounded-full flex items-center justify-center bg-red-900/20 border-2 border-red-500/30">
+                  <XCircle className="w-10 h-10 text-red-400" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-white mb-2">Connection Failed</h2>
+                  <p className="text-white/50 text-sm">{errorMsg}</p>
+                </div>
               </div>
             )}
 
             {/* RINGING */}
             {callState === "ringing" && (
-              <div className="flex flex-col items-center gap-6 py-6">
-                <div className="relative">
-                  <div className="absolute inset-0 rounded-full bg-indigo-500/15 animate-ping scale-[2]" />
-                  <div className="absolute inset-0 rounded-full bg-indigo-500/10 animate-ping scale-[1.5] [animation-delay:300ms]" />
-                  <div className="w-24 h-24 rounded-full bg-indigo-600/25 border-2 border-indigo-400/40 flex items-center justify-center">
-                    <Phone className="w-10 h-10 text-indigo-300 animate-pulse" />
-                  </div>
+              <>
+                <RingPulse state="ringing" />
+                <div className="text-center space-y-2">
+                  <h2 className="text-2xl font-bold text-white">
+                    {config?.companyName || "SOFTWORKS"}
+                  </h2>
+                  {session?.customerPhone && (
+                    <p className="text-white/40 text-sm font-mono">{session.customerPhone}</p>
+                  )}
+                  <p className="text-xs font-semibold tracking-[0.2em] mt-3" style={{ color: "#00d4c8" }}>
+                    INCOMING WEB CALL
+                  </p>
                 </div>
-                <div className="text-center">
-                  <p className="text-white/40 text-xs uppercase tracking-[0.2em] mb-2">Incoming Call</p>
-                  <h2 className="text-2xl font-bold text-white">{config?.companyName}</h2>
-                  <p className="text-white/50 text-sm mt-1">Order #{session?.orderId}</p>
-                </div>
-                <p className="text-white/30 text-sm">{dots}</p>
-              </div>
+              </>
             )}
 
             {/* CONNECTED */}
             {callState === "connected" && (
-              <div className="flex flex-col items-center gap-5 py-6">
-                <div className="w-20 h-20 rounded-full bg-green-600/25 border-2 border-green-400/40 flex items-center justify-center">
-                  <Phone className="w-9 h-9 text-green-300" />
+              <>
+                <RingPulse state="connected" />
+                <div className="text-center space-y-2">
+                  <h2 className="text-2xl font-bold text-white">
+                    {config?.companyName || "SOFTWORKS"}
+                  </h2>
+                  {session?.customerPhone && (
+                    <p className="text-white/40 text-sm font-mono">{session.customerPhone}</p>
+                  )}
+                  <p className="text-xs font-semibold tracking-[0.2em] mt-3" style={{ color: "#00d4c8" }}>
+                    CONNECTED
+                  </p>
                 </div>
-                <div className="text-center">
-                  <p className="text-green-400 text-xs uppercase tracking-widest mb-2">Connected</p>
-                  <h2 className="text-2xl font-bold text-white">{config?.companyName}</h2>
+                <div className="mt-2">
+                  <WaveformBars active={true} />
                 </div>
-                <div className="flex items-center gap-2 text-white/30 text-xs">
-                  <Volume2 className="w-3.5 h-3.5" /> Playing message...
-                </div>
-              </div>
+              </>
             )}
 
             {/* MENU */}
             {callState === "menu" && config && session && (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                    <span className="text-green-400 text-xs uppercase tracking-widest">Active Call</span>
-                  </div>
-                  {session.customerName && (
-                    <span className="text-white/40 text-xs truncate max-w-[120px]">{session.customerName}</span>
+              <>
+                <RingPulse state="connected" />
+                <div className="text-center space-y-1">
+                  <h2 className="text-2xl font-bold text-white">{config.companyName}</h2>
+                  {session.customerPhone && (
+                    <p className="text-white/40 text-sm font-mono">{session.customerPhone}</p>
                   )}
+                  <p className="text-xs font-semibold tracking-[0.2em] mt-2" style={{ color: "#00d4c8" }}>
+                    CONNECTED · {fmtTime(elapsed)}
+                  </p>
                 </div>
 
-                {/* Products */}
+                <div className="mt-1">
+                  <WaveformBars active={true} />
+                </div>
+
+                {/* Order details */}
                 {session.products && session.products.length > 0 && (
-                  <div className="bg-white/5 border border-white/10 rounded-xl p-3 space-y-2">
-                    <div className="flex items-center gap-1.5 mb-2">
-                      <Package className="w-3.5 h-3.5 text-white/40" />
-                      <p className="text-white/40 text-xs uppercase tracking-wider">Order #{session.orderId}</p>
+                  <div className="w-full rounded-2xl p-4 space-y-2"
+                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                    <div className="flex items-center gap-2 mb-3">
+                      <Package className="w-3.5 h-3.5 text-white/30" />
+                      <p className="text-white/30 text-xs uppercase tracking-wider">Order #{session.orderId}</p>
                     </div>
                     {session.products.map((p, i) => (
                       <div key={i} className="flex items-center justify-between text-sm">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span className="text-white/30 text-xs w-4 text-right">{p.quantity}×</span>
-                          <span className="text-white/80 truncate">{p.name}</span>
-                        </div>
-                        <div className="text-right shrink-0 ml-2">
-                          <span className="text-indigo-300 text-xs">৳{(p.price * p.quantity).toLocaleString()}</span>
-                          {p.deliveryDays && (
-                            <p className="text-white/25 text-[10px]">{p.deliveryDays}d delivery</p>
-                          )}
-                        </div>
+                        <span className="text-white/70 truncate max-w-[180px]">{p.quantity}× {p.name}</span>
+                        <span className="text-white/50 text-xs">৳{(p.price * p.quantity).toLocaleString()}</span>
                       </div>
                     ))}
-                    <div className="border-t border-white/10 pt-2 flex justify-between text-sm">
-                      <span className="text-white/50">Total</span>
-                      <span className="text-white font-semibold">{session.orderAmount || `৳${session.products.reduce((s, p) => s + p.price * p.quantity, 0).toLocaleString()}`}</span>
+                    <div className="border-t border-white/5 pt-2 flex justify-between">
+                      <span className="text-white/40 text-sm">Total</span>
+                      <span className="text-white font-semibold text-sm">
+                        {session.orderAmount || `৳${session.products.reduce((s, p) => s + p.price * p.quantity, 0).toLocaleString()}`}
+                      </span>
                     </div>
                     {session.deliveryInfo && (
-                      <div className="flex items-center gap-1.5 mt-1">
-                        <Truck className="w-3 h-3 text-white/30" />
-                        <span className="text-white/30 text-xs">{session.deliveryInfo}</span>
+                      <div className="flex items-center gap-1.5">
+                        <Truck className="w-3 h-3 text-white/20" />
+                        <span className="text-white/25 text-xs">{session.deliveryInfo}</span>
                       </div>
                     )}
                   </div>
                 )}
 
-                {/* No products — simple order info */}
-                {(!session.products || session.products.length === 0) && (
-                  <div className="bg-white/5 border border-white/10 rounded-xl p-3">
-                    <p className="text-white/40 text-xs mb-1">Order #{session.orderId}</p>
+                {(!session.products || session.products.length === 0) && session.orderDetails && (
+                  <div className="w-full rounded-2xl p-4"
+                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                    <p className="text-white/30 text-xs mb-1">Order #{session.orderId}</p>
                     {session.orderAmount && <p className="text-white font-semibold">{session.orderAmount}</p>}
-                    {session.orderDetails && <p className="text-white/40 text-xs mt-0.5">{session.orderDetails}</p>}
+                    <p className="text-white/40 text-xs mt-1">{session.orderDetails}</p>
                   </div>
                 )}
 
-                {/* Menu text */}
-                <div className="bg-indigo-500/5 border border-indigo-400/15 rounded-xl px-4 py-3 text-center">
-                  <p className="text-white/60 text-sm leading-relaxed">
-                    {config.announcementText || "Please select an option below"}
+                {config.announcementText && (
+                  <p className="text-white/40 text-sm text-center leading-relaxed px-2">
+                    {config.announcementText}
                   </p>
-                </div>
-
-                {/* Key options */}
-                <div className={`grid gap-3 ${(config.options?.filter(o => o.enabled !== false) || []).length <= 2 ? "grid-cols-2" : "grid-cols-2"}`}>
-                  {(config.options || [])
-                    .filter(o => o.enabled !== false)
-                    .map(opt => {
-                      const c = COLOR_MAP[opt.color] || COLOR_MAP.green;
-                      return (
-                        <button key={opt.key} onClick={() => handleRespond(opt)}
-                          className={`flex flex-col items-center gap-2 py-4 px-3 rounded-2xl ${c.bg} border-2 ${c.border} hover:opacity-90 active:scale-95 transition-all duration-150 group`}>
-                          <span className={`text-3xl font-bold ${c.text} group-hover:scale-110 transition-transform`}>{opt.key}</span>
-                          <span className={`${c.text} text-[11px] font-semibold uppercase tracking-wide text-center leading-tight`}>{opt.label}</span>
-                        </button>
-                      );
-                    })}
-                </div>
-                <p className="text-center text-white/20 text-[11px]">Press a number key on your keyboard</p>
-              </div>
+                )}
+              </>
             )}
 
             {/* PROCESSING */}
             {callState === "processing" && (
-              <div className="flex flex-col items-center gap-4 py-12">
-                <Loader2 className="w-10 h-10 animate-spin text-indigo-400" />
-                <p className="text-white/50 text-sm">Processing...</p>
+              <div className="flex flex-col items-center gap-6 py-16">
+                <div className="w-24 h-24 rounded-full flex items-center justify-center"
+                  style={{ background: "linear-gradient(135deg, #1a1f2e 0%, #252b3a 100%)", border: "3px solid rgba(0,212,200,0.4)" }}>
+                  <Loader2 className="w-10 h-10 animate-spin" style={{ color: "#00d4c8" }} />
+                </div>
+                <p className="text-white/40 text-sm tracking-wider">PROCESSING</p>
               </div>
             )}
 
             {/* DONE */}
-            {callState === "done" && chosenOption && (
-              <div className="flex flex-col items-center gap-5 py-6 text-center">
-                {chosenOption.action === "confirmed" ? (
-                  <div className="w-20 h-20 rounded-full bg-green-600/20 border-2 border-green-400/40 flex items-center justify-center">
-                    <CheckCircle2 className="w-10 h-10 text-green-400" />
+            {callState === "done" && (
+              <div className="flex flex-col items-center gap-6 py-8 text-center w-full">
+                {chosenOption?.action === "confirmed" ? (
+                  <div className="w-24 h-24 rounded-full flex items-center justify-center"
+                    style={{ background: "rgba(0,212,200,0.1)", border: "3px solid rgba(0,212,200,0.4)", boxShadow: "0 0 30px rgba(0,212,200,0.2)" }}>
+                    <CheckCircle2 className="w-10 h-10" style={{ color: "#00d4c8" }} />
                   </div>
-                ) : chosenOption.action === "cancelled" ? (
-                  <div className="w-20 h-20 rounded-full bg-red-600/20 border-2 border-red-400/40 flex items-center justify-center">
+                ) : chosenOption?.action === "cancelled" ? (
+                  <div className="w-24 h-24 rounded-full flex items-center justify-center bg-red-900/20 border-2 border-red-500/30">
                     <XCircle className="w-10 h-10 text-red-400" />
                   </div>
                 ) : (
-                  <div className="w-20 h-20 rounded-full bg-indigo-600/20 border-2 border-indigo-400/40 flex items-center justify-center">
-                    <CheckCircle2 className="w-10 h-10 text-indigo-400" />
+                  <div className="w-24 h-24 rounded-full flex items-center justify-center"
+                    style={{ background: "rgba(0,212,200,0.1)", border: "3px solid rgba(0,212,200,0.4)" }}>
+                    <CheckCircle2 className="w-10 h-10" style={{ color: "#00d4c8" }} />
                   </div>
                 )}
                 <div>
-                  <h2 className={`text-2xl font-bold ${chosenOption.action === "confirmed" ? "text-green-300" : chosenOption.action === "cancelled" ? "text-red-300" : "text-indigo-300"}`}>
-                    {chosenOption.label}
+                  <h2 className={`text-2xl font-bold ${chosenOption?.action === "cancelled" ? "text-red-400" : "text-white"}`}>
+                    {chosenOption?.label || "Response Recorded"}
                   </h2>
-                  <p className="text-white/50 text-sm mt-2 leading-relaxed">
-                    {chosenOption.responseText}
+                  <p className="text-white/40 text-sm mt-2 leading-relaxed">
+                    {chosenOption?.responseText || "Thank you!"}
                   </p>
                 </div>
-                <div className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm">
-                  <p className="text-white/40">Order #{session?.orderId}</p>
+                <div className="w-full rounded-2xl p-4"
+                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                  <p className="text-white/30 text-xs">Order #{session?.orderId}</p>
                   {session?.ecommerceSiteUrl && (
                     <a href={session.ecommerceSiteUrl}
-                      className="mt-2 inline-block text-indigo-400 text-xs hover:text-indigo-300">
+                      className="mt-2 inline-block text-xs hover:underline"
+                      style={{ color: "#00d4c8" }}>
                       ← Back to Store
                     </a>
                   )}
                 </div>
-              </div>
-            )}
 
-            {/* DONE with no matched option */}
-            {callState === "done" && !chosenOption && session?.status === "completed" && (
-              <div className="flex flex-col items-center gap-4 py-10 text-center">
-                <CheckCircle2 className="w-14 h-14 text-green-400" />
-                <h2 className="text-xl font-bold text-white">Response Recorded</h2>
-                <p className="text-white/40 text-sm">Order #{session?.orderId}</p>
+                {/* Voice note option on done */}
+                {voiceNote && (
+                  <div className="w-full rounded-2xl p-3" style={{ background: "rgba(0,212,200,0.05)", border: "1px solid rgba(0,212,200,0.2)" }}>
+                    <p className="text-xs text-white/40 mb-2">Your voice note</p>
+                    <audio src={voiceNote} controls className="w-full h-8" style={{ filter: "invert(1) hue-rotate(160deg)" }} />
+                  </div>
+                )}
               </div>
             )}
           </div>
+
+          {/* Bottom action buttons */}
+          <div className="w-full space-y-3 pb-4">
+
+            {/* RINGING buttons */}
+            {callState === "ringing" && (
+              <div className="flex items-center justify-center gap-16">
+                <button onClick={handleEndCall}
+                  className="flex flex-col items-center gap-2 group">
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center transition-transform active:scale-90 group-hover:scale-105"
+                    style={{ background: "rgba(239,68,68,0.9)" }}>
+                    <PhoneOff className="w-7 h-7 text-white rotate-0" />
+                  </div>
+                  <span className="text-white/40 text-[11px] uppercase tracking-wider">REJECT</span>
+                </button>
+                <button onClick={() => {
+                  setCallState("connected");
+                  setTimeout(() => {
+                    setCallState("menu");
+                    playAudio(config?.welcomeAudioUrl, () => {
+                      setTimeout(() => playAudio(config?.announcementAudioUrl, undefined, config?.announcementText), 400);
+                    }, config?.welcomeText);
+                  }, 1200);
+                }}
+                  className="flex flex-col items-center gap-2 group">
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center transition-transform active:scale-90 group-hover:scale-105"
+                    style={{ background: "rgba(16,185,129,0.9)" }}>
+                    <Phone className="w-7 h-7 text-white" />
+                  </div>
+                  <span className="text-white/40 text-[11px] uppercase tracking-wider">ACCEPT</span>
+                </button>
+              </div>
+            )}
+
+            {/* CONNECTED buttons (just waveform, no action) */}
+            {callState === "connected" && (
+              <div className="flex items-center justify-center gap-16">
+                <button onClick={handleEndCall}
+                  className="flex flex-col items-center gap-2 group">
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center transition-transform active:scale-90"
+                    style={{ background: "rgba(239,68,68,0.9)" }}>
+                    <PhoneOff className="w-7 h-7 text-white" />
+                  </div>
+                  <span className="text-white/40 text-[11px] uppercase tracking-wider">END</span>
+                </button>
+              </div>
+            )}
+
+            {/* MENU buttons — Confirm / Cancel / End Call */}
+            {callState === "menu" && (
+              <div className="space-y-3 w-full">
+                <div className="flex gap-3">
+                  {confirmOpt && (
+                    <button onClick={() => handleRespond(confirmOpt)}
+                      className="flex-1 py-4 rounded-2xl font-semibold text-[#0a0c14] text-sm transition-all active:scale-95 hover:opacity-90"
+                      style={{ background: "#00d4c8" }}>
+                      {confirmOpt.label}
+                    </button>
+                  )}
+                  {cancelOpt && (
+                    <button onClick={() => handleRespond(cancelOpt)}
+                      className="flex-1 py-4 rounded-2xl font-semibold text-white/80 text-sm transition-all active:scale-95 hover:opacity-90"
+                      style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)" }}>
+                      {cancelOpt.label}
+                    </button>
+                  )}
+                  {/* Extra options beyond confirm/cancel */}
+                  {enabledOptions
+                    .filter(o => o.action !== "confirmed" && o.action !== "cancelled")
+                    .map(opt => (
+                      <button key={opt.key} onClick={() => handleRespond(opt)}
+                        className="flex-1 py-4 rounded-2xl font-semibold text-white/80 text-sm transition-all active:scale-95"
+                        style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                        {opt.label}
+                      </button>
+                    ))}
+                </div>
+
+                {/* Voice recording during call */}
+                <div className="flex gap-3">
+                  <button
+                    onClick={isRecording ? stopRecording : startRecording}
+                    className="flex items-center gap-2 px-4 py-3 rounded-2xl text-xs font-medium transition-all active:scale-95"
+                    style={{
+                      background: isRecording ? "rgba(239,68,68,0.15)" : "rgba(255,255,255,0.05)",
+                      border: isRecording ? "1px solid rgba(239,68,68,0.4)" : "1px solid rgba(255,255,255,0.08)",
+                      color: isRecording ? "#f87171" : "rgba(255,255,255,0.4)",
+                    }}
+                  >
+                    {isRecording ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
+                    {isRecording ? "Stop" : "Record"}
+                    {isRecording && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
+                    )}
+                  </button>
+                  {voiceNote && (
+                    <audio src={voiceNote} controls className="flex-1 h-10 rounded-xl"
+                      style={{ filter: "invert(0.8) hue-rotate(160deg)" }} />
+                  )}
+                </div>
+
+                <button onClick={handleEndCall}
+                  className="w-full py-4 rounded-2xl font-semibold text-white text-sm transition-all active:scale-95 hover:opacity-90"
+                  style={{ background: "rgba(239,68,68,0.85)" }}>
+                  End Call
+                </button>
+
+                <p className="text-center text-white/15 text-[10px]">
+                  Press {enabledOptions.map(o => o.key).join(" / ")} on keyboard
+                </p>
+              </div>
+            )}
+
+            {/* DONE — back to store */}
+            {callState === "done" && session?.ecommerceSiteUrl && (
+              <a href={session.ecommerceSiteUrl}
+                className="block w-full py-4 rounded-2xl font-semibold text-[#0a0c14] text-sm text-center transition-all hover:opacity-90"
+                style={{ background: "#00d4c8" }}>
+                Back to Store
+              </a>
+            )}
+
+            {/* Powered by */}
+            {!isOverlay && (
+              <p className="text-center text-white/15 text-[10px] pt-2">
+                Powered by {config?.companyName || "SOFTWORKS IT FARM"}
+              </p>
+            )}
+          </div>
         </div>
-        {!isOverlay && (
-          <p className="text-center text-white/15 text-[11px] mt-3">
-            Powered by {config?.companyName || "SOFTWORKS IT FARM"}
-          </p>
-        )}
       </div>
-    </div>
+    </>
   );
 }
