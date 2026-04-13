@@ -15,15 +15,16 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-const allowedOrigins = [
+const allowedOrigins: (string | RegExp)[] = [
   "https://softworksit.vercel.app",
   /\.vercel\.app$/,
-  /\.replit\.dev$/,
-  /\.replit\.app$/,
-  /\.railway\.app$/,
-  /\.onrender\.com$/,
   /^http:\/\/localhost(:\d+)?$/,
+  /^http:\/\/127\.0\.0\.1(:\d+)?$/,
 ];
+
+if (process.env["NODE_ENV"] !== "production") {
+  allowedOrigins.push(/\.replit\.dev$/, /\.replit\.app$/);
+}
 
 app.use(
   cors({
@@ -43,8 +44,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api", router);
 
 const isProduction = process.env["NODE_ENV"] === "production";
+const isVercel = !!process.env["VERCEL"];
 
-if (isProduction) {
+if (isProduction && !isVercel) {
   const candidatePaths = [
     process.env["FRONTEND_DIST"],
     path.resolve(__dirname, "public"),
