@@ -21,7 +21,7 @@ interface Config {
   options: VoiceOption[];
 }
 
-type CallState = "loading" | "ringing" | "connected" | "menu" | "processing" | "done" | "expired" | "error";
+type CallState = "loading" | "ringing" | "accepting" | "connected" | "menu" | "processing" | "done" | "expired" | "error";
 
 function WaveformBars({ active }: { active: boolean }) {
   const bars = [0.4, 0.7, 1, 0.6, 0.9, 0.5, 0.8, 0.45, 0.75, 0.55];
@@ -79,6 +79,43 @@ function postMsgToParent(data: Record<string, unknown>) {
   try { window.parent.postMessage({ sw_call: data.sw_call, ...data }, "*"); } catch {}
 }
 
+function useRingtone() {
+  const ctxRef = useRef<AudioContext | null>(null);
+  const activeRef = useRef(false);
+  const start = useCallback(() => {
+    if (activeRef.current) return;
+    try {
+      const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+      ctxRef.current = ctx; activeRef.current = true;
+      function ring(t: number) {
+        if (!activeRef.current || !ctxRef.current) return;
+        const c = ctxRef.current;
+        [[480, 440], [480, 440]].forEach((freqs, idx) => {
+          const off = idx * 0.55; const dur = 0.42;
+          freqs.forEach(freq => {
+            const osc = c.createOscillator(); const gain = c.createGain();
+            osc.frequency.value = freq; osc.type = "sine";
+            osc.connect(gain); gain.connect(c.destination);
+            gain.gain.setValueAtTime(0, t + off);
+            gain.gain.linearRampToValueAtTime(0.15, t + off + 0.02);
+            gain.gain.setValueAtTime(0.15, t + off + dur - 0.06);
+            gain.gain.linearRampToValueAtTime(0, t + off + dur);
+            osc.start(t + off); osc.stop(t + off + dur);
+          });
+        });
+        setTimeout(() => { if (activeRef.current) ring(ctxRef.current!.currentTime); }, 2500);
+      }
+      ring(ctx.currentTime);
+    } catch {}
+  }, []);
+  const stop = useCallback(() => {
+    activeRef.current = false;
+    try { ctxRef.current?.close(); } catch {}
+    ctxRef.current = null;
+  }, []);
+  return { start, stop };
+}
+
 export function CallPage() {
   const { token } = useParams<{ token: string }>();
   const search = useSearch();
@@ -97,6 +134,7 @@ export function CallPage() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const mediaRecRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
+  const ringtone = useRingtone();
 
   function stopAudio() {
     if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
@@ -160,13 +198,8 @@ export function CallPage() {
           return;
         }
         setCallState("ringing");
-        setTimeout(() => setCallState("connected"), 2200);
-        setTimeout(() => {
-          setCallState("menu");
-          playAudio(d.config.welcomeAudioUrl, () => {
-            setTimeout(() => playAudio(d.config.announcementAudioUrl, undefined, d.config.announcementText), 400);
-          }, d.config.welcomeText);
-        }, 3400);
+        // Ringtone starts here (user must manually ACCEPT)
+        setTimeout(() => ringtone.start(), 200);
       })
       .catch(() => { setCallState("error"); setErrorMsg("Call session not found or has expired."); });
   }, [token]);
@@ -485,26 +518,30 @@ export function CallPage() {
             {/* RINGING buttons */}
             {callState === "ringing" && (
               <div className="flex items-center justify-center gap-16">
-                <button onClick={handleEndCall}
+                <button onClick={() => { ringtone.stop(); handleEndCall(); }}
                   className="flex flex-col items-center gap-2 group">
                   <div className="w-16 h-16 rounded-full flex items-center justify-center transition-transform active:scale-90 group-hover:scale-105"
-                    style={{ background: "rgba(239,68,68,0.9)" }}>
-                    <PhoneOff className="w-7 h-7 text-white rotate-0" />
+                    style={{ background: "rgba(239,68,68,0.9)", boxShadow: "0 0 24px rgba(239,68,68,0.4)" }}>
+                    <PhoneOff className="w-7 h-7 text-white" />
                   </div>
                   <span className="text-white/40 text-[11px] uppercase tracking-wider">REJECT</span>
                 </button>
                 <button onClick={() => {
-                  setCallState("connected");
+                  ringtone.stop();
+                  setCallState("accepting");
                   setTimeout(() => {
-                    setCallState("menu");
-                    playAudio(config?.welcomeAudioUrl, () => {
-                      setTimeout(() => playAudio(config?.announcementAudioUrl, undefined, config?.announcementText), 400);
-                    }, config?.welcomeText);
-                  }, 1200);
+                    setCallState("connected");
+                    setTimeout(() => {
+                      setCallState("menu");
+                      playAudio(config?.welcomeAudioUrl, () => {
+                        setTimeout(() => playAudio(config?.announcementAudioUrl, undefined, config?.announcementText), 400);
+                      }, config?.welcomeText);
+                    }, 1400);
+                  }, 1800);
                 }}
                   className="flex flex-col items-center gap-2 group">
                   <div className="w-16 h-16 rounded-full flex items-center justify-center transition-transform active:scale-90 group-hover:scale-105"
-                    style={{ background: "rgba(16,185,129,0.9)" }}>
+                    style={{ background: "rgba(16,185,129,0.9)", boxShadow: "0 0 30px rgba(16,185,129,0.5)", animation: "ringPulse 1.5s ease-in-out infinite" }}>
                     <Phone className="w-7 h-7 text-white" />
                   </div>
                   <span className="text-white/40 text-[11px] uppercase tracking-wider">ACCEPT</span>
