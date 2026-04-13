@@ -141,6 +141,9 @@ function Router() {
       <Route path="/admin/jobs"><AdminRoute component={JobsAdminPage} /></Route>
       <Route path="/admin/newsletter"><AdminRoute component={NewsletterPage} /></Route>
       <Route path="/admin/ai-chat"><AdminRoute component={AiChatAdminPage} /></Route>
+      <Route path="/admin/voice-calls"><AdminRoute component={VoiceCallsPage} /></Route>
+      <Route path="/admin/voice-call-config"><AdminRoute component={VoiceCallConfigPage} /></Route>
+      <Route path="/call/:token" component={CallPage} />
 
       <Route component={NotFound} />
     </Switch>
