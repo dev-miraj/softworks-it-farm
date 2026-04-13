@@ -19,3 +19,4 @@ export * from "./jobs";
 export * from "./newsletter";
 export * from "./conversations";
 export * from "./messages";
+export * from "./voiceCalls";
