@@ -25,6 +25,10 @@ import { openaiRouter } from "./openai";
 import { voiceCallsRouter } from "./voiceCalls";
 import { siteSettingsRouter } from "./siteSettings";
 import auditLogsRouter from "./auditLogs";
+import subscriptionsRouter from "./subscriptions";
+import featureFlagsRouter from "./featureFlags";
+import systemRouter from "./systemRoutes";
+import tenantsRouter from "./tenants";
 
 const router: IRouter = Router();
 
@@ -54,5 +58,9 @@ router.use("/openai", openaiRouter);
 router.use("/voice-calls", voiceCallsRouter);
 router.use(siteSettingsRouter);
 router.use(auditLogsRouter);
+router.use(subscriptionsRouter);
+router.use(featureFlagsRouter);
+router.use(systemRouter);
+router.use(tenantsRouter);
 
 export default router;
