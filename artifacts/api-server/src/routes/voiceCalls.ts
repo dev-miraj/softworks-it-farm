@@ -6,6 +6,7 @@ import { db } from "../lib/db.js";
 import { voiceCallConfigsTable, voiceCallSessionsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import multer from "multer";
+import { openai, isAiEnabled } from "../lib/ai.js";
 
 const router = Router();
 
@@ -15,8 +16,8 @@ fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, UPLOADS_DIR),
   filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`);
+    const ext = path.extname(file.originalname) || ".mp3";
+    cb(null, `${Date.now()}-${crypto.randomBytes(6).toString("hex")}${ext}`);
   },
 });
 const upload = multer({
@@ -42,7 +43,7 @@ async function getConfig() {
 }
 
 async function sendWebhook(session: typeof voiceCallSessionsTable.$inferSelect, action: string) {
-  if (!session.ecommerceWebhookUrl) return;
+  if (!session.ecommerceWebhookUrl) return null;
   try {
     const response = await fetch(session.ecommerceWebhookUrl, {
       method: "POST",
@@ -63,6 +64,56 @@ async function sendWebhook(session: typeof voiceCallSessionsTable.$inferSelect, 
   }
 }
 
+router.get("/widget.js", (_req, res) => {
+  res.setHeader("Content-Type", "application/javascript");
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Cache-Control", "public, max-age=3600");
+  res.send(`/* SoftworksCall Widget v2.0 | Auto Order Confirmation */
+(function(g){'use strict';
+var STYLE_ID='sw-call-style',OV_ID='sw-call-overlay';
+function injectStyles(){
+  if(document.getElementById(STYLE_ID))return;
+  var s=document.createElement('style');s.id=STYLE_ID;
+  s.textContent='#sw-call-overlay{position:fixed;inset:0;z-index:2147483647;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);animation:swFI .25s ease}#sw-call-overlay iframe{width:430px;max-width:95vw;height:720px;max-height:93vh;border:none;border-radius:24px;box-shadow:0 30px 80px rgba(0,0,0,.6)}@keyframes swFI{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}@keyframes swFO{from{opacity:1;transform:scale(1)}to{opacity:0;transform:scale(.95)}}';
+  document.head.appendChild(s);
+}
+function removeOverlay(){
+  var el=document.getElementById(OV_ID);
+  if(!el)return;
+  el.style.animation='swFO .2s ease forwards';
+  setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el);},200);
+}
+g.SoftworksCall={
+  _frontendUrl:'',_onComplete:null,_handler:null,
+  configure:function(o){if(o&&o.frontendUrl)this._frontendUrl=o.frontendUrl.replace(/\\/$/,'');},
+  show:function(token,opts){
+    injectStyles();removeOverlay();
+    var fu=(opts&&opts.frontendUrl)||this._frontendUrl||'';
+    var url=fu+'/call/'+token+'?overlay=1';
+    var ov=document.createElement('div');ov.id=OV_ID;
+    var fr=document.createElement('iframe');fr.src=url;fr.allow='autoplay';
+    ov.appendChild(fr);document.body.appendChild(ov);
+    ov.addEventListener('click',function(e){if(e.target===ov)removeOverlay();});
+    var self=this;
+    if(this._handler)window.removeEventListener('message',this._handler);
+    this._handler=function(e){
+      if(!e.data||!e.data.sw_call)return;
+      var cb=(opts&&opts.onComplete)||self._onComplete;
+      if(e.data.sw_call==='completed'){
+        setTimeout(removeOverlay,2800);
+        window.removeEventListener('message',self._handler);
+        if(cb)cb(e.data);
+      }
+      if(e.data.sw_call==='close'){removeOverlay();window.removeEventListener('message',self._handler);}
+    };
+    window.addEventListener('message',this._handler);
+  },
+  hide:function(){removeOverlay();},
+  onComplete:function(cb){this._onComplete=cb;}
+};
+})(window);`);
+});
+
 router.get("/audio/:filename", (req, res) => {
   const filename = path.basename(req.params.filename);
   const filePath = path.join(UPLOADS_DIR, filename);
@@ -71,11 +122,42 @@ router.get("/audio/:filename", (req, res) => {
   res.sendFile(filePath);
 });
 
+router.post("/tts", async (req, res) => {
+  if (!isAiEnabled()) {
+    return res.status(503).json({ error: "OpenAI not configured. Set OPENAI_API_KEY to use TTS." });
+  }
+  try {
+    const { text, voice = "nova" } = req.body as { text: string; voice?: string };
+    if (!text?.trim()) return res.status(400).json({ error: "text is required" });
+
+    const validVoices = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"];
+    const selectedVoice = validVoices.includes(voice) ? voice : "nova";
+
+    const mp3 = await openai!.audio.speech.create({
+      model: "tts-1-hd",
+      voice: selectedVoice as "nova" | "alloy" | "echo" | "fable" | "onyx" | "shimmer",
+      input: text,
+    });
+
+    const filename = `tts-${Date.now()}-${crypto.randomBytes(4).toString("hex")}.mp3`;
+    const filePath = path.join(UPLOADS_DIR, filename);
+    const buffer = Buffer.from(await mp3.arrayBuffer());
+    fs.writeFileSync(filePath, buffer);
+
+    const base = getApiBase(req as any);
+    const url = `${base}/api/voice-calls/audio/${filename}`;
+    res.json({ url, filename });
+  } catch (e) {
+    console.error("TTS error:", e);
+    res.status(500).json({ error: e instanceof Error ? e.message : "TTS generation failed" });
+  }
+});
+
 router.get("/config", async (_req, res) => {
   try {
     const cfg = await getConfig();
     res.json(cfg);
-  } catch (e) {
+  } catch {
     res.status(500).json({ error: "Failed to get config" });
   }
 });
@@ -84,8 +166,8 @@ router.put("/config", async (req, res) => {
   try {
     const cfg = await getConfig();
     const allowed = [
-      "companyName", "menuText", "confirmText", "cancelText",
-      "sessionExpiryMinutes", "enabled",
+      "companyName", "logoUrl", "welcomeText", "announcementText",
+      "options", "ttsVoice", "sessionExpiryMinutes", "enabled",
     ] as const;
     const update: Record<string, unknown> = { updatedAt: new Date() };
     for (const k of allowed) {
@@ -97,7 +179,7 @@ router.put("/config", async (req, res) => {
       .where(eq(voiceCallConfigsTable.id, cfg.id))
       .returning();
     res.json(updated);
-  } catch (e) {
+  } catch {
     res.status(500).json({ error: "Failed to update config" });
   }
 });
@@ -105,23 +187,40 @@ router.put("/config", async (req, res) => {
 router.post("/upload-audio", upload.single("audio"), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: "No file uploaded" });
-    const field = (req.body.field as string) || "welcomeAudioUrl";
     const base = getApiBase(req as any);
     const audioUrl = `${base}/api/voice-calls/audio/${req.file.filename}`;
+    const field = (req.body.field as string) || "welcomeAudioUrl";
     const cfg = await getConfig();
-    const fieldMap: Record<string, string> = {
+
+    const directFieldMap: Record<string, string> = {
       welcome: "welcomeAudioUrl",
-      menu: "menuAudioUrl",
-      confirm: "confirmAudioUrl",
-      cancel: "cancelAudioUrl",
+      announcement: "announcementAudioUrl",
     };
-    const colName = fieldMap[field] || "welcomeAudioUrl";
-    const [updated] = await db
-      .update(voiceCallConfigsTable)
-      .set({ [colName]: audioUrl, updatedAt: new Date() })
-      .where(eq(voiceCallConfigsTable.id, cfg.id))
-      .returning();
-    res.json({ url: audioUrl, config: updated });
+
+    if (directFieldMap[field]) {
+      const [updated] = await db
+        .update(voiceCallConfigsTable)
+        .set({ [directFieldMap[field]]: audioUrl, updatedAt: new Date() })
+        .where(eq(voiceCallConfigsTable.id, cfg.id))
+        .returning();
+      return res.json({ url: audioUrl, config: updated });
+    }
+
+    if (field.startsWith("option:")) {
+      const optionKey = field.replace("option:", "");
+      const options = (cfg.options as any[]) || [];
+      const updatedOptions = options.map((o: any) =>
+        o.key === optionKey ? { ...o, responseAudioUrl: audioUrl } : o
+      );
+      const [updated] = await db
+        .update(voiceCallConfigsTable)
+        .set({ options: updatedOptions, updatedAt: new Date() })
+        .where(eq(voiceCallConfigsTable.id, cfg.id))
+        .returning();
+      return res.json({ url: audioUrl, config: updated });
+    }
+
+    res.json({ url: audioUrl });
   } catch (e) {
     res.status(500).json({ error: e instanceof Error ? e.message : "Upload failed" });
   }
@@ -131,8 +230,8 @@ router.post("/initiate", async (req, res) => {
   try {
     const {
       orderId, customerName, customerPhone, orderAmount,
-      orderDetails, ecommerceWebhookUrl, ecommerceSiteUrl,
-    } = req.body as Record<string, string>;
+      orderDetails, products, deliveryInfo, ecommerceWebhookUrl, ecommerceSiteUrl,
+    } = req.body as Record<string, any>;
 
     if (!orderId) return res.status(400).json({ error: "orderId is required" });
 
@@ -144,16 +243,19 @@ router.post("/initiate", async (req, res) => {
       .insert(voiceCallSessionsTable)
       .values({
         token, orderId, customerName, customerPhone,
-        orderAmount, orderDetails, ecommerceWebhookUrl, ecommerceSiteUrl,
+        orderAmount, orderDetails, products: products || null,
+        deliveryInfo: deliveryInfo || null,
+        ecommerceWebhookUrl, ecommerceSiteUrl,
         status: "pending", expiresAt,
       })
       .returning();
 
-    const base = getApiBase(req as any);
-    const callUrl = `${base}/api/voice-calls/session/${token}/ui`;
+    const frontendUrl = process.env["PUBLIC_FRONTEND_URL"] || "";
+    const callUrl = `${frontendUrl}/call/${token}`;
 
     res.status(201).json({ token, callUrl, session });
   } catch (e) {
+    console.error("Initiate error:", e);
     res.status(500).json({ error: "Failed to initiate call session" });
   }
 });
@@ -166,11 +268,11 @@ router.get("/session/:token", async (req, res) => {
       .where(eq(voiceCallSessionsTable.token, req.params.token));
     if (!session) return res.status(404).json({ error: "Session not found" });
     if (new Date() > new Date(session.expiresAt)) {
-      return res.status(410).json({ error: "Call session has expired" });
+      return res.status(410).json({ error: "Session expired" });
     }
     const cfg = await getConfig();
     res.json({ session, config: cfg });
-  } catch (e) {
+  } catch {
     res.status(500).json({ error: "Failed to get session" });
   }
 });
@@ -184,24 +286,17 @@ router.post("/session/:token/respond", async (req, res) => {
       .where(eq(voiceCallSessionsTable.token, req.params.token));
 
     if (!session) return res.status(404).json({ error: "Session not found" });
-    if (new Date() > new Date(session.expiresAt)) {
-      return res.status(410).json({ error: "Session expired" });
-    }
-    if (session.status === "completed") {
-      return res.status(409).json({ error: "Already responded" });
-    }
+    if (new Date() > new Date(session.expiresAt)) return res.status(410).json({ error: "Session expired" });
+    if (session.status === "completed") return res.status(409).json({ error: "Already responded" });
 
-    const actionMap: Record<string, string> = { "1": "confirmed", "2": "cancelled" };
-    const action = actionMap[dtmf] || "invalid";
+    const cfg = await getConfig();
+    const options = (cfg.options as any[]) || [];
+    const matchedOption = options.find((o: any) => o.key === dtmf && o.enabled !== false);
+    const action = matchedOption?.action || `key_${dtmf}`;
 
     const [updated] = await db
       .update(voiceCallSessionsTable)
-      .set({
-        dtmfInput: dtmf,
-        actionTaken: action,
-        status: "completed",
-        updatedAt: new Date(),
-      })
+      .set({ dtmfInput: dtmf, actionTaken: action, status: "completed", updatedAt: new Date() })
       .where(eq(voiceCallSessionsTable.token, req.params.token))
       .returning();
 
@@ -212,26 +307,18 @@ router.post("/session/:token/respond", async (req, res) => {
         .where(eq(voiceCallSessionsTable.token, req.params.token));
     }
 
-    res.json({ action, session: updated });
+    res.json({ action, option: matchedOption, session: updated });
   } catch (e) {
+    console.error("Respond error:", e);
     res.status(500).json({ error: "Failed to process response" });
   }
 });
 
-router.get("/session/:token/ui", async (req, res) => {
-  const { token } = req.params;
-  const appBase = process.env["PUBLIC_FRONTEND_URL"] || "";
-  res.redirect(`${appBase}/call/${token}`);
-});
-
 router.get("/", async (_req, res) => {
   try {
-    const sessions = await db
-      .select()
-      .from(voiceCallSessionsTable)
-      .orderBy(voiceCallSessionsTable.createdAt);
+    const sessions = await db.select().from(voiceCallSessionsTable).orderBy(voiceCallSessionsTable.createdAt);
     res.json(sessions.reverse());
-  } catch (e) {
+  } catch {
     res.status(500).json({ error: "Failed to list sessions" });
   }
 });
@@ -240,8 +327,8 @@ router.delete("/:id", async (req, res) => {
   try {
     await db.delete(voiceCallSessionsTable).where(eq(voiceCallSessionsTable.id, parseInt(req.params.id)));
     res.json({ success: true });
-  } catch (e) {
-    res.status(500).json({ error: "Failed to delete session" });
+  } catch {
+    res.status(500).json({ error: "Failed to delete" });
   }
 });
 
