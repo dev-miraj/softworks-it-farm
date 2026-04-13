@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useSearch } from "wouter";
 import { Phone, PhoneOff, CheckCircle2, XCircle, Loader2, Volume2, Package, Truck } from "lucide-react";
 
-const API = import.meta.env.VITE_API_URL || (import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "");
+import { API } from "@/lib/apiUrl";
 
 interface VoiceOption {
   key: string;

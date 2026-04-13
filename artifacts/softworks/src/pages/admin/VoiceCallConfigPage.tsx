@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 
-const API = import.meta.env.VITE_API_URL || (import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "");
+import { API } from "@/lib/apiUrl";
 const FRONTEND = typeof window !== "undefined" ? window.location.origin : "";
 
 interface VoiceOption {

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { Bot, MessageSquare, Send, RefreshCw, Loader2, ChevronRight, Trash2, Sparkles } from "lucide-react";
 
-const BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "");
+import { API as BASE_URL } from "@/lib/apiUrl";
 
 interface ConvSummary { id: number; title: string; createdAt: string; }
 interface Msg { id: number; conversationId: number; role: string; content: string; createdAt: string; }

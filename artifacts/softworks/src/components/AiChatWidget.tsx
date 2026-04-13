@@ -9,7 +9,7 @@ interface Message {
   streaming?: boolean;
 }
 
-const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "");
+import { API as API_BASE } from "@/lib/apiUrl";
 
 async function* streamMessage(conversationId: number, content: string): AsyncGenerator<string> {
   const res = await fetch(`${API_BASE}/api/openai/conversations/${conversationId}/messages`, {

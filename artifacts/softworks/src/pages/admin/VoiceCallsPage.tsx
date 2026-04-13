@@ -4,7 +4,7 @@ import { Phone, RefreshCw, Trash2, CheckCircle2, XCircle, Clock, AlertCircle, Ex
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
-const API = import.meta.env.VITE_API_URL || (import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "");
+import { API } from "@/lib/apiUrl";
 
 interface CallSession {
   id: number;
