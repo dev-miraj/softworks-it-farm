@@ -21,6 +21,7 @@ import invoicesRouter from "./invoices";
 import jobsRouter from "./jobs";
 import newsletterRouter from "./newsletter";
 import { openaiRouter } from "./openai";
+import { voiceCallsRouter } from "./voiceCalls";
 
 const router: IRouter = Router();
 
@@ -46,5 +47,6 @@ router.use(invoicesRouter);
 router.use(jobsRouter);
 router.use(newsletterRouter);
 router.use("/openai", openaiRouter);
+router.use("/voice-calls", voiceCallsRouter);
 
 export default router;
