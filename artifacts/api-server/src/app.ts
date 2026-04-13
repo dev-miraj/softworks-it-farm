@@ -128,7 +128,7 @@ if (isProduction && !isVercel) {
   if (frontendDist) {
     logger.info({ frontendDist }, "[static] Serving frontend");
     app.use(express.static(frontendDist, { maxAge: "1d", etag: true }));
-    app.get("*", (_req: Request, res: Response) => {
+    app.get("/{*path}", (_req: Request, res: Response) => {
       res.sendFile(path.join(frontendDist, "index.html"));
     });
   } else {
