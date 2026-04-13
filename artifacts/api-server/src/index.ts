@@ -1,19 +1,15 @@
 import "dotenv/config";
-import app from "./app";
-import { logger } from "./lib/logger";
+import { validateEnv } from "./lib/env.js";
+import { logger } from "./lib/logger.js";
 
-const rawPort = process.env["PORT"] || "8080";
-const port = Number(rawPort);
+const config = validateEnv();
 
-if (Number.isNaN(port) || port <= 0) {
-  throw new Error(`Invalid PORT value: "${rawPort}"`);
-}
+import app from "./app.js";
 
-app.listen(port, (err) => {
+app.listen(config.PORT, (err?: Error) => {
   if (err) {
-    logger.error({ err }, "Error listening on port");
+    logger.error({ err }, "Error starting server");
     process.exit(1);
   }
-
-  logger.info({ port }, "Server listening");
+  logger.info({ port: config.PORT, env: config.NODE_ENV }, "Server listening");
 });

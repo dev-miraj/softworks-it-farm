@@ -8,7 +8,7 @@ import { Terminal, Lock, Eye, EyeOff, AlertCircle } from "lucide-react";
 import gsap from "gsap";
 
 export function LoginPage() {
-  const { isAuthenticated, login } = useAdminAuth();
+  const { isAuthenticated, login, isLoading } = useAdminAuth();
   const [, navigate] = useLocation();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -50,11 +50,11 @@ export function LoginPage() {
     setLoading(true);
     setError("");
 
-    const ok = await login(username, password);
-    if (ok) {
+    const result = await login(username, password);
+    if (result.ok) {
       navigate("/admin");
     } else {
-      setError("Invalid credentials. Please check your username and password.");
+      setError(result.error || "Invalid credentials. Please check your username and password.");
       gsap.to(cardRef.current, {
         x: [-8, 8, -6, 6, -3, 3, 0],
         duration: 0.4,

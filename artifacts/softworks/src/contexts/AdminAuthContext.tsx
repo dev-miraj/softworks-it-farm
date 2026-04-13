@@ -1,91 +1,114 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { useLocation } from "wouter";
 import { API } from "@/lib/apiUrl";
 
-const STORAGE_KEY = "sw_admin_auth";
-const TOKEN_KEY = "sw_admin_token";
+interface AdminUser {
+  username: string;
+  role: string;
+}
 
 interface AdminAuthContextType {
   isAuthenticated: boolean;
-  login: (username: string, password: string) => Promise<boolean>;
+  user: AdminUser | null;
+  isLoading: boolean;
+  login: (username: string, password: string) => Promise<{ ok: boolean; error?: string }>;
   logout: () => Promise<void>;
-  changePassword: (current: string, next: string) => boolean;
-  token: string | null;
 }
 
 const AdminAuthContext = createContext<AdminAuthContextType>({
   isAuthenticated: false,
-  login: async () => false,
+  user: null,
+  isLoading: true,
+  login: async () => ({ ok: false }),
   logout: async () => {},
-  changePassword: () => false,
-  token: null,
 });
 
-export function AdminAuthProvider({ children }: { children: ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return (
-      localStorage.getItem(STORAGE_KEY) === "true" ||
-      !!localStorage.getItem(TOKEN_KEY)
-    );
+async function apiFetch(path: string, options?: RequestInit) {
+  return fetch(`${API}${path}`, {
+    ...options,
+    credentials: "include",
+    headers: { "Content-Type": "application/json", ...(options?.headers ?? {}) },
   });
-  const [token, setToken] = useState<string | null>(() =>
-    localStorage.getItem(TOKEN_KEY)
-  );
+}
 
-  useEffect(() => {
-    const stored = localStorage.getItem(TOKEN_KEY);
-    if (stored && !token) {
-      setToken(stored);
-      setIsAuthenticated(true);
-    }
-  }, []);
+async function tryRefresh(): Promise<boolean> {
+  try {
+    const res = await apiFetch("/api/auth/refresh", { method: "POST" });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
 
-  const login = async (username: string, password: string): Promise<boolean> => {
+export function AdminAuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<AdminUser | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const checkSession = useCallback(async () => {
     try {
-      const res = await fetch(`${API}/api/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ username, password }),
-      });
+      let res = await apiFetch("/api/auth/me");
+
+      if (res.status === 401) {
+        const refreshed = await tryRefresh();
+        if (refreshed) {
+          res = await apiFetch("/api/auth/me");
+        }
+      }
 
       if (res.ok) {
         const data = await res.json();
-        if (data.token) {
-          localStorage.setItem(TOKEN_KEY, data.token);
-          localStorage.setItem(STORAGE_KEY, "true");
-          setToken(data.token);
-          setIsAuthenticated(true);
-          return true;
-        }
+        setUser({ username: data.username, role: data.role });
+      } else {
+        setUser(null);
       }
-      return false;
     } catch {
-      return false;
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    checkSession();
+  }, [checkSession]);
+
+  const login = async (username: string, password: string): Promise<{ ok: boolean; error?: string }> => {
+    try {
+      const res = await apiFetch("/api/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setUser({ username: data.username, role: data.role });
+        return { ok: true };
+      }
+
+      return { ok: false, error: data.error || "Invalid credentials" };
+    } catch {
+      return { ok: false, error: "Network error. Please try again." };
     }
   };
 
   const logout = async () => {
     try {
-      await fetch(`${API}/api/auth/logout`, {
-        method: "POST",
-        credentials: "include",
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-    } catch {
-    }
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(STORAGE_KEY);
-    setToken(null);
-    setIsAuthenticated(false);
-  };
-
-  const changePassword = (_current: string, _next: string): boolean => {
-    return false;
+      await apiFetch("/api/auth/logout", { method: "POST" });
+    } catch {}
+    setUser(null);
   };
 
   return (
-    <AdminAuthContext.Provider value={{ isAuthenticated, login, logout, changePassword, token }}>
+    <AdminAuthContext.Provider
+      value={{
+        isAuthenticated: !!user,
+        user,
+        isLoading,
+        login,
+        logout,
+      }}
+    >
       {children}
     </AdminAuthContext.Provider>
   );
@@ -96,12 +119,26 @@ export function useAdminAuth() {
 }
 
 export function RequireAdminAuth({ children }: { children: ReactNode }) {
-  const { isAuthenticated } = useAdminAuth();
+  const { isAuthenticated, isLoading } = useAdminAuth();
   const [, navigate] = useLocation();
 
-  if (!isAuthenticated) {
-    navigate("/admin/login");
-    return null;
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      navigate("/admin/login");
+    }
+  }, [isAuthenticated, isLoading, navigate]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#050510] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin" />
+          <p className="text-zinc-500 text-sm">Verifying session...</p>
+        </div>
+      </div>
+    );
   }
+
+  if (!isAuthenticated) return null;
   return <>{children}</>;
 }
