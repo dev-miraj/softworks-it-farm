@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { AdminLayout } from "@/components/layout/AdminLayout";
-import { Phone, Upload, Save, Settings, Volume2, Link2, CheckCircle2, Copy, Loader2, Play, Plus, Trash2, Sparkles, Wand2 } from "lucide-react";
+import { Phone, Upload, Save, Settings, Volume2, Link2, CheckCircle2, Copy, Loader2, Play, Plus, Trash2, Sparkles, Wand2, Mic, MicOff, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -32,6 +32,48 @@ function AudioRow({ label, desc, audioUrl, fieldKey, configId, onUpdated }: {
   const [genText, setGenText] = useState("");
   const [genLoading, setGenLoading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordedUrl, setRecordedUrl] = useState<string | null>(null);
+  const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
+  const mediaRecRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<BlobPart[]>([]);
+
+  async function startRecord() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const rec = new MediaRecorder(stream, { mimeType: "audio/webm;codecs=opus" });
+      chunksRef.current = [];
+      rec.ondataavailable = e => { if (e.data.size > 0) chunksRef.current.push(e.data); };
+      rec.onstop = () => {
+        const b = new Blob(chunksRef.current, { type: "audio/webm" });
+        setRecordedBlob(b); setRecordedUrl(URL.createObjectURL(b));
+        stream.getTracks().forEach(t => t.stop());
+      };
+      rec.start(); mediaRecRef.current = rec; setIsRecording(true);
+    } catch { toast({ title: "Mic access denied", variant: "destructive" }); }
+  }
+
+  function stopRecord() {
+    mediaRecRef.current?.stop(); setIsRecording(false);
+  }
+
+  async function uploadRecording() {
+    if (!recordedBlob) return;
+    setUploading(true);
+    const fd = new FormData();
+    fd.append("audio", recordedBlob, `rec-${Date.now()}.webm`);
+    fd.append("field", fieldKey);
+    try {
+      const r = await fetch(`${API}/api/voice-calls/upload-audio`, { method: "POST", body: fd });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error);
+      onUpdated(d.url);
+      setRecordedBlob(null); setRecordedUrl(null);
+      toast({ title: "Recording uploaded!" });
+    } catch (e) {
+      toast({ title: "Upload failed", description: e instanceof Error ? e.message : "", variant: "destructive" });
+    } finally { setUploading(false); }
+  }
 
   async function handleFile(file: File) {
     setUploading(true);
