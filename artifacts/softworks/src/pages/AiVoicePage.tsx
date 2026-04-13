@@ -385,10 +385,14 @@ export function AiVoicePage() {
     }, 2000);
   }
 
-  function endLiveCall() {
-    window.speechSynthesis?.cancel();
-    recognRef.current?.abort();
-    setLiveState("idle"); setChatLog([]); setLiveTranscript("");
+  function endLiveCall(e?: React.MouseEvent | React.PointerEvent) {
+    e?.stopPropagation();
+    e?.preventDefault();
+    try { window.speechSynthesis?.cancel(); } catch {}
+    try { recognRef.current?.abort(); recognRef.current = null; } catch {}
+    setLiveState("idle");
+    setChatLog([]);
+    setLiveTranscript("");
   }
 
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [chatLog]);
@@ -423,9 +427,8 @@ export function AiVoicePage() {
         {isCallActive && (
           <div style={{
             position: "fixed", inset: 0, zIndex: 9999,
-            /* SOLID OPAQUE BACKGROUND — fixes transparency bug */
-            backgroundColor: "#05060e",
-            background: "radial-gradient(ellipse at 50% 15%, rgba(0,212,200,0.08) 0%, #05060e 55%)",
+            /* Solid base + gradient layered on top = always fully opaque */
+            background: "radial-gradient(ellipse at 50% 15%, rgba(0,212,200,0.10) 0%, rgba(5,6,14,0) 60%), #05060e",
             display: "flex", flexDirection: "column", alignItems: "center",
             animation: "fadeIn 0.35s ease",
             overflowY: "auto",
@@ -626,7 +629,7 @@ export function AiVoicePage() {
 
         {/* ══════ LIVE AI VOICE CALL OVERLAY ══════ */}
         {liveActive && (
-          <div style={{ position: "fixed", inset: 0, zIndex: 9998, backgroundColor: "#05060e", background: "radial-gradient(ellipse at 50% 10%, rgba(99,102,241,0.1) 0%, #05060e 55%)", display: "flex", flexDirection: "column", alignItems: "center", animation: "fadeIn 0.35s ease" }}>
+          <div style={{ position: "fixed", inset: 0, zIndex: 9998, background: "radial-gradient(ellipse at 50% 10%, rgba(99,102,241,0.12) 0%, rgba(5,6,14,0) 60%), #05060e", display: "flex", flexDirection: "column", alignItems: "center", animation: "fadeIn 0.35s ease" }}>
             <div style={{ width: "100%", maxWidth: 440, padding: "20px 20px 32px", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
               {/* Header */}
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28 }}>
@@ -682,8 +685,12 @@ export function AiVoicePage() {
               </div>
 
               {/* End call button */}
-              <button onClick={endLiveCall} style={{ width: "100%", background: "rgba(239,68,68,0.14)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 50, padding: "14px 30px", color: "#f87171", fontSize: 15, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-                <PhoneOff style={{ width: 18, height: 18 }} /> কল শেষ করুন
+              <button
+                onClick={endLiveCall}
+                onPointerDown={endLiveCall}
+                onTouchStart={e => { e.stopPropagation(); }}
+                style={{ width: "100%", background: "rgba(239,68,68,0.85)", border: "2px solid rgba(239,68,68,0.7)", borderRadius: 50, padding: "16px 30px", color: "#fff", fontSize: 16, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, boxShadow: "0 4px 24px rgba(239,68,68,0.35)", WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}>
+                <PhoneOff style={{ width: 20, height: 20 }} /> কল শেষ করুন
               </button>
             </div>
           </div>
