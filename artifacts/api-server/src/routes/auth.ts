@@ -1,81 +1,107 @@
 import { Router } from "express";
+import { z } from "zod";
 import {
-  signAdminToken,
-  verifyAdminToken,
   checkAdminCredentials,
+  setAuthCookies,
+  clearAuthCookies,
+  verifyRefreshToken,
+  verifyAccessToken,
+  requireAuth,
+  signAccessToken,
+  signRefreshToken,
 } from "../lib/auth.js";
+import { logger } from "../lib/logger.js";
 
 const router = Router();
 
-router.post("/auth/login", (req, res) => {
-  const { username, password } = req.body ?? {};
+const LoginSchema = z.object({
+  username: z.string().min(1).max(64).trim(),
+  password: z.string().min(1).max(128),
+});
 
-  if (!username || !password) {
-    res.status(400).json({ error: "Username and password are required" });
+router.post("/auth/login", async (req, res) => {
+  const parse = LoginSchema.safeParse(req.body);
+  if (!parse.success) {
+    res.status(400).json({ error: "Invalid input", details: parse.error.flatten().fieldErrors });
     return;
   }
 
-  if (!checkAdminCredentials(String(username), String(password))) {
+  const { username, password } = parse.data;
+  const valid = await checkAdminCredentials(username, password);
+
+  if (!valid) {
+    logger.warn({ username, ip: req.ip }, "Failed login attempt");
     res.status(401).json({ error: "Invalid credentials" });
     return;
   }
 
-  const token = signAdminToken(String(username));
+  const { accessToken } = setAuthCookies(res, username, "admin");
 
-  res.cookie("sw_admin_token", token, {
-    httpOnly: true,
-    secure: process.env["NODE_ENV"] === "production",
-    sameSite: "lax",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-    path: "/",
-  });
+  logger.info({ username, ip: req.ip }, "Admin login successful");
 
   res.json({
     success: true,
-    token,
-    username: String(username),
+    username,
     role: "admin",
     message: "Login successful",
+    token: accessToken,
   });
 });
 
-router.post("/auth/logout", (_req, res) => {
-  res.clearCookie("sw_admin_token", { path: "/" });
+router.post("/auth/refresh", (req, res) => {
+  const refreshToken = req.cookies?.["sw_refresh_token"];
+
+  if (!refreshToken) {
+    res.status(401).json({ error: "No refresh token provided" });
+    return;
+  }
+
+  const payload = verifyRefreshToken(refreshToken);
+  if (!payload) {
+    clearAuthCookies(res);
+    res.status(401).json({ error: "Invalid or expired refresh token. Please login again." });
+    return;
+  }
+
+  const newAccessToken = signAccessToken(payload.username, payload.role);
+  const newRefreshToken = signRefreshToken(payload.username, payload.role);
+  const isProd = process.env["NODE_ENV"] === "production";
+  const base = {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: (isProd ? "strict" : "lax") as "strict" | "lax",
+    path: "/",
+  };
+  res.cookie("sw_access_token", newAccessToken, { ...base, maxAge: 15 * 60 * 1000 });
+  res.cookie("sw_refresh_token", newRefreshToken, { ...base, maxAge: 7 * 24 * 60 * 60 * 1000 });
+
+  res.json({ success: true, token: newAccessToken });
+});
+
+router.post("/auth/logout", (req, res) => {
+  const user = (req as any).user;
+  if (user) logger.info({ username: user.username }, "Admin logout");
+  clearAuthCookies(res);
   res.json({ success: true, message: "Logged out successfully" });
 });
 
-router.get("/auth/me", (req, res) => {
-  const authHeader = req.headers["authorization"];
-  const cookieToken = (req as any).cookies?.["sw_admin_token"];
-  const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : cookieToken;
-
-  if (!token) {
-    res.status(401).json({ error: "Not authenticated" });
-    return;
-  }
-
-  const payload = verifyAdminToken(token);
-  if (!payload) {
-    res.status(401).json({ error: "Invalid or expired token" });
-    return;
-  }
-
-  res.json({ username: payload.username, role: payload.role });
+router.get("/auth/me", requireAuth, (req, res) => {
+  const user = (req as any).user;
+  res.json({ username: user.username, role: user.role });
 });
 
 router.post("/auth/verify", (req, res) => {
-  const { token } = req.body ?? {};
+  const cookieToken = req.cookies?.["sw_access_token"];
   const authHeader = req.headers["authorization"];
-  const cookieToken = (req as any).cookies?.["sw_admin_token"];
-
-  const t = token || (authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : cookieToken);
+  const bodyToken = req.body?.token;
+  const t = cookieToken || (authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null) || bodyToken;
 
   if (!t) {
     res.status(401).json({ valid: false, error: "No token provided" });
     return;
   }
 
-  const payload = verifyAdminToken(String(t));
+  const payload = verifyAccessToken(t);
   if (!payload) {
     res.status(401).json({ valid: false, error: "Invalid or expired token" });
     return;
