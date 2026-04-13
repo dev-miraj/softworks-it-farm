@@ -321,6 +321,36 @@ type DateFilter = "today" | "week" | "all";
 
 const FRONTEND = typeof window !== "undefined" ? window.location.origin : "";
 
+function launchCallOverlay(token: string) {
+  const scriptId = "sw-call-widget-script";
+  function showIt() {
+    const sw = (window as any).SoftworksCall;
+    if (sw) {
+      sw.configure({ frontendUrl: FRONTEND });
+      sw.show(token);
+    }
+  }
+  if (document.getElementById(scriptId)) {
+    showIt();
+  } else {
+    const s = document.createElement("script");
+    s.id = scriptId;
+    s.src = `${API}/api/voice-calls/widget.js`;
+    s.onload = showIt;
+    document.head.appendChild(s);
+  }
+}
+
+const DEMO_DEFAULTS = {
+  orderId: "ORD-" + Math.floor(1000 + Math.random() * 9000),
+  customerName: "করিম সাহেব",
+  customerPhone: "+8801707384005",
+  orderAmount: "৳ ২,৯০০",
+  orderDetails: "২× প্রিমিয়াম টি-শার্ট, ১× রানিং শু",
+  ecommerceSiteUrl: "",
+  ecommerceWebhookUrl: "",
+};
+
 export function VoiceCallsPage() {
   const { toast } = useToast();
   const [sessions, setSessions] = useState<CallSession[]>([]);
@@ -335,10 +365,7 @@ export function VoiceCallsPage() {
   const [stats, setStats] = useState<Stats>({ total: 0, confirmed: 0, cancelled: 0, pending: 0, conversionRate: 0, todayCount: 0 });
   const autoRefreshRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const [newCall, setNewCall] = useState({
-    orderId: "", customerName: "", customerPhone: "",
-    orderAmount: "", orderDetails: "", ecommerceSiteUrl: "", ecommerceWebhookUrl: "",
-  });
+  const [newCall, setNewCall] = useState(DEMO_DEFAULTS);
   const [creating, setCreating] = useState(false);
 
   const load = useCallback(async (silent = false) => {
@@ -415,10 +442,12 @@ export function VoiceCallsPage() {
       });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error);
-      toast({ title: "Call session created!", description: `Token: ${d.token.slice(0, 12)}...` });
+      toast({ title: "Call session created!", description: "Call overlay এখন দেখা যাচ্ছে।" });
       setShowCreate(false);
-      setNewCall({ orderId: "", customerName: "", customerPhone: "", orderAmount: "", orderDetails: "", ecommerceSiteUrl: "", ecommerceWebhookUrl: "" });
+      const newOrderId = "ORD-" + Math.floor(1000 + Math.random() * 9000);
+      setNewCall({ ...DEMO_DEFAULTS, orderId: newOrderId });
       load();
+      launchCallOverlay(d.token);
     } catch (e) {
       toast({ title: "Failed to create", description: e instanceof Error ? e.message : "", variant: "destructive" });
     } finally { setCreating(false); }

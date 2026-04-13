@@ -185,86 +185,166 @@ function AudioRow({ label, desc, audioUrl, fieldKey, configId, onUpdated }: {
   );
 }
 
+const DEMO_PRODUCTS = [
+  { name: "প্রিমিয়াম কটন টি-শার্ট", price: 850, quantity: 2, deliveryDays: 3 },
+  { name: "রানিং শু (Size 42)", price: 1200, quantity: 1, deliveryDays: 5 },
+];
+
+function launchCallOverlay(token: string) {
+  const scriptId = "sw-call-widget-script";
+  function showIt() {
+    const sw = (window as any).SoftworksCall;
+    if (sw) {
+      sw.configure({ frontendUrl: FRONTEND });
+      sw.show(token, {
+        onComplete: (r: any) => console.log("[SWCall] completed:", r),
+      });
+    }
+  }
+  if (document.getElementById(scriptId)) {
+    showIt();
+  } else {
+    const s = document.createElement("script");
+    s.id = scriptId;
+    s.src = `${API}/api/voice-calls/widget.js`;
+    s.onload = showIt;
+    document.head.appendChild(s);
+  }
+}
+
 function TestPanel() {
   const { toast } = useToast();
-  const [orderId, setOrderId] = useState("TEST-001");
-  const [customerName, setCustomerName] = useState("Test Customer");
-  const [amount, setAmount] = useState("৳ 2,500");
-  const [callUrl, setCallUrl] = useState("");
+  const [orderId, setOrderId] = useState("DEMO-001");
+  const [customerName, setCustomerName] = useState("করিম সাহেব");
+  const [customerPhone, setCustomerPhone] = useState("+8801707384005");
+  const [amount, setAmount] = useState("৳ 2,900");
+  const [callToken, setCallToken] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function createTestCall() {
     setLoading(true);
     try {
       const r = await fetch(`${API}/api/voice-calls/initiate`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          orderId, customerName, orderAmount: amount,
-          products: [
-            { name: "Premium T-Shirt", price: 800, quantity: 2, deliveryDays: 3 },
-            { name: "Running Shoe", price: 900, quantity: 1, deliveryDays: 5 },
-          ],
-          deliveryInfo: "3-5 business days",
+          orderId, customerName, customerPhone, orderAmount: amount,
+          products: DEMO_PRODUCTS,
+          deliveryInfo: "৩-৫ কার্যদিবসের মধ্যে ডেলিভারি",
         }),
       });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error);
-      setCallUrl(`${FRONTEND}/call/${d.token}`);
-      toast({ title: "Test call created!" });
+      setCallToken(d.token);
+      launchCallOverlay(d.token);
+      toast({ title: "টেস্ট কল শুরু হয়েছে!", description: "Call overlay এখন দেখা যাচ্ছে।" });
     } catch (e) {
       toast({ title: "Error", description: e instanceof Error ? e.message : "", variant: "destructive" });
     } finally { setLoading(false); }
   }
 
+  const callUrl = callToken ? `${FRONTEND}/call/${callToken}` : "";
+
   return (
-    <div className="space-y-4">
-      <p className="text-white/50 text-sm">Create a test session and preview the call UI.</p>
-      <div className="grid grid-cols-3 gap-3">
-        {[["Order ID", orderId, setOrderId], ["Customer", customerName, setCustomerName], ["Amount", amount, setAmount]].map(([label, val, setter]) => (
-          <div key={label as string}>
-            <label className="text-xs text-white/40 mb-1 block">{label as string}</label>
-            <Input value={val as string} onChange={e => (setter as (v: string) => void)(e.target.value)}
-              className="bg-white/5 border-white/10 text-white text-sm" />
-          </div>
-        ))}
+    <div className="space-y-5">
+
+      {/* Demo info banner */}
+      <div className="bg-teal-500/10 border border-teal-400/20 rounded-xl px-4 py-3 flex items-start gap-3">
+        <Phone className="w-4 h-4 text-teal-400 flex-shrink-0 mt-0.5" />
+        <div>
+          <p className="text-teal-300 text-sm font-medium">Live Preview Mode</p>
+          <p className="text-teal-400/60 text-xs mt-0.5">
+            নিচের demo order details দিয়ে "Create Test Call" চাপুন — সরাসরি এই পেজেই call overlay দেখা যাবে।
+          </p>
+        </div>
       </div>
-      <Button onClick={createTestCall} disabled={loading} className="bg-indigo-600 hover:bg-indigo-700">
-        {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Phone className="w-4 h-4 mr-2" />}
-        Create Test Call
+
+      {/* Demo order card */}
+      <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-3">
+        <h4 className="text-white/50 text-xs uppercase tracking-wider font-semibold">Demo Order Info</h4>
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { label: "Order ID", value: orderId, set: setOrderId },
+            { label: "Customer Name", value: customerName, set: setCustomerName },
+            { label: "Phone Number", value: customerPhone, set: setCustomerPhone },
+            { label: "Order Amount", value: amount, set: setAmount },
+          ].map(({ label, value, set }) => (
+            <div key={label}>
+              <label className="text-xs text-white/35 mb-1 block">{label}</label>
+              <Input value={value} onChange={e => set(e.target.value)}
+                className="bg-white/5 border-white/10 text-white text-sm" />
+            </div>
+          ))}
+        </div>
+
+        {/* Demo products preview */}
+        <div className="rounded-lg p-3 space-y-1.5" style={{ background: "rgba(0,212,200,0.05)", border: "1px solid rgba(0,212,200,0.1)" }}>
+          <p className="text-white/30 text-[10px] uppercase tracking-wider mb-2">Demo Products (pre-filled)</p>
+          {DEMO_PRODUCTS.map((p, i) => (
+            <div key={i} className="flex justify-between text-xs">
+              <span className="text-white/60">{p.quantity}× {p.name}</span>
+              <span className="text-white/40">৳{(p.price * p.quantity).toLocaleString()}</span>
+            </div>
+          ))}
+          <div className="border-t border-white/5 pt-1.5 flex justify-between text-xs font-semibold">
+            <span className="text-white/40">Total</span>
+            <span className="text-teal-400">৳{DEMO_PRODUCTS.reduce((s, p) => s + p.price * p.quantity, 0).toLocaleString()}</span>
+          </div>
+        </div>
+      </div>
+
+      <Button onClick={createTestCall} disabled={loading}
+        className="bg-teal-500 hover:bg-teal-400 text-black font-bold w-full py-5 text-base">
+        {loading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Phone className="w-5 h-5 mr-2" />}
+        Create Test Call — দেখুন কেমন লাগে
       </Button>
-      {callUrl && (
-        <div className="bg-indigo-500/10 border border-indigo-400/30 rounded-xl p-4 space-y-3">
-          <p className="text-indigo-300 text-sm font-medium flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4" /> Test call created!
+
+      {callToken && (
+        <div className="bg-emerald-500/10 border border-emerald-400/20 rounded-xl p-4 space-y-3">
+          <p className="text-emerald-300 text-sm font-medium flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4" /> Call created! Overlay টা এখন দেখা যাচ্ছে।
           </p>
           <div className="flex items-center gap-2">
-            <Input value={callUrl} readOnly className="bg-white/5 border-white/10 text-white/60 text-xs flex-1" />
-            <button onClick={() => navigator.clipboard.writeText(callUrl)} className="p-2 rounded-lg bg-white/10 hover:bg-white/20">
+            <Input value={callUrl} readOnly className="bg-white/5 border-white/10 text-white/40 text-xs flex-1" />
+            <button onClick={() => navigator.clipboard.writeText(callUrl)} className="p-2 rounded-lg bg-white/10 hover:bg-white/20" title="Copy link">
               <Copy className="w-3.5 h-3.5 text-white/60" />
             </button>
-            <a href={callUrl} target="_blank" rel="noreferrer">
-              <Button size="sm" className="bg-green-600 hover:bg-green-700 text-xs">Open</Button>
-            </a>
+            <button onClick={() => launchCallOverlay(callToken)}
+              className="px-3 py-2 rounded-lg bg-teal-500/20 text-teal-300 text-xs font-medium hover:bg-teal-500/30 transition-all">
+              Show Again
+            </button>
           </div>
         </div>
       )}
+
+      {/* Widget integration code */}
       <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-        <h4 className="text-white/60 text-xs font-semibold uppercase tracking-wider mb-2 flex items-center gap-1.5">
+        <h4 className="text-white/60 text-xs font-semibold uppercase tracking-wider mb-3 flex items-center gap-1.5">
           <Link2 className="w-3.5 h-3.5" /> Integration Widget Code
         </h4>
-        <pre className="text-xs text-green-300 bg-black/40 rounded-lg p-3 overflow-x-auto font-mono">
+        <pre className="text-xs text-green-300 bg-black/40 rounded-lg p-3 overflow-x-auto font-mono leading-relaxed">
 {`<script src="${API}/api/voice-calls/widget.js"></script>
 <script>
 SoftworksCall.configure({ frontendUrl: '${FRONTEND}' });
 
-// After getting token from your server:
+// আপনার সার্ভার থেকে token নিয়ে:
 SoftworksCall.show(token, {
-  onComplete: function(r) {
-    console.log(r.action, r.orderId);
+  onComplete: function(result) {
+    if (result.action === 'confirmed') {
+      // অর্ডার confirm হয়েছে
+      console.log('Order confirmed:', result.orderId);
+    }
   }
 });
 </script>`}
         </pre>
+        <button
+          onClick={() => navigator.clipboard.writeText(
+            `<script src="${API}/api/voice-calls/widget.js"></script>\n<script>\nSoftworksCall.configure({ frontendUrl: '${FRONTEND}' });\nSoftworksCall.show(token, { onComplete: function(r) { console.log(r); } });\n</script>`
+          )}
+          className="mt-2 flex items-center gap-1.5 text-xs text-white/30 hover:text-white/60 transition-all">
+          <Copy className="w-3 h-3" /> Copy code
+        </button>
       </div>
     </div>
   );
