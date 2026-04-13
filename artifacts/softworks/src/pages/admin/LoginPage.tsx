@@ -50,8 +50,7 @@ export function LoginPage() {
     setLoading(true);
     setError("");
 
-    await new Promise(r => setTimeout(r, 500));
-    const ok = login(username, password);
+    const ok = await login(username, password);
     if (ok) {
       navigate("/admin");
     } else {
