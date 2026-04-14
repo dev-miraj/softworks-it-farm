@@ -1,0 +1,273 @@
+You are a senior real-time communication engineer and full-stack architect.
+
+Your task is to build a **FULLY CUSTOM, INTERNET-BASED AI CALLING SYSTEM** (like WhatsApp/Messenger calls) using WebRTC.
+
+⚠️ IMPORTANT:
+
+* NO third-party calling APIs (Twilio, etc.)
+* 100% self-hosted system
+* Full control over voice, call flow, and logic
+
+---
+
+# 🎯 CORE GOAL
+
+Build a system where:
+
+1. Admin creates a call session
+2. A unique call link is generated (/call/:token)
+3. User opens the link → connects via WebRTC
+4. AI voice speaks (custom or TTS)
+5. User can:
+
+   * Press keypad buttons (DTMF-style UI)
+   * OR speak (future-ready)
+6. System processes input → triggers actions
+7. Result saved + webhook triggered
+
+---
+
+# 🧠 SYSTEM ARCHITECTURE
+
+Frontend:
+
+* React + TypeScript
+* WebRTC client
+* Call UI with keypad
+
+Backend:
+
+* Node.js (Express)
+* WebSocket signaling server (Socket.IO)
+* Call session management
+
+Media Layer:
+
+* WebRTC (peer-to-peer)
+* STUN/TURN server (Coturn self-hosted)
+
+---
+
+# 📁 MODULES TO BUILD
+
+1. WebRTC Signaling Server
+2. Call Session Manager
+3. AI Voice Engine
+4. Keypad Input Engine
+5. Call Flow Engine (logic system)
+6. Audio Upload System
+7. Admin Config System
+
+---
+
+# 🌐 WEBRTC IMPLEMENTATION
+
+* Use RTCPeerConnection
+* Implement:
+
+  * offer/answer exchange
+  * ICE candidates
+* Use STUN/TURN (Coturn)
+
+Call Flow:
+
+* User connects → peer connection established
+* Audio stream starts
+* AI voice plays via audio track
+
+---
+
+# 🎛️ CALL UI (CRITICAL)
+
+Build a modern call interface:
+
+Features:
+
+* Call status (Connecting, Live, Ended)
+* Timer
+* Mute button
+* End call button
+* 🔢 KEYPAD (0–9, *, #)
+
+---
+
+# 🔢 KEYPAD SYSTEM (IMPORTANT)
+
+* Each key press sends event to backend:
+
+Example:
+POST /api/call/keypad
+{
+token: "...",
+key: "1"
+}
+
+* Backend maps key → action
+
+---
+
+# ⚙️ KEY CONFIG SYSTEM (ADMIN)
+
+Admin can configure:
+
+Example config:
+{
+"1": { "action": "confirm_order" },
+"2": { "action": "cancel_order" },
+"3": { "action": "request_callback" }
+}
+
+---
+
+# 🧠 CALL FLOW ENGINE (VERY IMPORTANT)
+
+Build dynamic flow system:
+
+* Step-based flow:
+
+Example:
+Step 1:
+Play: "Press 1 to confirm, 2 to cancel"
+Step 2:
+If key=1 → confirm
+If key=2 → cancel
+
+* Store flow as JSON
+* Execute step-by-step
+
+---
+
+# 🔊 AI VOICE SYSTEM
+
+Support:
+
+1. TTS (text-to-speech)
+2. Custom audio upload (MP3)
+
+Admin can configure:
+
+* welcome_message
+* menu_message
+* error_message
+
+---
+
+# 🎵 AUDIO SYSTEM
+
+* Pre-generate audio files
+* Cache audio
+* Stream audio in call
+
+---
+
+# 📦 API ENDPOINTS
+
+POST   /api/calls/create
+GET    /api/calls/:token
+POST   /api/calls/:token/key
+POST   /api/calls/:token/end
+POST   /api/audio/upload
+GET    /api/calls/:token/flow
+
+---
+
+# 💾 DATABASE DESIGN
+
+Tables:
+
+call_sessions:
+
+* id
+* token
+* status
+* user info
+* createdAt
+
+call_configs:
+
+* company name
+* voice settings
+* key mapping (JSON)
+
+call_logs:
+
+* key presses
+* timestamps
+* actions
+
+audio_files:
+
+* file path
+* type
+* duration
+
+---
+
+# 🔄 REAL-TIME EVENTS
+
+Use WebSocket:
+
+Events:
+
+* call_connected
+* audio_play
+* key_pressed
+* call_ended
+
+---
+
+# 🔐 SECURITY
+
+* Token must be:
+
+  * long random string
+  * expirable
+  * one-time use
+
+* Rate limit calls
+
+---
+
+# ⚡ PERFORMANCE
+
+* Use audio caching
+* Optimize WebRTC connection
+* Fallback if connection fails
+
+---
+
+# 🚀 ADVANCED FEATURES (ADD THESE)
+
+1. Call Recording
+2. Call Analytics
+3. Retry logic (if user leaves)
+4. Multi-language voice
+5. Voice recognition (future-ready)
+
+---
+
+# 🎯 FINAL RESULT
+
+System should be:
+
+* Fully self-hosted
+* Real-time calling
+* Configurable (admin-driven)
+* Scalable
+* Production-ready
+
+---
+
+# ✅ OUTPUT EXPECTATION
+
+Provide:
+
+1. Folder structure
+2. WebRTC signaling server code
+3. Frontend call UI structure
+4. Keypad system implementation
+5. Call flow engine logic
+6. Audio system design
+7. Deployment guide (Coturn + VPS)
+
+Build step-by-step.

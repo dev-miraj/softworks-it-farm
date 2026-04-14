@@ -75,7 +75,8 @@
     "zod": "catalog:"
   },
   "dependencies": {
+    "@workspace/integrations-openai-ai-react": "workspace:*",
     "gsap": "^3.14.2",
-    "@workspace/integrations-openai-ai-react": "workspace:*"
+    "socket.io-client": "^4.8.3"
   }
 }

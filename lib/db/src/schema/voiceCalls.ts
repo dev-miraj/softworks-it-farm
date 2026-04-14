@@ -53,7 +53,23 @@ export const voiceCallSessionsTable = pgTable("voice_call_sessions", {
   actionTaken: text("action_taken"),
   webhookSent: boolean("webhook_sent").default(false),
   webhookResponse: text("webhook_response"),
+  callStartedAt: timestamp("call_started_at", { withTimezone: true }),
+  callEndedAt: timestamp("call_ended_at", { withTimezone: true }),
+  callDurationSeconds: integer("call_duration_seconds"),
+  retryCount: integer("retry_count").default(0),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+});
+
+export const callLogsTable = pgTable("call_logs", {
+  id: serial("id").primaryKey(),
+  sessionId: integer("session_id").notNull(),
+  token: text("token").notNull(),
+  event: text("event").notNull(),
+  keyPressed: text("key_pressed"),
+  action: text("action"),
+  stepIndex: integer("step_index"),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
