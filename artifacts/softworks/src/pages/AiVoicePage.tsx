@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import {
   Phone, PhoneOff, CheckCircle2, XCircle, Package, Loader2,
   MessageSquare, Volume2, Bot, Calendar, Headphones,
-  Globe, Zap, ShoppingCart, BarChart3, Star, ArrowRight, Mic, MicOff,
+  Globe, Zap, ShoppingCart, BarChart3, Star, ArrowRight, Mic,
   Users, TrendingUp, Clock, Activity, Shield
 } from "lucide-react";
 import { API } from "@/lib/apiUrl";
