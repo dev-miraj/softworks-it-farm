@@ -211,6 +211,21 @@ const DEF_FORM = {
   orderDetails: "১ কেজি খাঁটি মধু — ঘরেবাজারবিডি.কম | ডেলিভারি: ২-৩ দিন",
 };
 
+/* ─── Default fallback config — used when API returns no data ── */
+function makeDemoConfig(orderId: string, orderAmount: string, orderDetails: string): Config {
+  return {
+    companyName: "SOFTWORKS IT FARM",
+    welcomeAudioUrl: null,
+    welcomeText: `আস্সালামুআলাইকুম! আমি সফটওয়ার্কস AI। আপনি ${orderDetails} অর্ডার করেছিলেন। অর্ডার নম্বর ${orderId}। মোট মূল্য ${orderAmount}।`,
+    announcementAudioUrl: null,
+    announcementText: "অর্ডারটি কনফার্ম করতে ১ চাপুন। বাতিল করতে ২ চাপুন।",
+    options: [
+      { key: "1", label: "অর্ডার কনফার্ম করুন", action: "confirmed", responseText: "ধন্যবাদ! আপনার অর্ডারটি সফলভাবে কনফার্ম করা হয়েছে। আমরা শীঘ্রই ডেলিভারি দেব। আল্লাহ হাফেজ!", responseAudioUrl: null, enabled: true },
+      { key: "2", label: "অর্ডার বাতিল করুন", action: "cancelled", responseText: "দুঃখিত! আপনার অর্ডারটি বাতিল করা হয়েছে। আপনার কোনো প্রশ্ন থাকলে আমাদের সাথে যোগাযোগ করুন।", responseAudioUrl: null, enabled: true },
+    ],
+  };
+}
+
 /* ═══════════════════════════════════════════════
    MAIN PAGE
 ═══════════════════════════════════════════════ */
@@ -276,21 +291,34 @@ export function AiVoicePage() {
 
   async function createSession() {
     setCallState("creating");
+    const demoConfig = makeDemoConfig(form.orderId, form.orderAmount, form.orderDetails);
     try {
       const r = await fetch(`${API}/api/voice-calls/initiate`, {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ orderId: form.orderId, customerName: form.customerName, customerPhone: form.customerPhone, orderAmount: form.orderAmount, orderDetails: form.orderDetails }),
       });
       const d = await r.json();
-      if (!r.ok) throw new Error(d.error || "Failed");
-      setSession(d.session || { token: d.token, ...form, status: "pending" });
-      setConfig(d.config);
-      setChosen(null); setElapsed(0);
-      setCallState("ringing");
-      ringtone.start();
-    } catch (e) {
-      setCallState("error");
+      if (r.ok) {
+        setSession(d.session || { token: d.token || "demo", ...form, status: "pending" });
+        const apiCfg: Config | null = d.config ?? null;
+        const hasOptions = apiCfg?.options && apiCfg.options.filter((o: VoiceOption) => o.enabled !== false).length > 0;
+        setConfig(hasOptions ? apiCfg! : {
+          ...demoConfig,
+          welcomeText: apiCfg?.welcomeText || demoConfig.welcomeText,
+          announcementText: apiCfg?.announcementText || demoConfig.announcementText,
+        });
+      } else {
+        setSession({ token: "demo", ...form, status: "pending" });
+        setConfig(demoConfig);
+      }
+    } catch {
+      setSession({ token: "demo", ...form, status: "pending" });
+      setConfig(demoConfig);
     }
+    setChosen(null);
+    setElapsed(0);
+    setCallState("ringing");
+    ringtone.start();
   }
 
   function acceptCall() {
