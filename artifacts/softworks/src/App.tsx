@@ -47,6 +47,7 @@ import { AiChatAdminPage } from "@/pages/admin/AiChatAdminPage";
 import { VoiceCallsPage } from "@/pages/admin/VoiceCallsPage";
 import { VoiceCallConfigPage } from "@/pages/admin/VoiceCallConfigPage";
 import { VoiceCallApiDocsPage } from "@/pages/admin/VoiceCallApiDocsPage";
+import { VoiceAnalyticsPage } from "@/pages/admin/VoiceAnalyticsPage";
 import { CallPage } from "@/pages/CallPage";
 import { AiVoicePage } from "@/pages/AiVoicePage";
 import { CareersPage } from "@/pages/CareersPage";
@@ -148,6 +149,7 @@ function Router() {
       <Route path="/admin/voice-calls"><AdminRoute component={VoiceCallsPage} /></Route>
       <Route path="/admin/voice-call-config"><AdminRoute component={VoiceCallConfigPage} /></Route>
       <Route path="/admin/voice-call-api-docs"><AdminRoute component={VoiceCallApiDocsPage} /></Route>
+      <Route path="/admin/voice-analytics"><AdminRoute component={VoiceAnalyticsPage} /></Route>
       <Route path="/call/:token" component={CallPage} />
       <Route path="/ai-voice" component={AiVoicePage} />
 
