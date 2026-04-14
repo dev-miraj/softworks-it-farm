@@ -1026,86 +1026,105 @@ export function CallPage() {
               </button>
             )}
 
-            {/* MENU buttons */}
+            {/* MENU — Phone Dialpad */}
             {callState === "menu" && (
-              <div className="space-y-3 w-full">
-                {/* Key badges for extra options */}
-                {enabledOptions.length > 0 && (
-                  <div className="flex items-center justify-center gap-2 py-1 flex-wrap">
-                    {enabledOptions.map(opt => (
-                      <button key={opt.key} onClick={() => handleRespond(opt)}
-                        className="flex items-center gap-2 px-3 py-2 rounded-xl transition-all active:scale-95 hover:opacity-90"
-                        style={{
-                          background: opt.action === "confirmed" ? "rgba(0,212,200,0.08)"
-                            : opt.action === "cancelled" ? "rgba(239,68,68,0.08)"
-                            : opt.action === "transfer_to_agent" ? "rgba(139,92,246,0.1)"
-                            : "rgba(255,255,255,0.05)",
-                          border: opt.action === "confirmed" ? "1px solid rgba(0,212,200,0.25)"
-                            : opt.action === "cancelled" ? "1px solid rgba(239,68,68,0.25)"
-                            : opt.action === "transfer_to_agent" ? "1px solid rgba(139,92,246,0.3)"
-                            : "1px solid rgba(255,255,255,0.1)",
-                        }}>
-                        <span className="w-7 h-7 rounded-lg flex items-center justify-center text-sm font-bold font-mono"
-                          style={{
-                            background: opt.action === "confirmed" ? "rgba(0,212,200,0.2)"
-                              : opt.action === "cancelled" ? "rgba(239,68,68,0.2)"
-                              : opt.action === "transfer_to_agent" ? "rgba(139,92,246,0.25)"
-                              : "rgba(255,255,255,0.1)",
-                            color: opt.action === "confirmed" ? "#00d4c8"
-                              : opt.action === "cancelled" ? "#f87171"
-                              : opt.action === "transfer_to_agent" ? "#a78bfa"
-                              : "rgba(255,255,255,0.6)",
-                          }}>
-                          {opt.action === "transfer_to_agent" ? <Bot className="w-3.5 h-3.5" /> : opt.key}
-                        </span>
-                        <span className="text-xs font-medium"
-                          style={{ color: opt.action === "confirmed" ? "rgba(0,212,200,0.8)" : opt.action === "cancelled" ? "rgba(248,113,113,0.8)" : opt.action === "transfer_to_agent" ? "#a78bfa" : "rgba(255,255,255,0.4)" }}>
-                          {opt.label}
-                        </span>
-                      </button>
-                    ))}
+              <div className="space-y-4 w-full">
+
+                {/* Announcement text if configured */}
+                {config?.announcementText && (
+                  <div className="px-4 py-3 rounded-2xl text-center"
+                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                    <p className="text-white/50 text-xs leading-relaxed">{config.announcementText}</p>
                   </div>
                 )}
 
-                {/* Primary confirm/cancel */}
-                <div className="flex gap-3">
-                  {confirmOpt && (
-                    <button onClick={() => handleRespond(confirmOpt)}
-                      className="flex-1 py-4 rounded-2xl font-semibold text-[#0a0c14] text-sm transition-all active:scale-95 hover:opacity-90"
-                      style={{ background: "#00d4c8" }}>
-                      {confirmOpt.label}
-                    </button>
-                  )}
-                  {cancelOpt && (
-                    <button onClick={() => handleRespond(cancelOpt)}
-                      className="flex-1 py-4 rounded-2xl font-semibold text-white/80 text-sm transition-all active:scale-95 hover:opacity-90"
-                      style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)" }}>
-                      {cancelOpt.label}
-                    </button>
-                  )}
+                {/* ===== NUMBER KEYPAD ===== */}
+                <div className="w-full">
+                  <div className="grid grid-cols-3 gap-3">
+                    {["1","2","3","4","5","6","7","8","9","*","0","#"].map((key) => {
+                      const opt = enabledOptions.find(o => o.key === key);
+                      const isAgent = opt?.action === "transfer_to_agent";
+                      const isConfirmed = opt?.action === "confirmed";
+                      const isCancelled = opt?.action === "cancelled";
+
+                      let keyBg = "rgba(255,255,255,0.05)";
+                      let keyBorder = "rgba(255,255,255,0.08)";
+                      let keyColor = "rgba(255,255,255,0.25)";
+                      let numColor = "rgba(255,255,255,0.45)";
+                      let glowShadow = "none";
+
+                      if (opt) {
+                        if (isConfirmed) {
+                          keyBg = "rgba(0,212,200,0.12)";
+                          keyBorder = "rgba(0,212,200,0.4)";
+                          keyColor = "rgba(0,212,200,0.7)";
+                          numColor = "#00d4c8";
+                          glowShadow = "0 0 20px rgba(0,212,200,0.2)";
+                        } else if (isCancelled) {
+                          keyBg = "rgba(239,68,68,0.1)";
+                          keyBorder = "rgba(239,68,68,0.4)";
+                          keyColor = "rgba(248,113,113,0.7)";
+                          numColor = "#f87171";
+                          glowShadow = "0 0 20px rgba(239,68,68,0.15)";
+                        } else if (isAgent) {
+                          keyBg = "rgba(139,92,246,0.12)";
+                          keyBorder = "rgba(139,92,246,0.45)";
+                          keyColor = "rgba(167,139,250,0.8)";
+                          numColor = "#a78bfa";
+                          glowShadow = "0 0 20px rgba(139,92,246,0.2)";
+                        } else {
+                          keyBg = "rgba(96,165,250,0.1)";
+                          keyBorder = "rgba(96,165,250,0.35)";
+                          keyColor = "rgba(147,197,253,0.7)";
+                          numColor = "#93c5fd";
+                          glowShadow = "0 0 16px rgba(96,165,250,0.15)";
+                        }
+                      }
+
+                      return (
+                        <button
+                          key={key}
+                          onClick={() => opt ? handleRespond(opt) : undefined}
+                          disabled={!opt}
+                          className="flex flex-col items-center justify-center rounded-2xl transition-all active:scale-90 select-none"
+                          style={{
+                            background: keyBg,
+                            border: `1.5px solid ${keyBorder}`,
+                            boxShadow: glowShadow,
+                            padding: "10px 8px 8px",
+                            minHeight: "72px",
+                            cursor: opt ? "pointer" : "default",
+                            opacity: opt ? 1 : 0.35,
+                          }}
+                        >
+                          {/* Number */}
+                          <span className="text-2xl font-light leading-none mb-0.5" style={{ color: numColor, fontFamily: "system-ui, sans-serif" }}>
+                            {key === "*" ? "✱" : key === "#" ? "#" : key}
+                          </span>
+                          {/* Label or sub-letters */}
+                          {opt ? (
+                            <span className="text-[9px] font-semibold tracking-wide text-center leading-tight px-1 mt-1" style={{ color: keyColor }}>
+                              {isAgent ? "🤖 AGENT" : opt.label.length > 12 ? opt.label.slice(0, 12) + "…" : opt.label}
+                            </span>
+                          ) : (
+                            <span className="text-[9px] tracking-widest" style={{ color: "rgba(255,255,255,0.1)" }}>
+                              {key === "1" ? "" : key === "2" ? "ABC" : key === "3" ? "DEF" : key === "4" ? "GHI" : key === "5" ? "JKL" : key === "6" ? "MNO" : key === "7" ? "PQRS" : key === "8" ? "TUV" : key === "9" ? "WXYZ" : key === "0" ? "+" : ""}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
-                {/* Agent Transfer button if configured */}
+                {/* Agent Transfer button (prominent) if configured */}
                 {transferOpt && (
                   <button onClick={() => handleRespond(transferOpt)}
                     className="w-full py-3 rounded-2xl font-semibold text-purple-200 text-sm transition-all active:scale-95 hover:opacity-90 flex items-center justify-center gap-2"
-                    style={{ background: "rgba(139,92,246,0.12)", border: "1px solid rgba(139,92,246,0.3)" }}>
+                    style={{ background: "rgba(139,92,246,0.12)", border: "1px solid rgba(139,92,246,0.35)" }}>
                     <Bot className="w-4 h-4 text-purple-300" />
                     {transferOpt.label}
                   </button>
-                )}
-
-                {/* Other options */}
-                {otherOpts.length > 0 && (
-                  <div className="flex gap-3">
-                    {otherOpts.map(opt => (
-                      <button key={opt.key} onClick={() => handleRespond(opt)}
-                        className="flex-1 py-4 rounded-2xl font-semibold text-white/80 text-sm transition-all active:scale-95"
-                        style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}>
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
                 )}
 
                 {/* Voice recording */}
