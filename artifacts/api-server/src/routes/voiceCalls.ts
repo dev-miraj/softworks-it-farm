@@ -382,6 +382,50 @@ router.post("/session/:token/respond", async (req, res) => {
   }
 });
 
+router.patch("/session/:token/notes", async (req, res) => {
+  try {
+    const { adminNotes } = req.body as { adminNotes: string };
+    const [session] = await db
+      .select()
+      .from(voiceCallSessionsTable)
+      .where(eq(voiceCallSessionsTable.token, req.params.token));
+    if (!session) return res.status(404).json({ error: "Session not found" });
+    const [updated] = await db
+      .update(voiceCallSessionsTable)
+      .set({ adminNotes: adminNotes ?? "", updatedAt: new Date() })
+      .where(eq(voiceCallSessionsTable.token, req.params.token))
+      .returning();
+    await logCallEvent(session.id, req.params.token, "notes_updated", {
+      metadata: { notesLength: (adminNotes ?? "").length },
+    });
+    res.json({ ok: true, adminNotes: updated.adminNotes });
+  } catch {
+    res.status(500).json({ error: "Failed to save notes" });
+  }
+});
+
+router.post("/session/:token/transfer-to-agent", async (req, res) => {
+  try {
+    const [session] = await db
+      .select()
+      .from(voiceCallSessionsTable)
+      .where(eq(voiceCallSessionsTable.token, req.params.token));
+    if (!session) return res.status(404).json({ error: "Session not found" });
+    const now = new Date();
+    await db
+      .update(voiceCallSessionsTable)
+      .set({ agentTransferAt: now, updatedAt: now })
+      .where(eq(voiceCallSessionsTable.token, req.params.token));
+    await logCallEvent(session.id, req.params.token, "agent_transfer", {
+      metadata: { transferredAt: now.toISOString() },
+    });
+    emitToCall(req.params.token, "call:agent_transfer", { token: req.params.token, at: now });
+    res.json({ ok: true, transferredAt: now });
+  } catch {
+    res.status(500).json({ error: "Failed to log agent transfer" });
+  }
+});
+
 router.post("/session/:token/end", async (req, res) => {
   try {
     const [session] = await db

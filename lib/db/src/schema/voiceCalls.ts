@@ -57,6 +57,8 @@ export const voiceCallSessionsTable = pgTable("voice_call_sessions", {
   callEndedAt: timestamp("call_ended_at", { withTimezone: true }),
   callDurationSeconds: integer("call_duration_seconds"),
   retryCount: integer("retry_count").default(0),
+  adminNotes: text("admin_notes"),
+  agentTransferAt: timestamp("agent_transfer_at", { withTimezone: true }),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
