@@ -143,15 +143,15 @@ router.get("/audio/:filename", (req, res) => {
 });
 
 /* ── TTS CACHE SERVING ──────────────────────────── */
-router.get("/tts-cache/:key.mp3", (req, res) => {
+router.get("/tts-cache/:key.mp3", async (req, res) => {
   try {
-    const { serveCachedFile } = require("../lib/tts/audioCache.js");
-    const buf: Buffer | null = serveCachedFile(req.params.key);
-    if (!buf) return res.status(404).json({ error: "Not found" });
+    const { getCachedAudio } = await import("../lib/tts/audioCache.js");
+    const filePath = getCachedAudio(req.params.key);
+    if (!filePath) return res.status(404).json({ error: "Not found" });
     res.setHeader("Content-Type", "audio/mpeg");
     res.setHeader("Cache-Control", "public, max-age=86400");
     res.setHeader("Access-Control-Allow-Origin", "*");
-    res.send(buf);
+    res.sendFile(filePath);
   } catch {
     res.status(500).json({ error: "Cache read error" });
   }
