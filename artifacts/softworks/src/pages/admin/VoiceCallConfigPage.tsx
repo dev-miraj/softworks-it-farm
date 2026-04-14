@@ -54,7 +54,16 @@ const COLOR_MAP: Record<string, string> = {
   blue: "bg-blue-500/20 text-blue-300 border-blue-500/30",
   purple: "bg-purple-500/20 text-purple-300 border-purple-500/30",
 };
-const TTS_VOICES = ["nova", "alloy", "echo", "fable", "onyx", "shimmer"];
+const VALID_EDGE_VOICE_VALUES = ["bn-BD-NabanitaNeural","bn-BD-PradeepNeural","en-US-JennyNeural","en-US-GuyNeural","en-US-AriaNeural"];
+function normalizeConfig(raw: VoiceConfig): VoiceConfig {
+  const ttsVoice = VALID_EDGE_VOICE_VALUES.includes(raw.ttsVoice)
+    ? raw.ttsVoice
+    : "bn-BD-NabanitaNeural";
+  const ttsGender = raw.ttsGender || "female";
+  const ttsEmotion = raw.ttsEmotion || "polite";
+  const ttsLanguage = raw.ttsLanguage || "bn-BD";
+  return { ...raw, ttsVoice, ttsGender, ttsEmotion, ttsLanguage };
+}
 const ACTION_PRESETS = [
   { value: "confirmed", label: "✅ অর্ডার কনফার্ম", color: "green" as const, defaultLabel: "অর্ডার কনফার্ম করুন" },
   { value: "cancelled", label: "❌ অর্ডার বাতিল", color: "red" as const, defaultLabel: "অর্ডার বাতিল করুন" },
@@ -758,7 +767,7 @@ export function VoiceCallConfigPage() {
 
   useEffect(() => {
     csrfFetch("/api/voice-calls/config")
-      .then(r => r.json()).then(setConfig)
+      .then(r => r.json()).then(raw => setConfig(normalizeConfig(raw)))
       .catch(() => toast({ title: "Failed to load config", variant: "destructive" }));
 
     fetch(`${API}/api/voice-calls/stats`)
@@ -791,7 +800,7 @@ export function VoiceCallConfigPage() {
         throw new Error(err.error || "Save failed");
       }
       const updated = await r.json();
-      setConfig(updated);
+      setConfig(normalizeConfig(updated));
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
       toast({ title: "✅ Configuration saved!" });
@@ -973,16 +982,18 @@ export function VoiceCallConfigPage() {
                       className="bg-white/5 border-white/10 text-white resize-none" rows={2} />
                   </div>
 
-                  <div>
-                    <label className="text-white/40 text-xs mb-2 block">TTS Voice Style</label>
-                    <div className="flex gap-2 flex-wrap">
-                      {TTS_VOICES.map(v => (
-                        <button key={v} onClick={() => setConfig({ ...config, ttsVoice: v })}
-                          className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all capitalize ${config.ttsVoice === v ? "bg-purple-600 text-white shadow-md" : "bg-white/5 text-white/40 border border-white/10 hover:text-white"}`}>
-                          {v}
-                        </button>
-                      ))}
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-teal-500/5 border border-teal-500/20">
+                    <div>
+                      <p className="text-white/40 text-xs font-semibold uppercase tracking-wider mb-0.5">AI Voice</p>
+                      <p className="text-teal-300 text-sm font-medium">
+                        {EDGE_VOICES.find(v => v.value === config.ttsVoice)?.label || "নবনীতা (বাংলা মহিলা) — Neural"}
+                      </p>
+                      <p className="text-white/30 text-xs mt-0.5">{config.ttsEmotion} · {config.ttsLanguage}</p>
                     </div>
+                    <button onClick={() => setActiveTab("aivoice")}
+                      className="text-teal-400 text-xs border border-teal-500/30 px-3 py-1.5 rounded-lg hover:bg-teal-500/10 transition">
+                      পরিবর্তন করুন →
+                    </button>
                   </div>
                 </div>
 
