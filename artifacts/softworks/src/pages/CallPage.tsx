@@ -283,6 +283,10 @@ export function CallPage() {
           setCallState("done");
           return;
         }
+        if (d.session.status === "in_progress" || d.session.status === "active") {
+          setCallState("menu");
+          return;
+        }
         setCallState("ringing");
         setTimeout(() => ringtone.start(), 200);
       })
