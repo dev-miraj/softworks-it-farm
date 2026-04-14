@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useSearch } from "wouter";
-import { Phone, PhoneOff, CheckCircle2, XCircle, Loader2, Package, Truck, Mic, MicOff } from "lucide-react";
+import { Phone, PhoneOff, CheckCircle2, XCircle, Loader2, Package, Truck, Mic, MicOff, Wifi } from "lucide-react";
 import { API } from "@/lib/apiUrl";
+import { io, type Socket } from "socket.io-client";
 
 interface VoiceOption {
   key: string; label: string; action: string;
@@ -130,10 +131,14 @@ export function CallPage() {
   const [isRecording, setIsRecording] = useState(false);
   const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
   const [voiceNote, setVoiceNote] = useState<string | null>(null);
+  const [isMuted, setIsMuted] = useState(false);
+  const [socketConnected, setSocketConnected] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const mediaRecRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
+  const socketRef = useRef<Socket | null>(null);
+  const micStreamRef = useRef<MediaStream | null>(null);
   const ringtone = useRingtone();
 
   function stopAudio() {
@@ -181,6 +186,31 @@ export function CallPage() {
 
   useEffect(() => {
     if (!token) return;
+
+    const socket = io(API, {
+      path: "/socket.io",
+      transports: ["websocket", "polling"],
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+    });
+    socketRef.current = socket;
+
+    socket.on("connect", () => {
+      setSocketConnected(true);
+      socket.emit("join_call", token);
+    });
+    socket.on("disconnect", () => setSocketConnected(false));
+
+    return () => {
+      socket.emit("leave_call", token);
+      socket.disconnect();
+      socketRef.current = null;
+    };
+  }, [token]);
+
+  useEffect(() => {
+    if (!token) return;
     fetch(`${API}/api/voice-calls/session/${token}`)
       .then(async (r) => {
         if (r.status === 410) { setCallState("expired"); return; }
@@ -198,7 +228,6 @@ export function CallPage() {
           return;
         }
         setCallState("ringing");
-        // Ringtone starts here (user must manually ACCEPT)
         setTimeout(() => ringtone.start(), 200);
       })
       .catch(() => { setCallState("error"); setErrorMsg("Call session not found or has expired."); });
@@ -244,9 +273,40 @@ export function CallPage() {
 
   function handleEndCall() {
     stopAudio();
+    if (token && (callState === "menu" || callState === "connected" || callState === "accepting")) {
+      fetch(`${API}/api/voice-calls/session/${token}/end`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason: "user_ended" }),
+      }).catch(() => {});
+    }
+    if (micStreamRef.current) {
+      micStreamRef.current.getTracks().forEach(t => t.stop());
+      micStreamRef.current = null;
+    }
     postMsgToParent({ sw_call: "close" });
     setCallState("expired");
   }
+
+  const toggleMute = useCallback(async () => {
+    if (!isMuted) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        micStreamRef.current = stream;
+        stream.getAudioTracks().forEach(t => { t.enabled = false; });
+        setIsMuted(true);
+      } catch {
+        setIsMuted(true);
+      }
+    } else {
+      if (micStreamRef.current) {
+        micStreamRef.current.getAudioTracks().forEach(t => { t.enabled = true; });
+        micStreamRef.current.getTracks().forEach(t => t.stop());
+        micStreamRef.current = null;
+      }
+      setIsMuted(false);
+    }
+  }, [isMuted]);
 
   const startRecording = useCallback(async () => {
     try {
@@ -560,6 +620,12 @@ export function CallPage() {
                 <button onClick={() => {
                   ringtone.stop();
                   setCallState("accepting");
+                  if (token) {
+                    fetch(`${API}/api/voice-calls/session/${token}/connected`, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                    }).catch(() => {});
+                  }
                   setTimeout(() => {
                     setCallState("connected");
                     setTimeout(() => {
