@@ -488,13 +488,26 @@ export function CallPage() {
                   {session.customerPhone && (
                     <p className="text-white/40 text-sm font-mono">{session.customerPhone}</p>
                   )}
-                  <p className="text-xs font-semibold tracking-[0.2em] mt-2" style={{ color: "#00d4c8" }}>
-                    CONNECTED · {fmtTime(elapsed)}
-                  </p>
+                  <div className="flex items-center justify-center gap-3 mt-2">
+                    <p className="text-xs font-semibold tracking-[0.2em]" style={{ color: "#00d4c8" }}>
+                      CONNECTED · {fmtTime(elapsed)}
+                    </p>
+                    <div className="flex items-center gap-1" title={socketConnected ? "Real-time connected" : "Offline mode"}>
+                      <div className={`w-1.5 h-1.5 rounded-full ${socketConnected ? "bg-teal-400 animate-pulse" : "bg-white/20"}`} />
+                      <div className={`w-1.5 h-2 rounded-full ${socketConnected ? "bg-teal-400/70" : "bg-white/20"}`} />
+                      <div className={`w-1.5 h-3 rounded-full ${socketConnected ? "bg-teal-400/50" : "bg-white/20"}`} />
+                    </div>
+                    {isMuted && (
+                      <div className="flex items-center gap-1 bg-red-500/20 border border-red-400/30 rounded-full px-2 py-0.5">
+                        <MicOff className="w-2.5 h-2.5 text-red-400" />
+                        <span className="text-red-400 text-[9px] font-bold uppercase tracking-wider">Muted</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="mt-1">
-                  <WaveformBars active={true} />
+                  <WaveformBars active={!isMuted} />
                 </div>
 
                 {/* Order details */}
@@ -666,7 +679,7 @@ export function CallPage() {
 
                 {/* Keyboard shortcut key badges */}
                 {enabledOptions.length > 0 && (
-                  <div className="flex items-center justify-center gap-3 py-1">
+                  <div className="flex items-center justify-center gap-3 py-1 flex-wrap">
                     {enabledOptions.map(opt => (
                       <button
                         key={opt.key}
@@ -774,11 +787,25 @@ export function CallPage() {
                   )}
                 </div>
 
-                <button onClick={handleEndCall}
-                  className="w-full py-4 rounded-2xl font-semibold text-white text-sm transition-all active:scale-95 hover:opacity-90"
-                  style={{ background: "rgba(239,68,68,0.85)" }}>
-                  End Call
-                </button>
+                {/* Mute + End Call row */}
+                <div className="flex items-center gap-3">
+                  <button onClick={toggleMute}
+                    className="flex flex-col items-center gap-1.5 group"
+                    title={isMuted ? "Unmute" : "Mute"}>
+                    <div className={`w-14 h-14 rounded-full flex items-center justify-center transition-all active:scale-90 ${isMuted ? "bg-red-500/80" : "bg-white/10 hover:bg-white/15"}`}
+                      style={{ border: isMuted ? "2px solid rgba(239,68,68,0.5)" : "2px solid rgba(255,255,255,0.1)" }}>
+                      {isMuted ? <MicOff className="w-5 h-5 text-white" /> : <Mic className="w-5 h-5 text-white/60" />}
+                    </div>
+                    <span className="text-white/30 text-[10px] uppercase tracking-wider">{isMuted ? "MUTED" : "MUTE"}</span>
+                  </button>
+
+                  <button onClick={handleEndCall}
+                    className="flex-1 py-4 rounded-2xl font-semibold text-white text-sm transition-all active:scale-95 hover:opacity-90 flex items-center justify-center gap-2"
+                    style={{ background: "rgba(239,68,68,0.85)" }}>
+                    <PhoneOff className="w-4 h-4" />
+                    End Call
+                  </button>
+                </div>
               </div>
             )}
 
