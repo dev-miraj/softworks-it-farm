@@ -458,22 +458,25 @@ export function VoiceCallConfigPage() {
 
   return (
     <AdminLayout>
-      <div className="p-6 max-w-4xl">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-teal-500/15 border border-teal-400/25 flex items-center justify-center">
+      <div className="max-w-4xl">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-10 h-10 rounded-xl bg-teal-500/15 border border-teal-400/25 flex items-center justify-center flex-shrink-0">
             <Phone className="w-5 h-5 text-teal-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Call Configuration</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-foreground">Call Configuration</h1>
             <p className="text-muted-foreground text-sm">Configure voices, key options, and messages</p>
           </div>
         </div>
 
-        <div className="flex gap-1 mb-6 bg-white/5 rounded-xl p-1 w-fit border border-white/10">
+        {/* Tab bar — scrollable on mobile */}
+        <div className="flex gap-1 mb-5 bg-white/5 rounded-xl p-1 border border-white/10 overflow-x-auto scrollbar-none">
           {tabs.map(t => (
             <button key={t.key} onClick={() => setActiveTab(t.key)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${activeTab === t.key ? "bg-indigo-600 text-white" : "text-white/50 hover:text-white"}`}>
-              <t.icon className="w-3.5 h-3.5" />{t.label}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${activeTab === t.key ? "bg-teal-600 text-white" : "text-white/50 hover:text-white"}`}>
+              <t.icon className="w-3.5 h-3.5 flex-shrink-0" />
+              {t.label}
             </button>
           ))}
         </div>

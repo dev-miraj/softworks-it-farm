@@ -527,32 +527,34 @@ export function VoiceCallsPage() {
       <div className="space-y-6">
 
         {/* Header */}
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-              <PhoneIncoming className="w-6 h-6 text-teal-400" />
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-xl md:text-2xl font-bold text-foreground flex items-center gap-2">
+              <PhoneIncoming className="w-5 h-5 md:w-6 md:h-6 text-teal-400 flex-shrink-0" />
               Voice Call Sessions
             </h1>
-            <p className="text-muted-foreground text-sm mt-1">Auto-calling system for order confirmations</p>
+            <p className="text-muted-foreground text-xs md:text-sm mt-0.5">Auto-calling system for order confirmations</p>
           </div>
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-1.5 flex-shrink-0">
             {/* Auto-refresh toggle */}
             <button
               onClick={() => setAutoRefresh(p => !p)}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all border ${autoRefresh ? "bg-teal-500/15 text-teal-300 border-teal-400/25" : "bg-white/5 text-white/40 border-white/10 hover:bg-white/10"}`}
+              className={`flex items-center gap-1 px-2.5 py-2 rounded-lg text-xs font-medium transition-all border ${autoRefresh ? "bg-teal-500/15 text-teal-300 border-teal-400/25" : "bg-white/5 text-white/40 border-white/10 hover:bg-white/10"}`}
               title="Auto-refresh every 30s">
               {autoRefresh ? <ToggleRight className="w-4 h-4" /> : <ToggleLeft className="w-4 h-4" />}
-              {autoRefresh ? "Auto ●" : "Auto"}
+              <span className="hidden sm:inline">{autoRefresh ? "Auto ●" : "Auto"}</span>
             </button>
-            <Button size="sm" variant="ghost" onClick={() => load()} className="text-white/50 hover:text-white">
+            <Button size="sm" variant="ghost" onClick={() => load()} className="text-white/50 hover:text-white w-8 h-8 p-0">
               <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
             </Button>
-            <Button size="sm" variant="ghost" onClick={exportCSV} className="text-white/50 hover:text-white gap-1.5">
-              <Download className="w-4 h-4" /> Export CSV
+            <Button size="sm" variant="ghost" onClick={exportCSV} className="text-white/50 hover:text-white gap-1 hidden sm:flex">
+              <Download className="w-4 h-4" />
+              <span>CSV</span>
             </Button>
             <Button size="sm" onClick={() => setShowCreate(!showCreate)}
               className="bg-teal-500 hover:bg-teal-400 text-black font-semibold gap-1.5">
-              <Phone className="w-4 h-4" /> New Call
+              <Phone className="w-4 h-4" />
+              <span className="hidden xs:inline">New Call</span>
             </Button>
           </div>
         </div>
