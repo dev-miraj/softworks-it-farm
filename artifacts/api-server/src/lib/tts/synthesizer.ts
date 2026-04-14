@@ -1,0 +1,167 @@
+/**
+ * NEURAL TTS SYNTHESIZER
+ * Uses Microsoft Edge TTS (Neural voices — free, no API key)
+ * Pipeline: Text → Preprocess → Emotion/SSML → EdgeTTS → Cache → Audio URL
+ */
+import path from "path";
+import fs from "fs";
+import { Readable } from "stream";
+import { preprocessText } from "./preprocessor.js";
+import {
+  buildSSML, resolveVoiceName, detectEmotion,
+  type Emotion, type VoiceLanguage, type VoiceGender,
+} from "./emotionEngine.js";
+import {
+  makeCacheKey, getCachedAudio, cacheAudio, getCacheDirUrl,
+} from "./audioCache.js";
+
+/* ─── msedge-tts import ─── */
+let MsEdgeTTS: any;
+let OUTPUT_FORMAT: any;
+
+async function getEdgeTTS() {
+  if (!MsEdgeTTS) {
+    const mod = await import("msedge-tts");
+    MsEdgeTTS = mod.MsEdgeTTS;
+    OUTPUT_FORMAT = mod.OUTPUT_FORMAT;
+  }
+  return { MsEdgeTTS, OUTPUT_FORMAT };
+}
+
+/* ─── Uploads dir for serving ─── */
+const UPLOADS_DIR = process.env.NODE_ENV === "production"
+  ? path.join("/tmp", "uploads", "voice-calls")
+  : path.resolve(process.cwd(), "uploads", "voice-calls");
+
+function ensureUploadsDir() {
+  if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+}
+
+/* ─── Read stream to buffer ─── */
+function streamToBuffer(stream: Readable): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    stream.on("data", (chunk: Buffer) => chunks.push(chunk));
+    stream.on("end", () => resolve(Buffer.concat(chunks)));
+    stream.on("error", reject);
+  });
+}
+
+/* ─── TTS Request ─── */
+export interface TtsRequest {
+  text: string;
+  voiceName?: string | null;
+  language?: VoiceLanguage;
+  gender?: VoiceGender;
+  emotion?: Emotion | null;
+  baseUrl: string;
+  useCache?: boolean;
+}
+
+export interface TtsResult {
+  url: string | null;
+  filename: string | null;
+  useBrowserTts: boolean;
+  voice: string;
+  emotion: string;
+  cached: boolean;
+  processedText: string;
+}
+
+/* ─── MAIN SYNTHESIZE FUNCTION ─── */
+export async function synthesize(req: TtsRequest): Promise<TtsResult> {
+  const {
+    text,
+    voiceName,
+    language = "bn-BD",
+    gender = "female",
+    emotion: reqEmotion,
+    baseUrl,
+    useCache = true,
+  } = req;
+
+  if (!text?.trim()) throw new Error("text is required");
+
+  const preprocessed = preprocessText(text);
+  const processedText = preprocessed.processed;
+
+  const resolvedVoice = resolveVoiceName(language, gender, voiceName);
+  const emotion: Emotion = reqEmotion || detectEmotion(processedText);
+
+  const cacheKey = makeCacheKey(processedText, resolvedVoice, emotion);
+
+  if (useCache) {
+    const cachedPath = getCachedAudio(cacheKey);
+    if (cachedPath) {
+      const url = getCacheDirUrl(baseUrl, cacheKey);
+      return {
+        url,
+        filename: path.basename(cachedPath),
+        useBrowserTts: false,
+        voice: resolvedVoice,
+        emotion,
+        cached: true,
+        processedText,
+      };
+    }
+  }
+
+  try {
+    const { MsEdgeTTS: EdgeTTS, OUTPUT_FORMAT: FMT } = await getEdgeTTS();
+    const tts = new EdgeTTS();
+    await tts.setMetadata(resolvedVoice, FMT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
+
+    const ssml = buildSSML(processedText, emotion, resolvedVoice);
+    const readable: Readable = tts.toStream(ssml);
+    const audioBuffer = await streamToBuffer(readable);
+
+    const cachedPath = cacheAudio(cacheKey, audioBuffer, {
+      text: processedText,
+      voice: resolvedVoice,
+      emotion,
+    });
+
+    const url = getCacheDirUrl(baseUrl, cacheKey);
+    return {
+      url,
+      filename: path.basename(cachedPath),
+      useBrowserTts: false,
+      voice: resolvedVoice,
+      emotion,
+      cached: false,
+      processedText,
+    };
+  } catch (err) {
+    console.error("[TTS] Edge TTS synthesis failed:", err);
+    return {
+      url: null,
+      filename: null,
+      useBrowserTts: true,
+      voice: resolvedVoice,
+      emotion,
+      cached: false,
+      processedText,
+    };
+  }
+}
+
+/* ─── Pre-warm cache with common phrases ─── */
+export async function prewarmCache(baseUrl: string, voiceName?: string): Promise<void> {
+  const { COMMON_PHRASES_BN } = await import("./audioCache.js");
+  const voice = voiceName || "bn-BD-NabanitaNeural";
+
+  for (const phrase of COMMON_PHRASES_BN) {
+    try {
+      await synthesize({ text: phrase, voiceName: voice, baseUrl, useCache: true });
+    } catch (e) {
+      console.warn("[TTS] Prewarm failed for phrase:", phrase, e);
+    }
+  }
+  console.log("[TTS] Cache prewarmed with", COMMON_PHRASES_BN.length, "phrases");
+}
+
+/* ─── Serve cached audio buffer ─── */
+export function getCachedBuffer(key: string): Buffer | null {
+  const { serveCachedFile } = require("./audioCache.js");
+  return serveCachedFile(key);
+}
