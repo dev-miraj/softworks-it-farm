@@ -496,6 +496,239 @@ function WebhookPanel({ csrfFetch }: { csrfFetch: (path: string, options?: Reque
   );
 }
 
+/* ─── Voice Profile Panel ─── */
+const EDGE_VOICES = [
+  { value: "bn-BD-NabanitaNeural", label: "নবনীতা (বাংলা মহিলা) — Neural", lang: "bn-BD", gender: "female" },
+  { value: "bn-BD-PradeepNeural",  label: "প্রদীপ (বাংলা পুরুষ) — Neural",  lang: "bn-BD", gender: "male" },
+  { value: "en-US-JennyNeural",    label: "Jenny (English Female) — Neural",  lang: "en-US", gender: "female" },
+  { value: "en-US-GuyNeural",      label: "Guy (English Male) — Neural",      lang: "en-US", gender: "male" },
+  { value: "en-US-AriaNeural",     label: "Aria (English Female) — Neural",   lang: "en-US", gender: "female" },
+];
+const EMOTIONS = [
+  { value: "neutral",      label: "😐 Neutral — স্বাভাবিক",      color: "#94a3b8" },
+  { value: "polite",       label: "🤝 Polite — ভদ্র",             color: "#34d399" },
+  { value: "happy",        label: "😊 Happy — আনন্দিত",           color: "#fbbf24" },
+  { value: "urgent",       label: "⚡ Urgent — দ্রুত",             color: "#f87171" },
+  { value: "apology",      label: "🙏 Apology — ক্ষমাপ্রার্থী",  color: "#a78bfa" },
+  { value: "professional", label: "💼 Professional — পেশাদার",    color: "#60a5fa" },
+];
+const LANGUAGES = [
+  { value: "bn-BD", label: "🇧🇩 বাংলা (Bangla)" },
+  { value: "en-US", label: "🇺🇸 English" },
+  { value: "mixed", label: "🔀 Banglish (Mixed)" },
+];
+
+function VoiceProfilePanel({
+  config, onUpdate, onSave, saving, saved,
+}: {
+  config: VoiceConfig;
+  onUpdate: (patch: Partial<VoiceConfig>) => void;
+  onSave: () => void;
+  saving: boolean;
+  saved: boolean;
+}) {
+  const { toast } = useToast();
+  const [testText, setTestText] = useState("আস্সালামুআলাইকুম! আমি সফটওয়ার্কস AI। আপনার অর্ডার নম্বর ১২৩, মোট ১৫০০ টাকা।");
+  const [testing, setTesting] = useState(false);
+  const [preprocessResult, setPreprocessResult] = useState<{ processed: string; language: string; detectedEmotion: string } | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [cacheStats, setCacheStats] = useState<{ total: number } | null>(null);
+
+  useEffect(() => {
+    fetch(`${API}/api/voice-calls/tts/cache-stats`)
+      .then(r => r.json()).then(d => setCacheStats(d)).catch(() => {});
+  }, []);
+
+  async function testVoice() {
+    if (!testText.trim()) return;
+    setTesting(true);
+    try {
+      const r = await fetch(`${API}/api/voice-calls/tts`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: testText,
+          voice: config.ttsVoice,
+          gender: config.ttsGender,
+          emotion: config.ttsEmotion,
+          language: config.ttsLanguage,
+        }),
+      });
+      const d = await r.json();
+      if (d.url) {
+        new Audio(d.url).play();
+        toast({ title: "🔊 Neural Voice Playing", description: `Voice: ${d.voice} | Emotion: ${d.emotion} | Cached: ${d.cached}` });
+      } else if (d.useBrowserTts) {
+        const utt = new SpeechSynthesisUtterance(d.processedText || testText);
+        const voices = window.speechSynthesis?.getVoices() || [];
+        const v = voices.find(v => v.lang.startsWith("bn")) || voices[0];
+        if (v) utt.voice = v;
+        window.speechSynthesis?.speak(utt);
+        toast({ title: "🔊 Browser TTS (fallback)", description: "Edge TTS not available, using browser." });
+      }
+    } catch (e) {
+      toast({ title: "TTS failed", description: String(e), variant: "destructive" });
+    } finally { setTesting(false); }
+  }
+
+  async function previewText() {
+    if (!testText.trim()) return;
+    setPreviewLoading(true);
+    try {
+      const r = await fetch(`${API}/api/voice-calls/tts/preview`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: testText }),
+      });
+      const d = await r.json();
+      setPreprocessResult(d);
+    } catch { toast({ title: "Preview failed", variant: "destructive" }); }
+    finally { setPreviewLoading(false); }
+  }
+
+  return (
+    <div className="space-y-5">
+      {/* Header info */}
+      <div className="flex items-start gap-3 p-4 rounded-2xl bg-teal-500/5 border border-teal-500/20">
+        <Bot className="w-5 h-5 text-teal-400 mt-0.5 shrink-0" />
+        <div>
+          <p className="text-teal-300 text-sm font-semibold">Microsoft Edge Neural TTS</p>
+          <p className="text-white/40 text-xs mt-0.5 leading-relaxed">
+            Human-level বাংলা ভয়েস সংশ্লেষণ। Text preprocessing, emotion engine, SSML prosody, এবং audio caching সহ।
+            কোনো API key বা বাড়তি খরচ নেই।
+          </p>
+        </div>
+        {cacheStats && (
+          <div className="ml-auto shrink-0 text-right">
+            <p className="text-white text-sm font-bold">{cacheStats.total}</p>
+            <p className="text-white/30 text-xs">Cached files</p>
+          </div>
+        )}
+      </div>
+
+      {/* Voice + Language */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Voice Name */}
+        <div className="space-y-2">
+          <label className="text-white/50 text-xs uppercase tracking-wider font-semibold flex items-center gap-1.5">
+            <Music className="w-3.5 h-3.5" /> Voice Name
+          </label>
+          <div className="space-y-2">
+            {EDGE_VOICES.map(v => (
+              <label key={v.value} className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${config.ttsVoice === v.value ? "bg-teal-500/10 border-teal-500/40" : "bg-white/3 border-white/8 hover:border-white/15"}`}>
+                <input type="radio" name="ttsVoice" value={v.value} checked={config.ttsVoice === v.value}
+                  onChange={() => onUpdate({ ttsVoice: v.value, ttsGender: v.gender as "female" | "male", ttsLanguage: v.lang })}
+                  className="accent-teal-400" />
+                <div>
+                  <p className={`text-sm font-medium ${config.ttsVoice === v.value ? "text-teal-300" : "text-white/70"}`}>{v.label}</p>
+                  <p className="text-white/25 text-xs">{v.lang} · {v.gender}</p>
+                </div>
+                {config.ttsVoice === v.value && <CheckCircle2 className="w-4 h-4 text-teal-400 ml-auto shrink-0" />}
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Emotion + Language */}
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <label className="text-white/50 text-xs uppercase tracking-wider font-semibold flex items-center gap-1.5">
+              <Activity className="w-3.5 h-3.5" /> Emotion
+            </label>
+            <div className="grid grid-cols-1 gap-2">
+              {EMOTIONS.map(e => (
+                <label key={e.value} className={`flex items-center gap-2.5 p-2.5 rounded-xl border cursor-pointer transition-all ${config.ttsEmotion === e.value ? "bg-white/8 border-white/20" : "bg-white/3 border-white/8 hover:border-white/15"}`}>
+                  <input type="radio" name="ttsEmotion" value={e.value} checked={config.ttsEmotion === e.value}
+                    onChange={() => onUpdate({ ttsEmotion: e.value })}
+                    className="accent-teal-400" />
+                  <span className={`text-sm font-medium flex-1 ${config.ttsEmotion === e.value ? "text-white" : "text-white/55"}`}>{e.label}</span>
+                  {config.ttsEmotion === e.value && <CheckCircle2 className="w-3.5 h-3.5 shrink-0" style={{ color: e.color }} />}
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-white/50 text-xs uppercase tracking-wider font-semibold flex items-center gap-1.5">
+              <Globe className="w-3.5 h-3.5" /> Language
+            </label>
+            <div className="grid grid-cols-1 gap-2">
+              {LANGUAGES.map(l => (
+                <label key={l.value} className={`flex items-center gap-2.5 p-2.5 rounded-xl border cursor-pointer transition-all ${config.ttsLanguage === l.value ? "bg-blue-500/10 border-blue-500/35" : "bg-white/3 border-white/8 hover:border-white/15"}`}>
+                  <input type="radio" name="ttsLanguage" value={l.value} checked={config.ttsLanguage === l.value}
+                    onChange={() => onUpdate({ ttsLanguage: l.value })}
+                    className="accent-blue-400" />
+                  <span className={`text-sm font-medium ${config.ttsLanguage === l.value ? "text-blue-300" : "text-white/55"}`}>{l.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Pipeline Info Cards */}
+      <div>
+        <p className="text-white/40 text-xs uppercase tracking-wider font-semibold mb-3">AI Voice Processing Pipeline</p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {[
+            { icon: FlaskConical, title: "Text Preprocessing", desc: "সংখ্যা, টাকা, সংক্ষিপ্তরূপ বিস্তার", color: "#00d4c8" },
+            { icon: Activity,     title: "Emotion Engine",    desc: "SSML prosody + rate/pitch/volume", color: "#f59e0b" },
+            { icon: Bot,          title: "Neural TTS",        desc: "Edge Neural Voice Synthesis", color: "#8b5cf6" },
+            { icon: Zap,          title: "Audio Cache",       desc: "Same phrase → instant replay", color: "#10b981" },
+          ].map(({ icon: I, title, desc, color }) => (
+            <div key={title} className="p-3 rounded-2xl border border-white/8 bg-white/3 text-center">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center mx-auto mb-2" style={{ background: `${color}18`, border: `1px solid ${color}30` }}>
+                <I className="w-4 h-4" style={{ color }} />
+              </div>
+              <p className="text-white text-xs font-semibold mb-0.5">{title}</p>
+              <p className="text-white/30 text-[10px] leading-relaxed">{desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Live Test */}
+      <div className="p-4 rounded-2xl bg-white/3 border border-white/8 space-y-3">
+        <p className="text-white text-sm font-semibold flex items-center gap-2">
+          <Play className="w-4 h-4 text-teal-400" /> Live Voice Test
+        </p>
+        <Textarea value={testText} onChange={e => setTestText(e.target.value)}
+          className="bg-white/5 border-white/10 text-white/80 text-sm resize-none"
+          rows={3} placeholder="এখানে বাংলা বা ইংরেজি টেক্সট লিখুন..." />
+        <div className="flex gap-2">
+          <Button onClick={previewText} variant="ghost" disabled={previewLoading}
+            className="text-xs text-white/50 hover:text-white/80 hover:bg-white/5 border border-white/10">
+            {previewLoading ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <FlaskConical className="w-3 h-3 mr-1" />}
+            Preprocess Preview
+          </Button>
+          <Button onClick={testVoice} disabled={testing}
+            className="ml-auto bg-teal-600 hover:bg-teal-700">
+            {testing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Volume2 className="w-4 h-4 mr-2" />}
+            {testing ? "Generating..." : "🔊 Test Voice"}
+          </Button>
+        </div>
+        {preprocessResult && (
+          <div className="space-y-2 mt-2">
+            <div className="p-3 rounded-xl bg-white/4 border border-white/8">
+              <p className="text-white/30 text-[10px] uppercase tracking-wider mb-1 font-semibold">Processed Text</p>
+              <p className="text-white/70 text-sm">{preprocessResult.processed}</p>
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              <span className="text-[10px] px-2 py-1 rounded-full bg-blue-500/15 text-blue-300 border border-blue-500/25">Lang: {preprocessResult.language}</span>
+              <span className="text-[10px] px-2 py-1 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/25">Emotion: {preprocessResult.detectedEmotion}</span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <Button onClick={onSave} disabled={saving} className="w-full bg-teal-600 hover:bg-teal-700">
+        {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : saved ? <CheckCircle2 className="w-4 h-4 mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+        {saving ? "Saving..." : saved ? "Saved!" : "Save Voice Settings"}
+      </Button>
+    </div>
+  );
+}
+
 /* ─── Main Page ─── */
 export function VoiceCallConfigPage() {
   const { toast } = useToast();
@@ -503,7 +736,7 @@ export function VoiceCallConfigPage() {
   const [config, setConfig] = useState<VoiceConfig | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [activeTab, setActiveTab] = useState<"general" | "audio" | "keys" | "webhook" | "test">("general");
+  const [activeTab, setActiveTab] = useState<"general" | "audio" | "keys" | "voice" | "webhook" | "test">("general");
   const [editingOption, setEditingOption] = useState<number | null>(null);
   const [ttsLoading, setTtsLoading] = useState<Record<number, boolean>>({});
   const [stats, setStats] = useState<{ total: number; confirmed: number; cancelled: number; conversionRate: number } | null>(null);
@@ -608,6 +841,7 @@ export function VoiceCallConfigPage() {
     { key: "general" as const, label: "General", icon: Settings },
     { key: "audio" as const, label: "Audio & TTS", icon: Volume2 },
     { key: "keys" as const, label: "Key Options", icon: Phone },
+    { key: "voice" as const, label: "AI Voice", icon: Bot },
     { key: "webhook" as const, label: "Webhook", icon: Webhook },
     { key: "test" as const, label: "Test & Embed", icon: Link2 },
   ];
@@ -914,6 +1148,17 @@ export function VoiceCallConfigPage() {
                   </Button>
                 )}
               </div>
+            )}
+
+            {/* ── VOICE PROFILE TAB ── */}
+            {activeTab === "voice" && config && (
+              <VoiceProfilePanel
+                config={config}
+                onUpdate={patch => setConfig(c => c ? { ...c, ...patch } : c)}
+                onSave={saveConfig}
+                saving={saving}
+                saved={saved}
+              />
             )}
 
             {/* ── WEBHOOK TAB ── */}

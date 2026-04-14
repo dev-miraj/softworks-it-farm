@@ -112,8 +112,8 @@ export async function synthesize(req: TtsRequest): Promise<TtsResult> {
     await tts.setMetadata(resolvedVoice, FMT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
 
     const ssml = buildSSML(processedText, emotion, resolvedVoice);
-    const readable: Readable = tts.toStream(ssml);
-    const audioBuffer = await streamToBuffer(readable);
+    const result = tts.rawToStream(ssml);
+    const audioBuffer = await streamToBuffer(result.audioStream as Readable);
 
     const cachedPath = cacheAudio(cacheKey, audioBuffer, {
       text: processedText,
@@ -162,6 +162,7 @@ export async function prewarmCache(baseUrl: string, voiceName?: string): Promise
 
 /* ─── Serve cached audio buffer ─── */
 export function getCachedBuffer(key: string): Buffer | null {
-  const { serveCachedFile } = require("./audioCache.js");
-  return serveCachedFile(key);
+  const cachePath = getCachedAudio(key);
+  if (!cachePath || !fs.existsSync(cachePath)) return null;
+  return fs.readFileSync(cachePath);
 }

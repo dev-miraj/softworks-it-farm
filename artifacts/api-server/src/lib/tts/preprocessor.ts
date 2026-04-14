@@ -72,13 +72,13 @@ function normalizeBanglaDigits(text: string): string {
 /* ─── Expand amount (টাকা / BDT / ৳) ─── */
 function expandCurrency(text: string): string {
   return text
-    .replace(/৳\s*([\d,]+)/g, (_, n) => {
+    .replace(/৳\s*([\d,]+)\s*(?:টাকা)?/g, (_, n) => {
       const num = parseInt(n.replace(/,/g, ""), 10);
       return numberToBangla(num) + " টাকা";
     })
-    .replace(/([\d,]+)\s*(?:টাকা|BDT|taka)/gi, (_, n, suffix) => {
+    .replace(/([\d,]+)\s*(টাকা|BDT|taka)/gi, (_, n, suffix) => {
       const num = parseInt(n.replace(/,/g, ""), 10);
-      return numberToBangla(num) + " " + (suffix.toLowerCase() === "bdt" ? "টাকা" : suffix);
+      return numberToBangla(num) + " " + (suffix.toLowerCase() === "bdt" ? "টাকা" : "টাকা");
     })
     .replace(/Tk\.?\s*([\d,]+)/gi, (_, n) => {
       const num = parseInt(n.replace(/,/g, ""), 10);
