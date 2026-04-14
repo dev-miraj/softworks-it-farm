@@ -8,52 +8,52 @@ export type VoiceLanguage = "bn-BD" | "en-US" | "mixed";
 export type VoiceGender = "female" | "male";
 
 export interface ProsodyConfig {
-  rate: string;   // SSML rate: "slow" | "medium" | "fast" | "x-fast" | "-10%" ... "+20%"
+  rate: string;   // SSML rate: "slow" | "medium" | "fast" | "-10%" ... "+20%"
   pitch: string;  // SSML pitch: "low" | "medium" | "high" | "+5Hz" | "-5Hz"
-  volume: string; // SSML volume: "soft" | "medium" | "loud" | "+0dB"
+  volume: string; // SSML volume: "soft" | "medium" | "loud" | "x-loud" | "x-soft"
 }
 
 export interface EmotionConfig {
   prosody: ProsodyConfig;
-  preText: string;   // Prefix to add before text (pause, expression)
-  postText: string;  // Suffix to add after text
+  preText: string;
+  postText: string;
   description: string;
 }
 
 /* ─── Emotion profiles ─── */
 export const EMOTION_CONFIGS: Record<Emotion, EmotionConfig> = {
   neutral: {
-    prosody: { rate: "-5%", pitch: "+0Hz", volume: "+0dB" },
+    prosody: { rate: "-5%", pitch: "medium", volume: "medium" },
     preText: "",
     postText: "",
     description: "স্বাভাবিক কণ্ঠস্বর",
   },
   polite: {
-    prosody: { rate: "-10%", pitch: "+2Hz", volume: "+0dB" },
+    prosody: { rate: "-10%", pitch: "medium", volume: "medium" },
     preText: "",
     postText: "",
     description: "ভদ্র ও মার্জিত",
   },
   happy: {
-    prosody: { rate: "+5%", pitch: "+5Hz", volume: "+2dB" },
+    prosody: { rate: "+5%", pitch: "high", volume: "loud" },
     preText: "",
     postText: "",
     description: "আনন্দিত ও উৎসাহী",
   },
   urgent: {
-    prosody: { rate: "+10%", pitch: "+3Hz", volume: "+4dB" },
+    prosody: { rate: "+15%", pitch: "high", volume: "x-loud" },
     preText: "",
     postText: "",
     description: "দ্রুত ও জোরালো",
   },
   apology: {
-    prosody: { rate: "-15%", pitch: "-2Hz", volume: "-1dB" },
+    prosody: { rate: "-15%", pitch: "low", volume: "soft" },
     preText: "",
     postText: "",
     description: "বিনীত ও ক্ষমাপ্রার্থী",
   },
   professional: {
-    prosody: { rate: "-8%", pitch: "+0Hz", volume: "+1dB" },
+    prosody: { rate: "-8%", pitch: "medium", volume: "loud" },
     preText: "",
     postText: "",
     description: "পেশাদার ও আস্থাশীল",

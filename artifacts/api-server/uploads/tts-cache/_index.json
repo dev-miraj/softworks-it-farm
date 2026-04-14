@@ -1,11 +1,83 @@
 {
-  "5ce732826926f074c01204a185cb6650": {
-    "key": "5ce732826926f074c01204a185cb6650",
-    "file": "tts-5ce732826926f074c01204a185cb6650.mp3",
-    "text": "আস্সালামুআলাইকুম. আপনার অর্ডার কনফার্ম হয়েছে. মোট এক হাজার পাঁচ শো টাকা.",
+  "f2b7bb3614a04112b958e0ed8a873461": {
+    "key": "f2b7bb3614a04112b958e0ed8a873461",
+    "file": "tts-f2b7bb3614a04112b958e0ed8a873461.mp3",
+    "text": "আস্সালামুআলাইকুম. আপনার অর্ডার কনফার্ম হয়েছে.",
     "voice": "bn-BD-NabanitaNeural",
     "emotion": "polite",
-    "createdAt": 1776183887478,
+    "createdAt": 1776184014638,
     "hits": 1
+  },
+  "ebb8f9f72c5f021945e88f29bc9ddb7a": {
+    "key": "ebb8f9f72c5f021945e88f29bc9ddb7a",
+    "file": "tts-ebb8f9f72c5f021945e88f29bc9ddb7a.mp3",
+    "text": "আপনার সাথে কথা বলে ভালো লাগলো.",
+    "voice": "bn-BD-NabanitaNeural",
+    "emotion": "neutral",
+    "createdAt": 1776184031165,
+    "hits": 0
+  },
+  "974c8dbe4515242c07e2c4213e26cd90": {
+    "key": "974c8dbe4515242c07e2c4213e26cd90",
+    "file": "tts-974c8dbe4515242c07e2c4213e26cd90.mp3",
+    "text": "আপনার সাথে কথা বলে ভালো লাগলো.",
+    "voice": "bn-BD-NabanitaNeural",
+    "emotion": "polite",
+    "createdAt": 1776184032346,
+    "hits": 0
+  },
+  "c59aa7c6e0bf088e7d664b7a81e0d86f": {
+    "key": "c59aa7c6e0bf088e7d664b7a81e0d86f",
+    "file": "tts-c59aa7c6e0bf088e7d664b7a81e0d86f.mp3",
+    "text": "আপনার সাথে কথা বলে ভালো লাগলো.",
+    "voice": "bn-BD-NabanitaNeural",
+    "emotion": "happy",
+    "createdAt": 1776184033233,
+    "hits": 0
+  },
+  "2946bed5be99812a2052817820a9a6bb": {
+    "key": "2946bed5be99812a2052817820a9a6bb",
+    "file": "tts-2946bed5be99812a2052817820a9a6bb.mp3",
+    "text": "আপনার সাথে কথা বলে ভালো লাগলো.",
+    "voice": "bn-BD-NabanitaNeural",
+    "emotion": "urgent",
+    "createdAt": 1776184034349,
+    "hits": 0
+  },
+  "e545945c086458e6c8304e22835c15ba": {
+    "key": "e545945c086458e6c8304e22835c15ba",
+    "file": "tts-e545945c086458e6c8304e22835c15ba.mp3",
+    "text": "আপনার সাথে কথা বলে ভালো লাগলো.",
+    "voice": "bn-BD-NabanitaNeural",
+    "emotion": "apology",
+    "createdAt": 1776184035349,
+    "hits": 0
+  },
+  "c189ab612fc5b91dc3d955f5ba1bc071": {
+    "key": "c189ab612fc5b91dc3d955f5ba1bc071",
+    "file": "tts-c189ab612fc5b91dc3d955f5ba1bc071.mp3",
+    "text": "আপনার সাথে কথা বলে ভালো লাগলো.",
+    "voice": "bn-BD-NabanitaNeural",
+    "emotion": "professional",
+    "createdAt": 1776184036477,
+    "hits": 0
+  },
+  "e737f97f4e66781fbac7ce45196369da": {
+    "key": "e737f97f4e66781fbac7ce45196369da",
+    "file": "tts-e737f97f4e66781fbac7ce45196369da.mp3",
+    "text": "আপনার সাথে কথা বলে ভালো লাগলো.",
+    "voice": "bn-BD-PradeepNeural",
+    "emotion": "professional",
+    "createdAt": 1776184046520,
+    "hits": 0
+  },
+  "49292ea1293027681b01ca8642f1a443": {
+    "key": "49292ea1293027681b01ca8642f1a443",
+    "file": "tts-49292ea1293027681b01ca8642f1a443.mp3",
+    "text": "আপনার সাথে কথা বলে ভালো লাগলো.",
+    "voice": "en-US-JennyNeural",
+    "emotion": "professional",
+    "createdAt": 1776184047260,
+    "hits": 0
   }
 }
