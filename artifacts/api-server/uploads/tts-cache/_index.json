@@ -79,5 +79,68 @@
     "emotion": "professional",
     "createdAt": 1776184047260,
     "hits": 0
+  },
+  "c90c8beb98c78511a1e9d848196529f1": {
+    "key": "c90c8beb98c78511a1e9d848196529f1",
+    "file": "tts-c90c8beb98c78511a1e9d848196529f1.mp3",
+    "text": "আপনার অর্ডার কনফার্ম হয়েছে. ধন্যবাদ আমাদের সাথে থাকার জন্য.",
+    "voice": "bn-BD-NabanitaNeural",
+    "emotion": "polite",
+    "createdAt": 1776196294491,
+    "hits": 3
+  },
+  "ab7309f9d68c8e83208987435a46fe72": {
+    "key": "ab7309f9d68c8e83208987435a46fe72",
+    "file": "tts-ab7309f9d68c8e83208987435a46fe72.mp3",
+    "text": "Hello. Your order has been confirmed. Thank you for choosing us.",
+    "voice": "en-US-JennyNeural",
+    "emotion": "polite",
+    "createdAt": 1776196295519,
+    "hits": 1
+  },
+  "5ff8a8c86e00888cba7f252d5f5252a3": {
+    "key": "5ff8a8c86e00888cba7f252d5f5252a3",
+    "file": "tts-5ff8a8c86e00888cba7f252d5f5252a3.mp3",
+    "text": "আপনার অর্ডার কনফার্ম হয়েছে. ধন্যবাদ আমাদের সাথে থাকার জন্য.",
+    "voice": "bn-BD-NabanitaNeural",
+    "emotion": "neutral",
+    "createdAt": 1776196311170,
+    "hits": 1
+  },
+  "17be89596803e60739018a46b4d1b3fc": {
+    "key": "17be89596803e60739018a46b4d1b3fc",
+    "file": "tts-17be89596803e60739018a46b4d1b3fc.mp3",
+    "text": "আপনার অর্ডার কনফার্ম হয়েছে. ধন্যবাদ আমাদের সাথে থাকার জন্য.",
+    "voice": "bn-BD-NabanitaNeural",
+    "emotion": "happy",
+    "createdAt": 1776196314154,
+    "hits": 1
+  },
+  "5c965606b462736077f83e3a259bb4a8": {
+    "key": "5c965606b462736077f83e3a259bb4a8",
+    "file": "tts-5c965606b462736077f83e3a259bb4a8.mp3",
+    "text": "আপনার অর্ডার কনফার্ম হয়েছে. ধন্যবাদ আমাদের সাথে থাকার জন্য.",
+    "voice": "bn-BD-NabanitaNeural",
+    "emotion": "urgent",
+    "createdAt": 1776196316318,
+    "hits": 1
+  },
+  "7e20eae768584dd175020c5576141217": {
+    "key": "7e20eae768584dd175020c5576141217",
+    "file": "tts-7e20eae768584dd175020c5576141217.mp3",
+    "text": "আপনার অর্ডার কনফার্ম হয়েছে. ধন্যবাদ আমাদের সাথে থাকার জন্য.",
+    "voice": "bn-BD-NabanitaNeural",
+    "emotion": "apology",
+    "createdAt": 1776196317591,
+    "hits": 1
+  },
+  "7deb98980d439fda8144616df313766f": {
+    "key": "7deb98980d439fda8144616df313766f",
+    "file": "tts-7deb98980d439fda8144616df313766f.mp3",
+    "text": "আপনার অর্ডার কনফার্ম হয়েছে. ধন্যবাদ আমাদের সাথে থাকার জন্য.",
+    "voice": "bn-BD-NabanitaNeural",
+    "emotion": "professional",
+    "createdAt": 1776196319431,
+    "hits": 1
   }
 }

@@ -89,7 +89,8 @@ function expandCurrency(text: string): string {
 
 /* ─── Abbreviations ─── */
 const ABBREV_MAP: [RegExp, string][] = [
-  [/\bORD[-#]?(\w+)/gi, "অর্ডার নম্বর $1"],
+  [/\bORD[-#](\w+)/gi, "অর্ডার নম্বর $1"],
+  [/\bORD#?(\d+)\b/gi, "অর্ডার নম্বর $1"],
   [/\bID[-#]?(\w+)/gi, "আইডি $1"],
   [/\bKG\b/gi, "কেজি"],
   [/\bGM\b/gi, "গ্রাম"],
@@ -99,9 +100,9 @@ const ABBREV_MAP: [RegExp, string][] = [
   [/\bDEL(?:IVERY)?\b/gi, "ডেলিভারি"],
   [/\bCOD\b/gi, "ক্যাশ অন ডেলিভারি"],
   [/\bBDT\b/gi, "টাকা"],
-  [/\bURL|HTTP[S]?:\/\/\S+/gi, "ওয়েব লিংক"],
-  [/\bAI\b/gi, "এআই"],
-  [/\bAPI\b/gi, "এপিআই"],
+  [/\bHTTPS?:\/\/\S+/gi, "ওয়েব লিংক"],
+  [/\bAI\b/g, "এআই"],
+  [/\bAPI\b/g, "এপিআই"],
 ];
 
 /* ─── Phone number expansion ─── */
