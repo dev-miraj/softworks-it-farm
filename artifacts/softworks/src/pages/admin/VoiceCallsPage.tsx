@@ -154,7 +154,39 @@ function SessionDetailModal({ session, onClose, onStatusChange, onRefresh }: {
   const { toast } = useToast();
   const [resending, setResending] = useState(false);
   const [overriding, setOverriding] = useState<string | null>(null);
+  const [notes, setNotes] = useState(session.adminNotes || "");
+  const [savingNotes, setSavingNotes] = useState(false);
+  const [logs, setLogs] = useState<CallLog[]>([]);
+  const [logsLoading, setLogsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<"info" | "logs" | "notes">("info");
   const callUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/call/${session.token}`;
+
+  useEffect(() => {
+    if (activeTab === "logs" && logs.length === 0) {
+      setLogsLoading(true);
+      fetch(`${API}/api/voice-calls/logs/${session.token}`)
+        .then(r => r.json())
+        .then(d => setLogs(Array.isArray(d) ? d : []))
+        .catch(() => {})
+        .finally(() => setLogsLoading(false));
+    }
+  }, [activeTab]);
+
+  async function saveNotes() {
+    setSavingNotes(true);
+    try {
+      const r = await fetch(`${API}/api/voice-calls/session/${session.token}/notes`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ adminNotes: notes }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || "Failed");
+      toast({ title: "Notes saved!", description: "Admin notes have been saved successfully." });
+    } catch (e) {
+      toast({ title: "Save failed", description: e instanceof Error ? e.message : "", variant: "destructive" });
+    } finally { setSavingNotes(false); }
+  }
 
   async function resendWebhook() {
     setResending(true);
@@ -175,15 +207,27 @@ function SessionDetailModal({ session, onClose, onStatusChange, onRefresh }: {
       await onStatusChange(session.id, action);
       toast({ title: `Marked as ${action}` });
       onRefresh();
-    } catch (e) {
+    } catch {
       toast({ title: "Failed to update status", variant: "destructive" });
     } finally { setOverriding(null); }
   }
 
   const isExpired = new Date() > new Date(session.expiresAt);
 
+  function eventLabel(event: string) {
+    const map: Record<string, string> = {
+      session_created: "📋 Session Created",
+      call_connected: "📞 Call Connected",
+      key_pressed: "🔘 Key Pressed",
+      call_ended: "📵 Call Ended",
+      notes_updated: "📝 Notes Updated",
+      agent_transfer: "🤖 Agent Transfer",
+    };
+    return map[event] || event;
+  }
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(8px)" }}>
       <div className="w-full max-w-lg backdrop-blur-xl bg-[#0f1117] border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/8">
@@ -197,118 +241,194 @@ function SessionDetailModal({ session, onClose, onStatusChange, onRefresh }: {
           </div>
         </div>
 
-        <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
-
-          {/* Customer Info */}
-          <div className="grid grid-cols-2 gap-3">
-            {session.customerName && (
-              <div className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                <p className="text-white/30 text-[10px] uppercase tracking-wider mb-1">Customer</p>
-                <p className="text-white text-sm font-medium">{session.customerName}</p>
-              </div>
-            )}
-            {session.customerPhone && (
-              <div className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                <p className="text-white/30 text-[10px] uppercase tracking-wider mb-1">Phone</p>
-                <p className="text-white text-sm font-mono">{session.customerPhone}</p>
-              </div>
-            )}
-            {session.orderAmount && (
-              <div className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                <p className="text-white/30 text-[10px] uppercase tracking-wider mb-1">Amount</p>
-                <p className="text-white text-sm font-semibold">{session.orderAmount}</p>
-              </div>
-            )}
-            <div className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
-              <p className="text-white/30 text-[10px] uppercase tracking-wider mb-1">Key Pressed</p>
-              <p className="text-white text-sm font-mono">{session.dtmfInput ? `"${session.dtmfInput}"` : "—"}</p>
-            </div>
-          </div>
-
-          {/* Products */}
-          {session.products && session.products.length > 0 && (
-            <div className="rounded-xl p-4 space-y-2" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
-              <p className="text-white/30 text-[10px] uppercase tracking-wider mb-2">Products</p>
-              {session.products.map((p, i) => (
-                <div key={i} className="flex justify-between text-sm">
-                  <span className="text-white/70">{p.quantity}× {p.name}</span>
-                  <span className="text-white/50">৳{(p.price * p.quantity).toLocaleString()}</span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Call Link */}
-          <div className="rounded-xl p-3 flex items-center gap-2" style={{ background: "rgba(0,212,200,0.05)", border: "1px solid rgba(0,212,200,0.15)" }}>
-            <p className="text-white/40 text-xs truncate flex-1">{callUrl}</p>
-            <button
-              onClick={() => { navigator.clipboard.writeText(callUrl); }}
-              className="p-1.5 rounded-lg bg-teal-500/10 text-teal-400 hover:bg-teal-500/20 transition-all flex-shrink-0">
-              <Copy className="w-3.5 h-3.5" />
+        {/* Tabs */}
+        <div className="flex border-b border-white/8">
+          {(["info", "logs", "notes"] as const).map(tab => (
+            <button key={tab} onClick={() => setActiveTab(tab)}
+              className={`flex-1 py-2.5 text-xs font-medium transition-all ${activeTab === tab ? "text-teal-400 border-b-2 border-teal-400 -mb-px" : "text-white/30 hover:text-white/50"}`}>
+              {tab === "info" ? "📋 Details" : tab === "logs" ? "📊 Call Logs" : "📝 Notes"}
             </button>
-            <a href={callUrl} target="_blank" rel="noreferrer"
-              className="p-1.5 rounded-lg bg-teal-500/10 text-teal-400 hover:bg-teal-500/20 transition-all flex-shrink-0">
-              <ExternalLink className="w-3.5 h-3.5" />
-            </a>
-          </div>
+          ))}
+        </div>
 
-          {/* Webhook Status */}
-          {session.ecommerceWebhookUrl && (
-            <div className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
-              <div className="flex items-center justify-between mb-1">
-                <p className="text-white/30 text-[10px] uppercase tracking-wider flex items-center gap-1">
-                  <Webhook className="w-3 h-3" /> Webhook
-                </p>
-                <span className={`text-[10px] font-medium ${session.webhookSent ? "text-emerald-400" : "text-yellow-400"}`}>
-                  {session.webhookSent ? "Sent ✓" : "Not sent"}
-                </span>
+        <div className="max-h-[60vh] overflow-y-auto">
+
+          {/* INFO TAB */}
+          {activeTab === "info" && (
+            <div className="p-5 space-y-4">
+              {/* Customer Info */}
+              <div className="grid grid-cols-2 gap-3">
+                {session.customerName && (
+                  <div className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                    <p className="text-white/30 text-[10px] uppercase tracking-wider mb-1">Customer</p>
+                    <p className="text-white text-sm font-medium">{session.customerName}</p>
+                  </div>
+                )}
+                {session.customerPhone && (
+                  <div className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                    <p className="text-white/30 text-[10px] uppercase tracking-wider mb-1">Phone</p>
+                    <p className="text-white text-sm font-mono">{session.customerPhone}</p>
+                  </div>
+                )}
+                {session.orderAmount && (
+                  <div className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                    <p className="text-white/30 text-[10px] uppercase tracking-wider mb-1">Amount</p>
+                    <p className="text-white text-sm font-semibold">{session.orderAmount}</p>
+                  </div>
+                )}
+                <div className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                  <p className="text-white/30 text-[10px] uppercase tracking-wider mb-1">Key Pressed</p>
+                  <p className="text-white text-sm font-mono">{session.dtmfInput ? `"${session.dtmfInput}"` : "—"}</p>
+                </div>
               </div>
-              <p className="text-white/25 text-xs truncate mb-2">{session.ecommerceWebhookUrl}</p>
-              {session.webhookResponse && (
-                <p className="text-white/30 text-xs bg-white/5 rounded px-2 py-1 mb-2 font-mono">
-                  {session.webhookResponse}
-                </p>
+
+              {session.agentTransferAt && (
+                <div className="rounded-xl p-3 flex items-center gap-2" style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.2)" }}>
+                  <span className="text-purple-300 text-xs">🤖 AI Agent Transfer: {new Date(session.agentTransferAt).toLocaleString()}</span>
+                </div>
               )}
-              {session.status === "completed" && (
-                <button onClick={resendWebhook} disabled={resending}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-500/15 text-indigo-300 border border-indigo-400/25 hover:bg-indigo-500/25 transition-all disabled:opacity-50">
-                  {resending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
-                  Resend Webhook
+
+              {/* Products */}
+              {session.products && session.products.length > 0 && (
+                <div className="rounded-xl p-4 space-y-2" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                  <p className="text-white/30 text-[10px] uppercase tracking-wider mb-2">Products</p>
+                  {session.products.map((p, i) => (
+                    <div key={i} className="flex justify-between text-sm">
+                      <span className="text-white/70">{p.quantity}× {p.name}</span>
+                      <span className="text-white/50">৳{(p.price * p.quantity).toLocaleString()}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Call Link */}
+              <div className="rounded-xl p-3 flex items-center gap-2" style={{ background: "rgba(0,212,200,0.05)", border: "1px solid rgba(0,212,200,0.15)" }}>
+                <p className="text-white/40 text-xs truncate flex-1">{callUrl}</p>
+                <button onClick={() => navigator.clipboard.writeText(callUrl)}
+                  className="p-1.5 rounded-lg bg-teal-500/10 text-teal-400 hover:bg-teal-500/20 transition-all flex-shrink-0">
+                  <Copy className="w-3.5 h-3.5" />
                 </button>
+                <a href={callUrl} target="_blank" rel="noreferrer"
+                  className="p-1.5 rounded-lg bg-teal-500/10 text-teal-400 hover:bg-teal-500/20 transition-all flex-shrink-0">
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </div>
+
+              {/* Webhook */}
+              {session.ecommerceWebhookUrl && (
+                <div className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-white/30 text-[10px] uppercase tracking-wider flex items-center gap-1">
+                      <Webhook className="w-3 h-3" /> Webhook
+                    </p>
+                    <span className={`text-[10px] font-medium ${session.webhookSent ? "text-emerald-400" : "text-yellow-400"}`}>
+                      {session.webhookSent ? "Sent ✓" : "Not sent"}
+                    </span>
+                  </div>
+                  <p className="text-white/25 text-xs truncate mb-2">{session.ecommerceWebhookUrl}</p>
+                  {session.webhookResponse && (
+                    <p className="text-white/30 text-xs bg-white/5 rounded px-2 py-1 mb-2 font-mono">{session.webhookResponse}</p>
+                  )}
+                  {session.status === "completed" && (
+                    <button onClick={resendWebhook} disabled={resending}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-500/15 text-indigo-300 border border-indigo-400/25 hover:bg-indigo-500/25 transition-all disabled:opacity-50">
+                      {resending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                      Resend Webhook
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Dates */}
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div><p className="text-white/25 mb-0.5">Created</p><p className="text-white/50">{new Date(session.createdAt).toLocaleString()}</p></div>
+                <div><p className="text-white/25 mb-0.5">Expires</p><p className={isExpired ? "text-red-400/60" : "text-white/50"}>{new Date(session.expiresAt).toLocaleString()}</p></div>
+              </div>
+
+              {/* Manual Override */}
+              {session.status !== "completed" && (
+                <div className="rounded-xl p-4" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                  <p className="text-white/30 text-[10px] uppercase tracking-wider mb-3 flex items-center gap-1">
+                    <Edit2 className="w-3 h-3" /> Manual Override
+                  </p>
+                  <div className="flex gap-2">
+                    <button onClick={() => manualOverride("confirmed")} disabled={!!overriding}
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-400/25 hover:bg-emerald-500/25 transition-all disabled:opacity-50">
+                      {overriding === "confirmed" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+                      Mark Confirmed
+                    </button>
+                    <button onClick={() => manualOverride("cancelled")} disabled={!!overriding}
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold bg-red-500/15 text-red-300 border border-red-400/25 hover:bg-red-500/25 transition-all disabled:opacity-50">
+                      {overriding === "cancelled" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <XCircle className="w-3.5 h-3.5" />}
+                      Mark Cancelled
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
           )}
 
-          {/* Dates */}
-          <div className="grid grid-cols-2 gap-3 text-xs">
-            <div>
-              <p className="text-white/25 mb-0.5">Created</p>
-              <p className="text-white/50">{new Date(session.createdAt).toLocaleString()}</p>
+          {/* LOGS TAB */}
+          {activeTab === "logs" && (
+            <div className="p-5">
+              {logsLoading ? (
+                <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-white/30" /></div>
+              ) : logs.length === 0 ? (
+                <div className="text-center py-10">
+                  <p className="text-white/20 text-sm">No logs found for this session.</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {logs.map((log) => (
+                    <div key={log.id} className="rounded-xl p-3 flex items-start gap-3"
+                      style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-white/70 text-xs font-medium">{eventLabel(log.event)}</p>
+                          <p className="text-white/20 text-[10px] flex-shrink-0">{new Date(log.createdAt).toLocaleTimeString()}</p>
+                        </div>
+                        {log.keyPressed && (
+                          <p className="text-white/40 text-xs mt-0.5">Key: <span className="font-mono text-teal-400">"{log.keyPressed}"</span>{log.action ? ` → ${log.action}` : ""}</p>
+                        )}
+                        {log.metadata && typeof log.metadata === "object" && Object.keys(log.metadata).length > 0 && (
+                          <p className="text-white/20 text-[10px] mt-0.5 font-mono truncate">
+                            {JSON.stringify(log.metadata).slice(0, 80)}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-            <div>
-              <p className="text-white/25 mb-0.5">Expires</p>
-              <p className={isExpired ? "text-red-400/60" : "text-white/50"}>{new Date(session.expiresAt).toLocaleString()}</p>
-            </div>
-          </div>
+          )}
 
-          {/* Manual Status Override */}
-          {session.status !== "completed" && (
-            <div className="rounded-xl p-4" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
-              <p className="text-white/30 text-[10px] uppercase tracking-wider mb-3 flex items-center gap-1">
-                <Edit2 className="w-3 h-3" /> Manual Override
-              </p>
-              <div className="flex gap-2">
-                <button onClick={() => manualOverride("confirmed")} disabled={!!overriding}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-400/25 hover:bg-emerald-500/25 transition-all disabled:opacity-50">
-                  {overriding === "confirmed" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
-                  Mark Confirmed
-                </button>
-                <button onClick={() => manualOverride("cancelled")} disabled={!!overriding}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold bg-red-500/15 text-red-300 border border-red-400/25 hover:bg-red-500/25 transition-all disabled:opacity-50">
-                  {overriding === "cancelled" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <XCircle className="w-3.5 h-3.5" />}
-                  Mark Cancelled
-                </button>
+          {/* NOTES TAB */}
+          {activeTab === "notes" && (
+            <div className="p-5 space-y-4">
+              <div>
+                <label className="text-white/40 text-xs block mb-2">Admin Notes (internal only)</label>
+                <textarea
+                  value={notes}
+                  onChange={e => setNotes(e.target.value)}
+                  placeholder="অর্ডার সম্পর্কে নোট লিখুন... (গ্রাহকের সাথে কথা হয়েছে, বিশেষ নির্দেশনা, ইত্যাদি)"
+                  rows={8}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm resize-none focus:outline-none focus:border-teal-400/50 placeholder:text-white/15 leading-relaxed"
+                />
               </div>
+              <button
+                onClick={saveNotes}
+                disabled={savingNotes}
+                className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-semibold bg-teal-500 hover:bg-teal-400 text-black transition-all disabled:opacity-50 active:scale-95">
+                {savingNotes ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                {savingNotes ? "Saving..." : "Save Notes"}
+              </button>
+              {session.adminNotes && (
+                <div className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                  <p className="text-white/20 text-[10px] uppercase tracking-wider mb-1">Last saved</p>
+                  <p className="text-white/40 text-xs">{new Date(session.updatedAt).toLocaleString()}</p>
+                </div>
+              )}
             </div>
           )}
         </div>

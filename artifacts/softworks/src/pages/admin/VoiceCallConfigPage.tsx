@@ -21,7 +21,14 @@ interface VoiceConfig {
 
 const COLOR_OPTS = ["green", "red", "yellow", "blue", "purple"] as const;
 const TTS_VOICES = ["nova", "alloy", "echo", "fable", "onyx", "shimmer"];
-const DEFAULT_OPTION: VoiceOption = { key: "", label: "", action: "custom", color: "blue", responseText: "", responseAudioUrl: null, enabled: true };
+const ACTION_PRESETS = [
+  { value: "confirmed", label: "✅ অর্ডার কনফার্ম" },
+  { value: "cancelled", label: "❌ অর্ডার বাতিল" },
+  { value: "transfer_to_agent", label: "🤖 AI Agent Transfer" },
+  { value: "callback", label: "📞 Callback Request" },
+  { value: "custom", label: "⚙️ Custom" },
+];
+const DEFAULT_OPTION: VoiceOption = { key: "", label: "", action: "confirmed", color: "green", responseText: "", responseAudioUrl: null, enabled: true };
 
 function AudioRow({ label, desc, audioUrl, fieldKey, configId, onUpdated }: {
   label: string; desc: string; audioUrl: string | null; fieldKey: string;
@@ -604,9 +611,23 @@ export function VoiceCallConfigPage() {
                               className="bg-white/5 border-white/10 text-white text-sm" placeholder="Confirm Order" />
                           </div>
                           <div>
-                            <label className="text-white/40 text-xs mb-1 block">Action ID</label>
-                            <Input value={opt.action} onChange={e => updateOption(idx, { action: e.target.value })}
-                              className="bg-white/5 border-white/10 text-white text-sm" placeholder="confirmed" />
+                            <label className="text-white/40 text-xs mb-1 block">Action Type</label>
+                            <select
+                              value={ACTION_PRESETS.find(p => p.value === opt.action) ? opt.action : "custom"}
+                              onChange={e => {
+                                updateOption(idx, { action: e.target.value });
+                                if (e.target.value === "confirmed" && !opt.label) updateOption(idx, { label: "অর্ডার কনফার্ম করুন", color: "green" });
+                                if (e.target.value === "cancelled" && !opt.label) updateOption(idx, { label: "অর্ডার বাতিল করুন", color: "red" });
+                                if (e.target.value === "transfer_to_agent" && !opt.label) updateOption(idx, { label: "AI এজেন্টে স্থানান্তর", color: "purple" });
+                              }}
+                              className="w-full bg-white/5 border border-white/10 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-teal-400/50">
+                              {ACTION_PRESETS.map(p => (
+                                <option key={p.value} value={p.value} style={{ background: "#1a1f2e" }}>{p.label}</option>
+                              ))}
+                            </select>
+                            {opt.action === "transfer_to_agent" && (
+                              <p className="text-purple-300/60 text-[10px] mt-1">🤖 এই key চাপলে AI এজেন্ট কথা বলবে</p>
+                            )}
                           </div>
                         </div>
                         <div>
