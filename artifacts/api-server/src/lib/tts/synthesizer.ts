@@ -8,9 +8,8 @@ import fs from "fs";
 import { Readable } from "stream";
 import { preprocessText } from "./preprocessor.js";
 import {
-  buildSSML, resolveVoiceName, detectEmotion,
+  buildSSML, buildPlainSSML, resolveVoiceName, detectEmotion,
   type Emotion, type VoiceLanguage, type VoiceGender,
-  EMOTION_CONFIGS,
 } from "./emotionEngine.js";
 import {
   makeCacheKey, getCachedAudio, cacheAudio, getCacheDirUrl,
@@ -107,14 +106,26 @@ export async function synthesize(req: TtsRequest): Promise<TtsResult> {
     }
   }
 
-  try {
+  /* ─── Synthesize with express-as, fallback to plain SSML if 0 bytes ─── */
+  async function doSynthesize(ssml: string): Promise<Buffer> {
     const { MsEdgeTTS: EdgeTTS, OUTPUT_FORMAT: FMT } = await getEdgeTTS();
     const tts = new EdgeTTS();
     await tts.setMetadata(resolvedVoice, FMT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
-
-    const ssml = buildSSML(processedText, emotion, resolvedVoice);
     const result = tts.rawToStream(ssml);
-    const audioBuffer = await streamToBuffer(result.audioStream as Readable);
+    return streamToBuffer(result.audioStream as Readable);
+  }
+
+  try {
+    let ssml = buildSSML(processedText, emotion, resolvedVoice);
+    let audioBuffer = await doSynthesize(ssml);
+
+    if (audioBuffer.length < 1000 && ssml.includes("mstts:express-as")) {
+      console.warn("[TTS] express-as returned empty audio, retrying with plain SSML");
+      ssml = buildPlainSSML(processedText, emotion, resolvedVoice);
+      audioBuffer = await doSynthesize(ssml);
+    }
+
+    if (audioBuffer.length < 100) throw new Error("TTS returned empty audio buffer");
 
     const cachedPath = cacheAudio(cacheKey, audioBuffer, {
       text: processedText,
