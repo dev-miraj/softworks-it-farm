@@ -1,0 +1,211 @@
+You are a senior system architect, DevOps engineer, and SaaS platform expert.
+
+You are working on an EXISTING enterprise-grade backend system that already includes:
+
+* JWT auth with httpOnly cookies
+* Refresh token rotation (DB-backed)
+* CSRF protection (double-submit cookie)
+* Audit logging system
+* Session/device management
+* RBAC + permission system
+* Docker (API + Web + Nginx)
+* Vercel + VPS compatibility
+* Compression + structured logging
+
+Your task is to take this system to **FINAL PRODUCTION + SCALABLE SAAS LEVEL**.
+
+DO NOT rebuild anything. ONLY extend and enhance.
+
+---
+
+# 🚀 1. MULTI-TENANT SAAS ARCHITECTURE (CRITICAL)
+
+Convert system into multi-tenant SaaS:
+
+* Add Organization / Tenant model:
+
+  * id
+  * name
+  * ownerId
+
+* Link all entities:
+
+  * users → tenantId
+  * products → tenantId
+  * orders → tenantId
+
+* Middleware:
+
+  * resolveTenant()
+  * enforceTenantIsolation()
+
+* Ensure:
+
+  * One tenant cannot access another tenant’s data
+
+---
+
+# 💳 2. SUBSCRIPTION & BILLING SYSTEM
+
+Implement:
+
+* Plans:
+
+  * Free
+  * Pro
+  * Enterprise
+
+* Subscription model:
+
+  * userId / tenantId
+  * plan
+  * status
+  * expiry
+
+* Middleware:
+
+  * requirePlan("pro")
+
+* Integrate payment system:
+
+  * Stripe (global)
+    OR
+  * SSLCommerz (Bangladesh)
+
+---
+
+# ⚡ 3. QUEUE SYSTEM (BACKGROUND JOBS)
+
+Add background processing:
+
+* Use BullMQ or similar
+
+Use cases:
+
+* email sending
+* report generation
+* AI processing
+* voice tasks
+
+---
+
+# 📡 4. REAL-TIME SYSTEM (OPTIONAL BUT POWERFUL)
+
+Add:
+
+* WebSocket or Server-Sent Events
+
+Use cases:
+
+* live dashboard updates
+* notifications
+* chat system
+
+---
+
+# 📊 5. ADVANCED OBSERVABILITY
+
+Upgrade monitoring:
+
+* Metrics:
+
+  * request count
+  * error rate
+  * response time
+
+* Use Prometheus + Grafana (or similar)
+
+* Health endpoints:
+
+  * /health
+  * /ready
+
+---
+
+# 🔐 6. ADVANCED SECURITY LAYER
+
+Add:
+
+* IP whitelist for admin routes
+* Suspicious activity detection
+* Auto account lock after repeated failures
+* Email alert for suspicious login
+
+---
+
+# 🌍 7. CDN + EDGE OPTIMIZATION
+
+* Use CDN (Cloudflare or similar)
+* Cache static assets
+* Protect from DDoS
+
+---
+
+# 🧠 8. FEATURE FLAGS SYSTEM
+
+Add:
+
+* Enable/disable features dynamically
+* Per-tenant feature control
+
+---
+
+# 🧾 9. EXPORT & REPORT SYSTEM
+
+Add:
+
+* Export data (CSV, Excel, PDF)
+* Scheduled reports
+
+---
+
+# 💾 10. BACKUP + DISASTER RECOVERY
+
+* Automated DB backups
+* Store backups (S3 or similar)
+* Restore script
+
+---
+
+# 🐳 11. VPS SCALING (IMPORTANT)
+
+Prepare for:
+
+* Multiple API instances
+* Load balancer (Nginx)
+* Stateless services
+
+---
+
+# 📦 12. CODE QUALITY & DX
+
+* Add ESLint + Prettier
+* Add commit hooks
+* Add API documentation (Swagger)
+
+---
+
+# 🚀 FINAL GOAL
+
+System must become:
+
+* Multi-tenant SaaS platform
+* Subscription-based
+* Horizontally scalable
+* Production monitored
+* Business-ready
+
+---
+
+# ✅ OUTPUT EXPECTATION
+
+Provide:
+
+1. Incremental DB schema updates
+2. Middleware for tenant isolation
+3. Subscription system implementation
+4. Queue setup
+5. Monitoring setup
+6. Deployment scaling strategy
+
+DO NOT rewrite existing working code.
