@@ -142,8 +142,8 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   const { data: leaveRequests } = useListLeaveRequests();
   const { data: leads } = useListLeads();
 
-  const pendingLeaves = (leaveRequests ?? []).filter(l => l.status === "pending").length;
-  const newLeads = (leads ?? []).filter(l => l.status === "new").length;
+  const pendingLeaves = (leaveRequests ?? []).filter((l: { status: string }) => l.status === "pending").length;
+  const newLeads = (leads ?? []).filter((l: { status: string }) => l.status === "new").length;
 
   const badges: Record<string, number> = {
     leaves: pendingLeaves,
