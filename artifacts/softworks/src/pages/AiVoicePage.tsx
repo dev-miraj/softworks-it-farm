@@ -694,54 +694,95 @@ export function AiVoicePage() {
                 ) : null}
               </div>
 
-              {/* AI Orb */}
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, marginBottom: 20 }}>
-                <AiOrb mode={liveState === "connecting" ? "connecting" : liveState === "ai-speaking" ? "speaking" : liveState === "user-speaking" ? "listening" : "idle"} />
-                <div style={{ textAlign: "center" }}>
-                  <h2 style={{ fontSize: 22, fontWeight: 700, color: "#fff", margin: "0 0 4px" }}>
-                    {liveState === "connecting" ? "কল কানেক্ট হচ্ছে..." : liveState === "ai-speaking" ? "এআই কথা বলছে..." : liveState === "user-speaking" ? "আপনার কথা শুনছি..." : liveState === "processing" ? "প্রক্রিয়াকরণ..." : "SOFTWORKS AI"}
-                  </h2>
-                  <p style={{ fontSize: 13, color: "rgba(255,255,255,0.35)", margin: 0 }}>
-                    {liveState === "connecting" ? "সংযোগ স্থাপিত হচ্ছে..." : liveState === "ai-speaking" ? "AI এখন আপনার সাথে কথা বলছে।" : liveState === "user-speaking" ? "আপনার কথা বলুন — AI শুনছে।" : ""}
-                  </p>
-                </div>
-                <Waveform active={liveState === "ai-speaking"} color={liveState === "user-speaking" ? "#22c55e" : "#00d4c8"} />
-              </div>
-
-              {/* Live transcript (user speaking) */}
-              {liveTranscript && (
-                <div style={{ marginBottom: 12, padding: "10px 14px", borderRadius: 12, background: "rgba(34,197,94,0.07)", border: "1px solid rgba(34,197,94,0.2)", fontSize: 13, color: "#4ade80", fontStyle: "italic" }}>
-                  🎙 "{liveTranscript}"
+              {/* ── DONE / CALL ENDED SUCCESS SCREEN ── */}
+              {liveState === "done" && (
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 28, animation: "slideUp 0.4s ease", textAlign: "center" }}>
+                  {/* Checkmark circle */}
+                  <div style={{ width: 110, height: 110, borderRadius: "50%", background: "radial-gradient(circle at 40% 35%, rgba(0,212,200,0.6) 0%, rgba(0,150,130,0.3) 70%)", border: "3px solid rgba(0,212,200,0.6)", boxShadow: "0 0 60px rgba(0,212,200,0.35)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <CheckCircle2 style={{ width: 52, height: 52, color: "#00d4c8" }} />
+                  </div>
+                  {/* Message */}
+                  <div>
+                    <h2 style={{ fontSize: 26, fontWeight: 800, margin: "0 0 10px", color: "#fff" }}>কল সফলভাবে শেষ হয়েছে</h2>
+                    <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 15, lineHeight: 1.7, maxWidth: 300, margin: "0 auto" }}>
+                      SOFTWORKS AI-এর সাথে আপনার কথোপকথন সম্পন্ন হয়েছে। আমাদের সেবা নিতে আগ্রহী হলে যোগাযোগ করুন।
+                    </p>
+                  </div>
+                  {/* Summary of conversation */}
+                  {chatLog.length > 0 && (
+                    <div style={{ width: "100%", borderRadius: 16, padding: "14px 16px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", textAlign: "left" }}>
+                      <p style={{ color: "rgba(255,255,255,0.3)", fontSize: 11, margin: "0 0 8px", letterSpacing: "0.1em", fontWeight: 600 }}>কথোপকথনের সারসংক্ষেপ</p>
+                      <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, margin: 0 }}>{chatLog.length} টি বার্তা বিনিময় হয়েছে।</p>
+                    </div>
+                  )}
+                  {/* Actions */}
+                  <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 10 }}>
+                    <button
+                      onClick={closeLiveDone}
+                      onPointerDown={closeLiveDone}
+                      style={{ width: "100%", background: "linear-gradient(135deg,#00d4c8,#00a89e)", border: "none", borderRadius: 50, padding: "15px 30px", color: "#000", fontSize: 15, fontWeight: 800, cursor: "pointer", touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}>
+                      ← আবার চেষ্টা করুন
+                    </button>
+                    <a href="/contact" style={{ width: "100%", background: "rgba(99,102,241,0.12)", border: "1px solid rgba(99,102,241,0.3)", borderRadius: 50, padding: "15px 30px", color: "#818cf8", fontSize: 15, fontWeight: 600, cursor: "pointer", textAlign: "center", textDecoration: "none", display: "block", boxSizing: "border-box" }}>
+                      আমাদের সাথে যোগাযোগ করুন
+                    </a>
+                  </div>
                 </div>
               )}
 
-              {/* Chat log */}
-              <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 12, marginBottom: 16, maxHeight: 340, paddingRight: 4 }}>
-                {chatLog.map((msg, i) => (
-                  <div key={i} style={{ display: "flex", justifyContent: msg.role === "user" ? "flex-end" : "flex-start", animation: "slideUp 0.3s ease" }}>
-                    <div style={{
-                      maxWidth: "82%", padding: "10px 14px", borderRadius: msg.role === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
-                      background: msg.role === "user" ? "rgba(99,102,241,0.18)" : "rgba(0,212,200,0.1)",
-                      border: msg.role === "user" ? "1px solid rgba(99,102,241,0.3)" : "1px solid rgba(0,212,200,0.2)",
-                      fontSize: 14, color: "#fff", lineHeight: 1.6,
-                    }}>
-                      {msg.role === "ai" && <p style={{ fontSize: 10, color: "#00d4c8", margin: "0 0 4px", fontWeight: 700, letterSpacing: "0.08em" }}>SOFTWORKS AI</p>}
-                      {msg.role === "user" && <p style={{ fontSize: 10, color: "#818cf8", margin: "0 0 4px", fontWeight: 700, letterSpacing: "0.08em" }}>আপনি</p>}
-                      {msg.text}
+              {/* ── ACTIVE CALL CONTENT ── */}
+              {liveState !== "done" && (
+                <>
+                  {/* AI Orb */}
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, marginBottom: 20 }}>
+                    <AiOrb mode={liveState === "connecting" ? "connecting" : liveState === "ai-speaking" ? "speaking" : liveState === "user-speaking" ? "listening" : "idle"} />
+                    <div style={{ textAlign: "center" }}>
+                      <h2 style={{ fontSize: 22, fontWeight: 700, color: "#fff", margin: "0 0 4px" }}>
+                        {liveState === "connecting" ? "কল কানেক্ট হচ্ছে..." : liveState === "ai-speaking" ? "এআই কথা বলছে..." : liveState === "user-speaking" ? "আপনার কথা শুনছি..." : liveState === "processing" ? "প্রক্রিয়াকরণ..." : "SOFTWORKS AI"}
+                      </h2>
+                      <p style={{ fontSize: 13, color: "rgba(255,255,255,0.35)", margin: 0 }}>
+                        {liveState === "connecting" ? "সংযোগ স্থাপিত হচ্ছে..." : liveState === "ai-speaking" ? "AI এখন আপনার সাথে কথা বলছে।" : liveState === "user-speaking" ? "আপনার কথা বলুন — AI শুনছে।" : ""}
+                      </p>
                     </div>
+                    <Waveform active={liveState === "ai-speaking"} color={liveState === "user-speaking" ? "#22c55e" : "#00d4c8"} />
                   </div>
-                ))}
-                <div ref={chatEndRef} />
-              </div>
 
-              {/* End call button */}
-              <button
-                onClick={endLiveCall}
-                onPointerDown={endLiveCall}
-                onTouchStart={e => { e.stopPropagation(); }}
-                style={{ width: "100%", background: "rgba(239,68,68,0.85)", border: "2px solid rgba(239,68,68,0.7)", borderRadius: 50, padding: "16px 30px", color: "#fff", fontSize: 16, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, boxShadow: "0 4px 24px rgba(239,68,68,0.35)", WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}>
-                <PhoneOff style={{ width: 20, height: 20 }} /> কল শেষ করুন
-              </button>
+                  {/* Live transcript (user speaking) */}
+                  {liveTranscript && (
+                    <div style={{ marginBottom: 12, padding: "10px 14px", borderRadius: 12, background: "rgba(34,197,94,0.07)", border: "1px solid rgba(34,197,94,0.2)", fontSize: 13, color: "#4ade80", fontStyle: "italic" }}>
+                      🎙 "{liveTranscript}"
+                    </div>
+                  )}
+
+                  {/* Chat log */}
+                  <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 12, marginBottom: 16, maxHeight: 300, paddingRight: 4 }}>
+                    {chatLog.map((msg, i) => (
+                      <div key={i} style={{ display: "flex", justifyContent: msg.role === "user" ? "flex-end" : "flex-start", animation: "slideUp 0.3s ease" }}>
+                        <div style={{
+                          maxWidth: "82%", padding: "10px 14px", borderRadius: msg.role === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
+                          background: msg.role === "user" ? "rgba(99,102,241,0.18)" : "rgba(0,212,200,0.1)",
+                          border: msg.role === "user" ? "1px solid rgba(99,102,241,0.3)" : "1px solid rgba(0,212,200,0.2)",
+                          fontSize: 14, color: "#fff", lineHeight: 1.6,
+                        }}>
+                          {msg.role === "ai" && <p style={{ fontSize: 10, color: "#00d4c8", margin: "0 0 4px", fontWeight: 700, letterSpacing: "0.08em" }}>SOFTWORKS AI</p>}
+                          {msg.role === "user" && <p style={{ fontSize: 10, color: "#818cf8", margin: "0 0 4px", fontWeight: 700, letterSpacing: "0.08em" }}>আপনি</p>}
+                          {msg.text}
+                        </div>
+                      </div>
+                    ))}
+                    <div ref={chatEndRef} />
+                  </div>
+
+                  {/* End call button */}
+                  <button
+                    onClick={endLiveCall}
+                    onPointerDown={endLiveCall}
+                    onTouchStart={e => { e.stopPropagation(); }}
+                    style={{ width: "100%", background: "rgba(239,68,68,0.85)", border: "2px solid rgba(239,68,68,0.7)", borderRadius: 50, padding: "16px 30px", color: "#fff", fontSize: 16, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, boxShadow: "0 4px 24px rgba(239,68,68,0.35)", WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}>
+                    <PhoneOff style={{ width: 20, height: 20 }} /> কল শেষ করুন
+                  </button>
+                </>
+              )}
             </div>
           </div>
         )}
