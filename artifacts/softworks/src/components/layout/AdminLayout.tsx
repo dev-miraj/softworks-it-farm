@@ -39,7 +39,6 @@ import {
   Flag,
   Building2,
   Server,
-  CreditCard as BillingIcon,
 } from "lucide-react";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { useSiteSettings } from "@/contexts/SiteSettingsContext";
@@ -130,7 +129,7 @@ const sidebarSections = [
     color: "text-violet-400",
     dot: "bg-violet-400",
     links: [
-      { href: "/admin/subscriptions", label: "Subscriptions", icon: BillingIcon },
+      { href: "/admin/subscriptions", label: "Subscriptions", icon: CreditCard },
       { href: "/admin/tenants", label: "Tenants", icon: Building2 },
       { href: "/admin/feature-flags", label: "Feature Flags", icon: Flag },
       { href: "/admin/system-status", label: "System Status", icon: Server },
