@@ -13,6 +13,10 @@ A premium digital platform for SOFTWORKS IT FARM — a tech studio. Built as a f
 9. **Usage Tracking** — Per-user hourly API call counting, subscription plan enforcement, usage stats API
 10. **Docker/VPS Ready** — docker-compose.yml + docker-compose.scale.yml (horizontal scaling), nginx.lb.conf (upstream cluster), multi-stage Dockerfiles, DB backup script
 11. **AI Voice Calling System** — Production DTMF order confirmation calls with Web Audio ringtone, Bangla TTS, session management, webhook relay, admin dashboard, and public demo page at `/ai-voice`
+12. **Payment Gateways** — SSLCommerz (Bangladesh, BDT) + Stripe (Global, USD) for subscription upgrades; IPN/webhook verified; POST `/api/payments/sslcommerz/init` + `/stripe/checkout`
+13. **Email System** — nodemailer SMTP with beautiful HTML templates (welcome, subscription, suspicious login, report ready); enqueued via job queue; `send_email` job type
+14. **Admin UI SaaS Pages** — Feature Flags (`/admin/feature-flags`), Subscriptions (`/admin/subscriptions`), Tenants (`/admin/tenants`), System Status (`/admin/system-status`)
+15. **Code Quality** — ESLint config (`eslint.config.mjs`) + Prettier (`.prettierrc.json`) at workspace root
 
 ## Deployment Targets
 - **Vercel**: `vercel.json` + `scripts/build-vercel.mjs` → frontend static + `api/index.mjs` serverless
