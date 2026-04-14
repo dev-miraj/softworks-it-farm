@@ -3,7 +3,7 @@ import {
   Phone, PhoneOff, CheckCircle2, XCircle, Package, Loader2,
   MessageSquare, Volume2, Bot, Calendar, Headphones,
   Globe, Zap, ShoppingCart, BarChart3, Star, ArrowRight, Mic, MicOff,
-  Users, Send
+  Users, TrendingUp, Clock, Activity, Shield
 } from "lucide-react";
 import { API } from "@/lib/apiUrl";
 
@@ -36,6 +36,14 @@ const PACKAGES = [
   { icon: BarChart3, title: "বিজনেস লিড ম্যানেজমেন্ট", desc: "সম্ভাব্য কাস্টমারদের ডাটাবেজ তৈরি ও ফলো-আপ অটোমেশন।", color: "#8b5cf6" },
   { icon: Calendar, title: "অটো শিডিউল ম্যানেজমেন্ট", desc: "আপনার মিটিং বা অ্যাপয়েন্টমেন্ট বুকিং অটোমেটিক হ্যান্ডেল করা।", color: "#ec4899" },
   { icon: Headphones, title: "টেকনিক্যাল সাপোর্ট", desc: "আপনার বিজনেসের জন্য সার্বক্ষণিক ২৪/৭ টেকনিক্যাল সাপোর্ট।", color: "#06b6d4" },
+];
+
+/* ─── Stats ──────────────────────────────────── */
+const STATS = [
+  { icon: Activity, value: "১০,০০০+", label: "কল প্রতিদিন", color: "#00d4c8" },
+  { icon: TrendingUp, value: "৯৮%", label: "সাফল্যের হার", color: "#10b981" },
+  { icon: Clock, value: "২.৪s", label: "রেসপন্স টাইম", color: "#f59e0b" },
+  { icon: Shield, value: "২৪/৭", label: "সর্বদা সক্রিয়", color: "#8b5cf6" },
 ];
 
 /* ─── AI Live Chat Responses ─────────────────── */
@@ -132,25 +140,25 @@ function AiOrb({ mode }: { mode: "idle" | "speaking" | "listening" | "connecting
   const glow = mode === "speaking" ? "0 0 60px rgba(0,212,200,0.5)" : mode === "listening" ? "0 0 60px rgba(34,197,94,0.5)" : mode === "connecting" ? "0 0 50px rgba(245,158,11,0.5)" : "none";
 
   return (
-    <div style={{ position: "relative", width: 120, height: 120, display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <div style={{ position: "relative", width: 110, height: 110, display: "flex", alignItems: "center", justifyContent: "center" }}>
       {mode !== "idle" && (
         <>
-          <div style={{ position: "absolute", inset: -20, borderRadius: "50%", background: `radial-gradient(circle, ${c2}15 0%, transparent 70%)`, animation: "orbPulse 2s ease-in-out infinite" }} />
-          <div style={{ position: "absolute", inset: -8, borderRadius: "50%", border: `1.5px solid ${c2}40`, animation: "orbRing 2s ease-in-out infinite" }} />
+          <div style={{ position: "absolute", inset: -18, borderRadius: "50%", background: `radial-gradient(circle, ${c2}15 0%, transparent 70%)`, animation: "orbPulse 2s ease-in-out infinite" }} />
+          <div style={{ position: "absolute", inset: -7, borderRadius: "50%", border: `1.5px solid ${c2}40`, animation: "orbRing 2s ease-in-out infinite" }} />
         </>
       )}
       <div style={{
-        width: 96, height: 96, borderRadius: "50%",
+        width: 88, height: 88, borderRadius: "50%",
         background: `radial-gradient(circle at 40% 35%, ${c2}cc 0%, ${c1} 70%)`,
         boxShadow: glow,
         display: "flex", alignItems: "center", justifyContent: "center",
         position: "relative",
         animation: mode !== "idle" ? "orbFloat 3s ease-in-out infinite" : "none",
       }}>
-        {mode === "speaking" && <Volume2 style={{ width: 38, height: 38, color: "#fff" }} />}
-        {mode === "listening" && <Mic style={{ width: 38, height: 38, color: "#fff" }} />}
-        {mode === "connecting" && <Phone style={{ width: 38, height: 38, color: "#fff" }} />}
-        {mode === "idle" && <Bot style={{ width: 38, height: 38, color: "rgba(255,255,255,0.4)" }} />}
+        {mode === "speaking" && <Volume2 style={{ width: 34, height: 34, color: "#fff" }} />}
+        {mode === "listening" && <Mic style={{ width: 34, height: 34, color: "#fff" }} />}
+        {mode === "connecting" && <Phone style={{ width: 34, height: 34, color: "#fff" }} />}
+        {mode === "idle" && <Bot style={{ width: 34, height: 34, color: "rgba(255,255,255,0.4)" }} />}
       </div>
     </div>
   );
@@ -160,11 +168,11 @@ function AiOrb({ mode }: { mode: "idle" | "speaking" | "listening" | "connecting
 function Waveform({ active, color = "#00d4c8" }: { active: boolean; color?: string }) {
   const h = [0.4, 0.75, 1, 0.6, 0.88, 0.5, 0.82, 0.45, 0.7, 0.55, 0.65, 0.9];
   return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 3.5, height: 44 }}>
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 3.5, height: 40 }}>
       {h.map((v, i) => (
         <div key={i} style={{
           width: 3.5, borderRadius: 4, background: color,
-          height: active ? `${v * 40}px` : 4,
+          height: active ? `${v * 36}px` : 4,
           opacity: active ? 0.6 + v * 0.4 : 0.15,
           animation: active ? `waveB 0.65s ease-in-out ${i * 0.065}s infinite alternate` : "none",
           transition: "height 0.3s ease",
@@ -211,7 +219,7 @@ const DEF_FORM = {
   orderDetails: "১ কেজি খাঁটি মধু — ঘরেবাজারবিডি.কম | ডেলিভারি: ২-৩ দিন",
 };
 
-/* ─── Default fallback config — used when API returns no data ── */
+/* ─── Default fallback config ── */
 function makeDemoConfig(orderId: string, orderAmount: string, orderDetails: string): Config {
   return {
     companyName: "SOFTWORKS IT FARM",
@@ -249,7 +257,6 @@ export function AiVoicePage() {
   const [liveTranscript, setLiveTranscript] = useState("");
   const recognRef = useRef<SpeechRecognition | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
-  /* Guard flag — set false BEFORE abort() so handlers don't restart */
   const liveActiveRef = useRef(false);
 
   function stopAudio() {
@@ -371,9 +378,7 @@ export function AiVoicePage() {
 
   /* ─── Live Voice Call logic ─── */
   function startListening() {
-    /* Guard: don't start if call has been ended */
     if (!liveActiveRef.current) return;
-
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const w = window as any;
     const SR: new () => SpeechRecognition = w.SpeechRecognition || w.webkitSpeechRecognition;
@@ -397,13 +402,10 @@ export function AiVoicePage() {
     };
 
     rec.onend = () => {
-      /* CRITICAL: check guard FIRST before doing anything */
       if (!liveActiveRef.current) return;
-      /* Capture transcript synchronously via ref-like approach */
       setLiveTranscript(currentTranscript => {
         const userText = currentTranscript.trim();
         if (userText) {
-          /* Process user's speech */
           setLiveTranscript("");
           setChatLog(l => [...l, { role: "user", text: userText }]);
           setLiveState("processing");
@@ -427,22 +429,20 @@ export function AiVoicePage() {
           setLiveState("ai-speaking");
           setTimeout(() => startListening(), 500);
         }
-        return currentTranscript; /* return same value — only used for side-effect read */
+        return currentTranscript;
       });
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     rec.onerror = (event: any) => {
-      /* Guard: don't restart if user ended the call — this was the main bug */
       if (!liveActiveRef.current) return;
-      /* Ignore "aborted" errors (caused by our own abort() calls) */
       if (event?.error === "aborted" || event?.error === "interrupted") return;
       setLiveState("ai-speaking");
-      setTimeout(() => startListening(), 1000);
+      setTimeout(() => { if (liveActiveRef.current) startListening(); }, 1200);
     };
 
     recognRef.current = rec;
-    rec.start();
+    try { rec.start(); } catch { setLiveState("ai-speaking"); }
   }
 
   function startLiveCall() {
@@ -462,17 +462,13 @@ export function AiVoicePage() {
   function endLiveCall(e?: React.MouseEvent | React.PointerEvent) {
     e?.stopPropagation();
     e?.preventDefault();
-    /* Set guard to false FIRST — this prevents onerror/onend from restarting */
     liveActiveRef.current = false;
-    /* Stop speech synthesis */
     try { window.speechSynthesis?.cancel(); } catch {}
-    /* Abort recognition — onerror will fire but guard check will prevent restart */
     try {
       const rec = recognRef.current;
       recognRef.current = null;
       rec?.abort();
     } catch {}
-    /* Show done screen */
     setLiveTranscript("");
     setLiveState("done");
   }
@@ -489,7 +485,6 @@ export function AiVoicePage() {
   const confirmOpt = opts.find(o => o.action === "confirmed");
   const cancelOpt = opts.find(o => o.action === "cancelled");
   const isCallActive = !["idle", "creating"].includes(callState);
-  /* "done" also shows overlay so user sees the success/ended screen */
   const liveActive = liveState !== "idle";
 
   return (
@@ -506,7 +501,8 @@ export function AiVoicePage() {
         @keyframes ticker { 0%,100%{opacity:1} 50%{opacity:0.3} }
         @keyframes btnGlow { 0%,100%{box-shadow:0 0 20px rgba(0,212,200,0.3)} 50%{box-shadow:0 0 50px rgba(0,212,200,0.7)} }
         @keyframes spin { to{transform:rotate(360deg)} }
-        @keyframes progressBar { from{width:0%} to{width:100%} }
+        @keyframes keyPress { 0%{transform:scale(1)} 50%{transform:scale(0.92)} 100%{transform:scale(1)} }
+        @keyframes ringPulse { 0%{transform:scale(1);opacity:0.7} 100%{transform:scale(1.45);opacity:0} }
       `}</style>
 
       <div style={{ minHeight: "100vh", background: "#05060e", color: "#fff", fontFamily: "system-ui,-apple-system,sans-serif", overflowX: "hidden" }}>
@@ -515,7 +511,6 @@ export function AiVoicePage() {
         {isCallActive && (
           <div style={{
             position: "fixed", inset: 0, zIndex: 9999,
-            /* Solid base + gradient layered on top = always fully opaque */
             background: "radial-gradient(ellipse at 50% 15%, rgba(0,212,200,0.10) 0%, rgba(5,6,14,0) 60%), #05060e",
             display: "flex", flexDirection: "column", alignItems: "center",
             animation: "fadeIn 0.35s ease",
@@ -534,7 +529,7 @@ export function AiVoicePage() {
               </div>
             )}
 
-            <div style={{ width: "100%", maxWidth: 400, padding: "64px 20px 40px", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between", gap: 24 }}>
+            <div style={{ width: "100%", maxWidth: 400, padding: "64px 20px 40px", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between", gap: 20 }}>
 
               {/* ── RINGING ── */}
               {callState === "ringing" && (
@@ -559,7 +554,7 @@ export function AiVoicePage() {
                       <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 11, letterSpacing: "0.15em" }}>REJECT</span>
                     </button>
                     <button onClick={acceptCall} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, background: "none", border: "none", cursor: "pointer" }}>
-                      <div style={{ width: 70, height: 70, borderRadius: "50%", background: "rgba(16,185,129,0.9)", boxShadow: "0 0 40px rgba(16,185,129,0.55)", display: "flex", alignItems: "center", justifyContent: "center", animation: "btnGlow 1.8s ease-in-out infinite" }}>
+                      <div style={{ width: 70, height: 70, borderRadius: "50%", background: "rgba(16,185,129,0.9)", boxShadow: "0 0 40px rgba(16,185,129,0.55)", display: "flex", alignItems: "center", justifyContent: "center", animation: "ringPulse 1.5s ease-in-out infinite" }}>
                         <Phone style={{ width: 28, height: 28, color: "#fff" }} />
                       </div>
                       <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 11, letterSpacing: "0.15em" }}>ACCEPT</span>
@@ -568,66 +563,116 @@ export function AiVoicePage() {
                 </>
               )}
 
-              {/* ── MENU (AI speaking + DTMF options) ── */}
+              {/* ── MENU — AI orb + dialpad ── */}
               {callState === "menu" && config && (
-                <>
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 18, width: "100%" }}>
-                    <AiOrb mode={aiPhase === "speaking" ? "speaking" : "listening"} />
+                <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 16, animation: "slideUp 0.4s ease" }}>
 
+                  {/* AI avatar + status */}
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+                    <AiOrb mode={aiPhase === "speaking" ? "speaking" : "listening"} />
                     <div style={{ textAlign: "center" }}>
-                      <h2 style={{ fontSize: 22, fontWeight: 700, color: "#fff", margin: "0 0 6px" }}>
+                      <h2 style={{ fontSize: 20, fontWeight: 700, color: "#fff", margin: "0 0 4px" }}>
                         {aiPhase === "speaking" ? "এআই কথা বলছে..." : "আপনার কথা শুনছি..."}
                       </h2>
-                      <p style={{ color: "rgba(255,255,255,0.35)", fontSize: 13, margin: 0 }}>
-                        {aiPhase === "speaking" ? "এআই এখন আপনার সাথে কথা বলছে।" : "এআই এখন আপনার উত্তরের জন্য অপেক্ষা করছে।"}
+                      <p style={{ color: "rgba(255,255,255,0.35)", fontSize: 12, margin: 0 }}>
+                        {config.companyName} · {fmtTime(elapsed)}
                       </p>
                     </div>
-
                     <Waveform active={aiPhase === "speaking"} />
-
-                    {/* AI transcript */}
-                    {aiText && (
-                      <div style={{ width: "100%", borderRadius: 14, padding: "12px 16px", background: "rgba(0,212,200,0.06)", border: "1px solid rgba(0,212,200,0.15)", fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.65, fontStyle: "italic" }}>
-                        "{aiText}"
-                      </div>
-                    )}
-
-                    {/* Order card */}
-                    <div style={{ width: "100%", borderRadius: 16, padding: 16, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
-                        <Package style={{ width: 13, height: 13, color: "rgba(255,255,255,0.3)" }} />
-                        <p style={{ color: "rgba(255,255,255,0.3)", fontSize: 11, margin: 0, letterSpacing: "0.1em" }}>অর্ডার #{session?.orderId || form.orderId}</p>
-                      </div>
-                      <p style={{ color: "#fff", fontWeight: 700, margin: "0 0 4px" }}>{session?.orderAmount || form.orderAmount}</p>
-                      <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, margin: 0 }}>{session?.orderDetails || form.orderDetails}</p>
-                    </div>
-
-                    {/* DTMF Action Buttons — always visible */}
-                    <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 10, animation: "slideUp 0.4s ease" }}>
-                      {confirmOpt && (
-                        <button onClick={() => handleRespond(confirmOpt)} style={{ width: "100%", borderRadius: 16, border: "none", background: "linear-gradient(135deg,#00d4c8,#00a89e)", padding: "16px 20px", color: "#000", fontSize: 16, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 12, boxShadow: "0 0 35px rgba(0,212,200,0.4)" }}>
-                          <span style={{ background: "rgba(0,0,0,0.2)", borderRadius: 10, width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 900 }}>১</span>
-                          {confirmOpt.label || "অর্ডার কনফার্ম করুন"}
-                        </button>
-                      )}
-                      {cancelOpt && (
-                        <button onClick={() => handleRespond(cancelOpt)} style={{ width: "100%", borderRadius: 16, background: "rgba(239,68,68,0.12)", outline: "1px solid rgba(239,68,68,0.35)", border: "none", padding: "16px 20px", color: "#f87171", fontSize: 15, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
-                          <span style={{ background: "rgba(239,68,68,0.25)", borderRadius: 10, width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 900 }}>২</span>
-                          {cancelOpt.label || "অর্ডার বাতিল করুন"}
-                        </button>
-                      )}
-                      {opts.filter(o => o.action !== "confirmed" && o.action !== "cancelled").map(opt => (
-                        <button key={opt.key} onClick={() => handleRespond(opt)} style={{ width: "100%", borderRadius: 16, background: "rgba(139,92,246,0.12)", outline: "1px solid rgba(139,92,246,0.35)", border: "none", padding: "15px 20px", color: "#a78bfa", fontSize: 15, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
-                          <span style={{ background: "rgba(139,92,246,0.25)", borderRadius: 10, width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 900 }}>{opt.key}</span>
-                          {opt.label}
-                        </button>
-                      ))}
-                    </div>
                   </div>
-                  <button onClick={endCall} onPointerDown={() => endCall()} style={{ background: "rgba(239,68,68,0.75)", border: "2px solid rgba(239,68,68,0.6)", borderRadius: 50, padding: "12px 30px", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, touchAction: "manipulation" }}>
+
+                  {/* AI transcript */}
+                  {aiText && (
+                    <div style={{ width: "100%", borderRadius: 14, padding: "11px 15px", background: "rgba(0,212,200,0.06)", border: "1px solid rgba(0,212,200,0.15)", fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.65, fontStyle: "italic" }}>
+                      "{aiText}"
+                    </div>
+                  )}
+
+                  {/* Order card (compact) */}
+                  <div style={{ width: "100%", borderRadius: 14, padding: "12px 14px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <Package style={{ width: 13, height: 13, color: "rgba(255,255,255,0.25)" }} />
+                      <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 12 }}>অর্ডার #{session?.orderId || form.orderId}</span>
+                    </div>
+                    <span style={{ color: "#fff", fontWeight: 700, fontSize: 14 }}>{session?.orderAmount || form.orderAmount}</span>
+                  </div>
+
+                  {/* ===== PHONE DIALPAD ===== */}
+                  <div style={{ width: "100%", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 20, padding: "14px 12px" }}>
+                    <p style={{ textAlign: "center", color: "rgba(255,255,255,0.2)", fontSize: 10, letterSpacing: "0.12em", margin: "0 0 12px", fontWeight: 700 }}>DTMF KEYPAD</p>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+                      {["1","2","3","4","5","6","7","8","9","*","0","#"].map((key) => {
+                        const opt = opts.find(o => o.key === key);
+                        const isConfirmed = opt?.action === "confirmed";
+                        const isCancelled = opt?.action === "cancelled";
+
+                        let bg = "rgba(255,255,255,0.04)";
+                        let border = "rgba(255,255,255,0.08)";
+                        let numColor = "rgba(255,255,255,0.3)";
+                        let labelColor = "rgba(255,255,255,0.18)";
+                        let shadow = "none";
+
+                        if (opt) {
+                          if (isConfirmed) {
+                            bg = "rgba(0,212,200,0.12)"; border = "rgba(0,212,200,0.4)";
+                            numColor = "#00d4c8"; labelColor = "rgba(0,212,200,0.7)";
+                            shadow = "0 0 18px rgba(0,212,200,0.2)";
+                          } else if (isCancelled) {
+                            bg = "rgba(239,68,68,0.1)"; border = "rgba(239,68,68,0.4)";
+                            numColor = "#f87171"; labelColor = "rgba(248,113,113,0.7)";
+                            shadow = "0 0 18px rgba(239,68,68,0.15)";
+                          } else {
+                            bg = "rgba(96,165,250,0.1)"; border = "rgba(96,165,250,0.35)";
+                            numColor = "#93c5fd"; labelColor = "rgba(147,197,253,0.7)";
+                            shadow = "0 0 14px rgba(96,165,250,0.15)";
+                          }
+                        }
+
+                        return (
+                          <button
+                            key={key}
+                            onClick={() => opt ? handleRespond(opt) : undefined}
+                            disabled={!opt}
+                            style={{
+                              background: bg, border: `1.5px solid ${border}`, borderRadius: 14,
+                              boxShadow: shadow, padding: "10px 6px 8px", minHeight: 68,
+                              cursor: opt ? "pointer" : "default", opacity: opt ? 1 : 0.3,
+                              display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                              gap: 3, transition: "transform 0.12s",
+                            }}
+                            onMouseDown={e => { if (opt) (e.currentTarget as HTMLElement).style.transform = "scale(0.92)"; }}
+                            onMouseUp={e => (e.currentTarget as HTMLElement).style.transform = "scale(1)"}
+                          >
+                            <span style={{ fontSize: 22, fontWeight: 300, color: numColor, lineHeight: 1, fontFamily: "system-ui" }}>
+                              {key === "*" ? "✱" : key}
+                            </span>
+                            {opt ? (
+                              <span style={{ fontSize: 9, fontWeight: 700, color: labelColor, letterSpacing: "0.03em", textAlign: "center", lineHeight: 1.3, padding: "0 2px" }}>
+                                {opt.label.length > 11 ? opt.label.slice(0, 11) + "…" : opt.label}
+                              </span>
+                            ) : (
+                              <span style={{ fontSize: 9, color: "rgba(255,255,255,0.1)", letterSpacing: "0.08em" }}>
+                                {key === "2" ? "ABC" : key === "3" ? "DEF" : key === "4" ? "GHI" : key === "5" ? "JKL" : key === "6" ? "MNO" : key === "7" ? "PQRS" : key === "8" ? "TUV" : key === "9" ? "WXYZ" : key === "0" ? "+" : ""}
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Announcement hint */}
+                    {config.announcementText && (
+                      <p style={{ textAlign: "center", color: "rgba(255,255,255,0.25)", fontSize: 11, margin: "12px 0 0", lineHeight: 1.5 }}>
+                        {config.announcementText}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* End call button */}
+                  <button onClick={endCall} style={{ width: "100%", background: "rgba(239,68,68,0.8)", border: "2px solid rgba(239,68,68,0.5)", borderRadius: 50, padding: "13px 28px", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, touchAction: "manipulation" }}>
                     <PhoneOff style={{ width: 15, height: 15 }} /> কল শেষ করুন
                   </button>
-                </>
+                </div>
               )}
 
               {/* ── PROCESSING ── */}
@@ -643,8 +688,16 @@ export function AiVoicePage() {
               {/* ── DONE ── */}
               {callState === "done" && (
                 <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 24, width: "100%", animation: "slideUp 0.5s ease" }}>
-                  <div style={{ width: 100, height: 100, borderRadius: "50%", background: chosen?.action === "confirmed" ? "rgba(0,212,200,0.1)" : "rgba(239,68,68,0.1)", border: `3px solid ${chosen?.action === "confirmed" ? "rgba(0,212,200,0.5)" : "rgba(239,68,68,0.4)"}`, boxShadow: `0 0 50px ${chosen?.action === "confirmed" ? "rgba(0,212,200,0.3)" : "rgba(239,68,68,0.2)"}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    {chosen?.action === "confirmed" ? <CheckCircle2 style={{ width: 46, height: 46, color: "#00d4c8" }} /> : <XCircle style={{ width: 46, height: 46, color: "#f87171" }} />}
+                  <div style={{
+                    width: 100, height: 100, borderRadius: "50%",
+                    background: chosen?.action === "confirmed" ? "rgba(0,212,200,0.1)" : "rgba(239,68,68,0.1)",
+                    border: `3px solid ${chosen?.action === "confirmed" ? "rgba(0,212,200,0.5)" : "rgba(239,68,68,0.4)"}`,
+                    boxShadow: `0 0 50px ${chosen?.action === "confirmed" ? "rgba(0,212,200,0.3)" : "rgba(239,68,68,0.2)"}`,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>
+                    {chosen?.action === "confirmed"
+                      ? <CheckCircle2 style={{ width: 46, height: 46, color: "#00d4c8" }} />
+                      : <XCircle style={{ width: 46, height: 46, color: "#f87171" }} />}
                   </div>
                   <div style={{ textAlign: "center" }}>
                     <h2 style={{ fontSize: 24, fontWeight: 800, margin: "0 0 10px", color: chosen?.action === "cancelled" ? "#f87171" : "#fff" }}>{chosen?.label || "সম্পন্ন"}</h2>
@@ -660,27 +713,19 @@ export function AiVoicePage() {
                 </div>
               )}
 
-              {/* ── ERROR ── */}
-              {callState === "error" && (
+              {/* ── ERROR / CREATING ── */}
+              {(callState === "error" || callState === "creating") && (
                 <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20 }}>
-                  <div style={{ width: 80, height: 80, borderRadius: "50%", background: "rgba(239,68,68,0.1)", border: "2px solid rgba(239,68,68,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <XCircle style={{ width: 36, height: 36, color: "#f87171" }} />
+                  <div style={{ width: 80, height: 80, borderRadius: "50%", background: callState === "error" ? "rgba(239,68,68,0.1)" : "rgba(0,212,200,0.1)", border: `3px solid ${callState === "error" ? "rgba(239,68,68,0.4)" : "rgba(0,212,200,0.3)"}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    {callState === "error" ? <XCircle style={{ width: 36, height: 36, color: "#f87171" }} /> : <Loader2 style={{ width: 32, height: 32, color: "#00d4c8", animation: "spin 1s linear infinite" }} />}
                   </div>
                   <div style={{ textAlign: "center" }}>
-                    <h2 style={{ color: "#fff", fontSize: 20, margin: "0 0 8px" }}>সংযোগ ব্যর্থ</h2>
-                    <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Session তৈরি করা যায়নি। আবার চেষ্টা করুন।</p>
+                    <h2 style={{ color: "#fff", fontSize: 20, margin: "0 0 8px" }}>{callState === "error" ? "সংযোগ ব্যর্থ" : "কল সেশন তৈরি হচ্ছে..."}</h2>
+                    {callState === "error" && <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Session তৈরি করা যায়নি। আবার চেষ্টা করুন।</p>}
                   </div>
-                  <button onClick={endCall} style={{ background: "rgba(0,212,200,0.1)", border: "1px solid rgba(0,212,200,0.3)", borderRadius: 50, padding: "13px 32px", color: "#00d4c8", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>ফিরে যান</button>
-                </div>
-              )}
-
-              {/* ── CREATING ── */}
-              {callState === "creating" && (
-                <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20 }}>
-                  <div style={{ width: 80, height: 80, borderRadius: "50%", background: "rgba(0,212,200,0.1)", border: "3px solid rgba(0,212,200,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <Loader2 style={{ width: 32, height: 32, color: "#00d4c8", animation: "spin 1s linear infinite" }} />
-                  </div>
-                  <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 14 }}>কল সেশন তৈরি হচ্ছে...</p>
+                  {callState === "error" && (
+                    <button onClick={endCall} style={{ background: "rgba(0,212,200,0.1)", border: "1px solid rgba(0,212,200,0.3)", borderRadius: 50, padding: "13px 32px", color: "#00d4c8", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>ফিরে যান</button>
+                  )}
                 </div>
               )}
             </div>
@@ -692,45 +737,38 @@ export function AiVoicePage() {
           <div style={{ position: "fixed", inset: 0, zIndex: 9998, background: "radial-gradient(ellipse at 50% 10%, rgba(99,102,241,0.12) 0%, rgba(5,6,14,0) 60%), #05060e", display: "flex", flexDirection: "column", alignItems: "center", animation: "fadeIn 0.35s ease" }}>
             <div style={{ width: "100%", maxWidth: 440, padding: "20px 20px 32px", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
               {/* Header */}
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
                 <div style={{ background: "rgba(99,102,241,0.12)", border: "1px solid rgba(99,102,241,0.25)", borderRadius: 20, padding: "4px 13px", fontSize: 12, color: "#818cf8", fontWeight: 700 }}>
                   ⚡ সরাসরি ভয়েজ কল
                 </div>
-                {liveState === "user-speaking" || liveState === "ai-speaking" ? (
+                {(liveState === "user-speaking" || liveState === "ai-speaking") && (
                   <div style={{ background: "rgba(34,197,94,0.12)", border: "1px solid rgba(34,197,94,0.3)", borderRadius: 20, padding: "4px 13px", fontSize: 12, color: "#4ade80", fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
                     <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#4ade80", display: "inline-block", animation: "ticker 1s ease-in-out infinite" }} />
                     LIVE
                   </div>
-                ) : null}
+                )}
               </div>
 
-              {/* ── DONE / CALL ENDED SUCCESS SCREEN ── */}
+              {/* DONE / CALL ENDED */}
               {liveState === "done" && (
                 <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 28, animation: "slideUp 0.4s ease", textAlign: "center" }}>
-                  {/* Checkmark circle */}
                   <div style={{ width: 110, height: 110, borderRadius: "50%", background: "radial-gradient(circle at 40% 35%, rgba(0,212,200,0.6) 0%, rgba(0,150,130,0.3) 70%)", border: "3px solid rgba(0,212,200,0.6)", boxShadow: "0 0 60px rgba(0,212,200,0.35)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <CheckCircle2 style={{ width: 52, height: 52, color: "#00d4c8" }} />
                   </div>
-                  {/* Message */}
                   <div>
                     <h2 style={{ fontSize: 26, fontWeight: 800, margin: "0 0 10px", color: "#fff" }}>কল সফলভাবে শেষ হয়েছে</h2>
                     <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 15, lineHeight: 1.7, maxWidth: 300, margin: "0 auto" }}>
-                      SOFTWORKS AI-এর সাথে আপনার কথোপকথন সম্পন্ন হয়েছে। আমাদের সেবা নিতে আগ্রহী হলে যোগাযোগ করুন।
+                      SOFTWORKS AI-এর সাথে আপনার কথোপকথন সম্পন্ন হয়েছে।
                     </p>
                   </div>
-                  {/* Summary of conversation */}
                   {chatLog.length > 0 && (
                     <div style={{ width: "100%", borderRadius: 16, padding: "14px 16px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", textAlign: "left" }}>
                       <p style={{ color: "rgba(255,255,255,0.3)", fontSize: 11, margin: "0 0 8px", letterSpacing: "0.1em", fontWeight: 600 }}>কথোপকথনের সারসংক্ষেপ</p>
                       <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, margin: 0 }}>{chatLog.length} টি বার্তা বিনিময় হয়েছে।</p>
                     </div>
                   )}
-                  {/* Actions */}
                   <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 10 }}>
-                    <button
-                      onClick={closeLiveDone}
-                      onPointerDown={closeLiveDone}
-                      style={{ width: "100%", background: "linear-gradient(135deg,#00d4c8,#00a89e)", border: "none", borderRadius: 50, padding: "15px 30px", color: "#000", fontSize: 15, fontWeight: 800, cursor: "pointer", touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}>
+                    <button onClick={closeLiveDone} onPointerDown={closeLiveDone} style={{ width: "100%", background: "linear-gradient(135deg,#00d4c8,#00a89e)", border: "none", borderRadius: 50, padding: "15px 30px", color: "#000", fontSize: 15, fontWeight: 800, cursor: "pointer", touchAction: "manipulation" }}>
                       ← আবার চেষ্টা করুন
                     </button>
                     <a href="/contact" style={{ width: "100%", background: "rgba(99,102,241,0.12)", border: "1px solid rgba(99,102,241,0.3)", borderRadius: 50, padding: "15px 30px", color: "#818cf8", fontSize: 15, fontWeight: 600, cursor: "pointer", textAlign: "center", textDecoration: "none", display: "block", boxSizing: "border-box" }}>
@@ -740,36 +778,34 @@ export function AiVoicePage() {
                 </div>
               )}
 
-              {/* ── ACTIVE CALL CONTENT ── */}
+              {/* ACTIVE CALL CONTENT */}
               {liveState !== "done" && (
                 <>
-                  {/* AI Orb */}
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, marginBottom: 20 }}>
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14, marginBottom: 18 }}>
                     <AiOrb mode={liveState === "connecting" ? "connecting" : liveState === "ai-speaking" ? "speaking" : liveState === "user-speaking" ? "listening" : "idle"} />
                     <div style={{ textAlign: "center" }}>
-                      <h2 style={{ fontSize: 22, fontWeight: 700, color: "#fff", margin: "0 0 4px" }}>
+                      <h2 style={{ fontSize: 20, fontWeight: 700, color: "#fff", margin: "0 0 4px" }}>
                         {liveState === "connecting" ? "কল কানেক্ট হচ্ছে..." : liveState === "ai-speaking" ? "এআই কথা বলছে..." : liveState === "user-speaking" ? "আপনার কথা শুনছি..." : liveState === "processing" ? "প্রক্রিয়াকরণ..." : "SOFTWORKS AI"}
                       </h2>
-                      <p style={{ fontSize: 13, color: "rgba(255,255,255,0.35)", margin: 0 }}>
+                      <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", margin: 0 }}>
                         {liveState === "connecting" ? "সংযোগ স্থাপিত হচ্ছে..." : liveState === "ai-speaking" ? "AI এখন আপনার সাথে কথা বলছে।" : liveState === "user-speaking" ? "আপনার কথা বলুন — AI শুনছে।" : ""}
                       </p>
                     </div>
                     <Waveform active={liveState === "ai-speaking"} color={liveState === "user-speaking" ? "#22c55e" : "#00d4c8"} />
                   </div>
 
-                  {/* Live transcript (user speaking) */}
                   {liveTranscript && (
                     <div style={{ marginBottom: 12, padding: "10px 14px", borderRadius: 12, background: "rgba(34,197,94,0.07)", border: "1px solid rgba(34,197,94,0.2)", fontSize: 13, color: "#4ade80", fontStyle: "italic" }}>
                       🎙 "{liveTranscript}"
                     </div>
                   )}
 
-                  {/* Chat log */}
-                  <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 12, marginBottom: 16, maxHeight: 300, paddingRight: 4 }}>
+                  <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 10, marginBottom: 16, maxHeight: 280, paddingRight: 4 }}>
                     {chatLog.map((msg, i) => (
                       <div key={i} style={{ display: "flex", justifyContent: msg.role === "user" ? "flex-end" : "flex-start", animation: "slideUp 0.3s ease" }}>
                         <div style={{
-                          maxWidth: "82%", padding: "10px 14px", borderRadius: msg.role === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
+                          maxWidth: "82%", padding: "10px 14px",
+                          borderRadius: msg.role === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
                           background: msg.role === "user" ? "rgba(99,102,241,0.18)" : "rgba(0,212,200,0.1)",
                           border: msg.role === "user" ? "1px solid rgba(99,102,241,0.3)" : "1px solid rgba(0,212,200,0.2)",
                           fontSize: 14, color: "#fff", lineHeight: 1.6,
@@ -783,11 +819,7 @@ export function AiVoicePage() {
                     <div ref={chatEndRef} />
                   </div>
 
-                  {/* End call button */}
-                  <button
-                    onClick={endLiveCall}
-                    onPointerDown={endLiveCall}
-                    onTouchStart={e => { e.stopPropagation(); }}
+                  <button onClick={endLiveCall} onPointerDown={endLiveCall} onTouchStart={e => { e.stopPropagation(); }}
                     style={{ width: "100%", background: "rgba(239,68,68,0.85)", border: "2px solid rgba(239,68,68,0.7)", borderRadius: 50, padding: "16px 30px", color: "#fff", fontSize: 16, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, boxShadow: "0 4px 24px rgba(239,68,68,0.35)", WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}>
                     <PhoneOff style={{ width: 20, height: 20 }} /> কল শেষ করুন
                   </button>
@@ -813,7 +845,7 @@ export function AiVoicePage() {
         </header>
 
         {/* Hero */}
-        <section style={{ textAlign: "center", padding: "80px 24px 64px", background: "radial-gradient(ellipse at 50% 0%, rgba(0,212,200,0.07) 0%, transparent 65%)", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+        <section style={{ textAlign: "center", padding: "80px 24px 60px", background: "radial-gradient(ellipse at 50% 0%, rgba(0,212,200,0.07) 0%, transparent 65%)", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(0,212,200,0.08)", border: "1px solid rgba(0,212,200,0.2)", borderRadius: 20, padding: "5px 14px", marginBottom: 24, fontSize: 12, color: "#00d4c8", fontWeight: 600, letterSpacing: "0.08em" }}>
             <Star style={{ width: 12, height: 12 }} /> বাংলাদেশের সেরা AI কলিং প্ল্যাটফর্ম
           </div>
@@ -832,6 +864,21 @@ export function AiVoicePage() {
           </div>
         </section>
 
+        {/* ── Stats Bar ── */}
+        <section style={{ borderBottom: "1px solid rgba(255,255,255,0.04)", background: "rgba(255,255,255,0.01)" }}>
+          <div style={{ maxWidth: 900, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(4,1fr)" }}>
+            {STATS.map(({ icon: I, value, label, color }, i) => (
+              <div key={i} style={{ padding: "22px 16px", textAlign: "center", borderRight: i < 3 ? "1px solid rgba(255,255,255,0.04)" : "none" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 8 }}>
+                  <I style={{ width: 15, height: 15, color }} />
+                  <span style={{ fontSize: 22, fontWeight: 900, color, letterSpacing: "0.02em" }}>{value}</span>
+                </div>
+                <p style={{ color: "rgba(255,255,255,0.35)", fontSize: 12, margin: 0, letterSpacing: "0.05em" }}>{label}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
         {/* Packages */}
         <section style={{ padding: "64px 24px", maxWidth: 1100, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 48 }}>
@@ -840,10 +887,11 @@ export function AiVoicePage() {
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(230px,1fr))", gap: 16 }}>
             {PACKAGES.map(({ icon: I, title, desc, color }, i) => (
-              <div key={i} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: "20px", cursor: "default", transition: "transform 0.22s,border-color 0.22s,box-shadow 0.22s" }}
-                onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.transform = "translateY(-5px)"; el.style.borderColor = `${color}50`; el.style.boxShadow = `0 8px 32px ${color}30`; }}
+              <div key={i}
+                style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 18, padding: "22px", cursor: "default", transition: "transform 0.22s,border-color 0.22s,box-shadow 0.22s" }}
+                onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.transform = "translateY(-5px)"; el.style.borderColor = `${color}50`; el.style.boxShadow = `0 8px 32px ${color}25`; }}
                 onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.transform = "translateY(0)"; el.style.borderColor = "rgba(255,255,255,0.07)"; el.style.boxShadow = "none"; }}>
-                <div style={{ width: 44, height: 44, borderRadius: 12, background: `${color}18`, border: `1px solid ${color}30`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
+                <div style={{ width: 46, height: 46, borderRadius: 13, background: `${color}18`, border: `1px solid ${color}30`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
                   <I style={{ width: 22, height: 22, color }} />
                 </div>
                 <h3 style={{ fontSize: 15, fontWeight: 700, margin: "0 0 8px", color: "#fff" }}>{title}</h3>
@@ -868,37 +916,40 @@ export function AiVoicePage() {
           <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(99,102,241,0.2)", borderRadius: 24, overflow: "hidden" }}>
             {/* Chat preview (static) */}
             <div style={{ padding: "28px 28px 0" }}>
-              <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
-                <div style={{ width: 38, height: 38, borderRadius: "50%", background: "linear-gradient(135deg,#00d4c8,#0096c7)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <Bot style={{ width: 18, height: 18, color: "#fff" }} />
+              {[
+                { role: "ai" as const, text: "আস্সালামুআলাইকুম! আমি সফটওয়ার্কস AI। আপনাকে কীভাবে সাহায্য করতে পারি?" },
+                { role: "user" as const, text: "আপনাদের AI কলিং সিস্টেমের দাম কত?" },
+                { role: "ai" as const, text: "আমাদের AI কলিং প্যাকেজ মাসে মাত্র ২,৫০০ টাকা থেকে শুরু। এন্টারপ্রাইজ প্ল্যানে আনলিমিটেড কল পাবেন।" },
+              ].map((msg, i) => (
+                <div key={i} style={{ display: "flex", gap: 12, justifyContent: msg.role === "user" ? "flex-end" : "flex-start", marginBottom: 14 }}>
+                  {msg.role === "ai" && (
+                    <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#00d4c8,#0096c7)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <Bot style={{ width: 17, height: 17, color: "#fff" }} />
+                    </div>
+                  )}
+                  <div style={{
+                    background: msg.role === "user" ? "rgba(99,102,241,0.12)" : "rgba(0,212,200,0.08)",
+                    border: msg.role === "user" ? "1px solid rgba(99,102,241,0.25)" : "1px solid rgba(0,212,200,0.15)",
+                    borderRadius: msg.role === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
+                    padding: "11px 15px", fontSize: 14, color: "rgba(255,255,255,0.75)", lineHeight: 1.65, maxWidth: "80%",
+                  }}>
+                    <p style={{ fontSize: 10, color: msg.role === "ai" ? "#00d4c8" : "#818cf8", fontWeight: 700, letterSpacing: "0.08em", margin: "0 0 4px" }}>
+                      {msg.role === "ai" ? "SOFTWORKS AI" : "আপনি"}
+                    </p>
+                    {msg.text}
+                  </div>
+                  {msg.role === "user" && (
+                    <div style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(99,102,241,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <Users style={{ width: 17, height: 17, color: "#818cf8" }} />
+                    </div>
+                  )}
                 </div>
-                <div style={{ background: "rgba(0,212,200,0.08)", border: "1px solid rgba(0,212,200,0.15)", borderRadius: "16px 16px 16px 4px", padding: "12px 16px", fontSize: 14, color: "rgba(255,255,255,0.75)", lineHeight: 1.65, maxWidth: "80%" }}>
-                  <p style={{ fontSize: 11, color: "#00d4c8", fontWeight: 700, letterSpacing: "0.08em", margin: "0 0 5px" }}>SOFTWORKS AI</p>
-                  আস্সালামুআলাইকুম! আমি সফটওয়ার্কস AI। আপনাকে কীভাবে সাহায্য করতে পারি?
-                </div>
-              </div>
-              <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginBottom: 16 }}>
-                <div style={{ background: "rgba(99,102,241,0.12)", border: "1px solid rgba(99,102,241,0.25)", borderRadius: "16px 16px 4px 16px", padding: "12px 16px", fontSize: 14, color: "rgba(255,255,255,0.75)", lineHeight: 1.65, maxWidth: "80%" }}>
-                  <p style={{ fontSize: 11, color: "#818cf8", fontWeight: 700, letterSpacing: "0.08em", margin: "0 0 5px" }}>আপনি</p>
-                  আপনাদের AI কলিং সিস্টেমের দাম কত?
-                </div>
-                <div style={{ width: 38, height: 38, borderRadius: "50%", background: "rgba(99,102,241,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <Users style={{ width: 18, height: 18, color: "#818cf8" }} />
-                </div>
-              </div>
-              <div style={{ display: "flex", gap: 12, marginBottom: 24 }}>
-                <div style={{ width: 38, height: 38, borderRadius: "50%", background: "linear-gradient(135deg,#00d4c8,#0096c7)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <Bot style={{ width: 18, height: 18, color: "#fff" }} />
-                </div>
-                <div style={{ background: "rgba(0,212,200,0.08)", border: "1px solid rgba(0,212,200,0.15)", borderRadius: "16px 16px 16px 4px", padding: "12px 16px", fontSize: 14, color: "rgba(255,255,255,0.75)", lineHeight: 1.65, maxWidth: "80%" }}>
-                  <p style={{ fontSize: 11, color: "#00d4c8", fontWeight: 700, letterSpacing: "0.08em", margin: "0 0 5px" }}>SOFTWORKS AI</p>
-                  আমাদের AI কলিং প্যাকেজ মাসে মাত্র ২,৫০০ টাকা থেকে শুরু। এন্টারপ্রাইজ প্ল্যানে আনলিমিটেড কল পাবেন।
-                </div>
-              </div>
+              ))}
             </div>
 
-            <div style={{ padding: "0 28px 28px" }}>
-              <button onClick={startLiveCall} style={{ width: "100%", padding: "18px 24px", background: "linear-gradient(135deg,#6366f1,#4f46e5)", border: "none", borderRadius: 16, color: "#fff", fontSize: 17, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, boxShadow: "0 0 40px rgba(99,102,241,0.4)", letterSpacing: "0.02em", transition: "transform 0.15s" }}
+            <div style={{ padding: "4px 28px 28px" }}>
+              <button onClick={startLiveCall}
+                style={{ width: "100%", padding: "18px 24px", background: "linear-gradient(135deg,#6366f1,#4f46e5)", border: "none", borderRadius: 16, color: "#fff", fontSize: 17, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, boxShadow: "0 0 40px rgba(99,102,241,0.4)", letterSpacing: "0.02em", transition: "transform 0.15s" }}
                 onMouseEnter={e => (e.currentTarget.style.transform = "scale(1.02)")}
                 onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)")}>
                 <Mic style={{ width: 22, height: 22 }} />
@@ -910,23 +961,27 @@ export function AiVoicePage() {
           </div>
         </section>
 
-        {/* Order Auto Confirm Interactive Demo */}
+        {/* Order Auto Confirm Demo */}
         <section style={{ padding: "0 24px 64px", maxWidth: 900, margin: "0 auto", borderTop: "1px solid rgba(255,255,255,0.04)", paddingTop: 64 }}>
           <div style={{ textAlign: "center", marginBottom: 44 }}>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(0,212,200,0.08)", border: "1px solid rgba(0,212,200,0.2)", borderRadius: 20, padding: "5px 14px", marginBottom: 16, fontSize: 12, color: "#00d4c8", fontWeight: 600 }}>
-              <Zap style={{ width: 12, height: 12 }} /> Interactive Order Experience
+              <Zap style={{ width: 12, height: 12 }} /> Interactive Demo
             </div>
             <h2 style={{ fontSize: 26, fontWeight: 800, margin: "0 0 12px" }}>অর্ডার অটোমেশন সেশন</h2>
             <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 15, maxWidth: 520, margin: "0 auto", lineHeight: 1.7 }}>
-              ওয়েবসাইট থেকে অর্ডার আসার পর AI কীভাবে অটোমেটিক কল দিয়ে তা ভেরিফাই করে, তা এখনই লাইভ টেস্ট করুন।
+              ওয়েবসাইট থেকে অর্ডার আসার পর AI কীভাবে অটোমেটিক কল দিয়ে তা ভেরিফাই করে — এখনই লাইভ টেস্ট করুন।
             </p>
           </div>
 
           {/* 3 Steps */}
           <div style={{ display: "flex", justifyContent: "center", gap: 16, marginBottom: 40, flexWrap: "wrap" }}>
-            {[{ n: "০১", t: "অর্ডার প্লেস করুন", d: "নিচের ফর্মে তথ্য দিয়ে একটি ডামি অর্ডার করুন।" }, { n: "০২", t: "এআই কল রিসিভ করুন", d: "আপনার স্ক্রিনে একটি ইনকামিং কল আসবে।" }, { n: "০৩", t: "অর্ডার কনফার্ম করুন", d: "কল চলাকালীন বাটন চেপে কনফার্ম বা ক্যানসেল করুন।" }].map(({ n, t, d }, i) => (
-              <div key={i} style={{ flex: "1 1 200px", maxWidth: 250, textAlign: "center", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: "24px 16px" }}>
-                <div style={{ fontSize: 30, fontWeight: 900, color: "#00d4c8", opacity: 0.4, marginBottom: 10, letterSpacing: "0.05em" }}>{n}</div>
+            {[
+              { n: "০১", t: "অর্ডার প্লেস করুন", d: "নিচের ফর্মে তথ্য দিয়ে একটি ডামি অর্ডার করুন।", color: "#00d4c8" },
+              { n: "০২", t: "এআই কল রিসিভ করুন", d: "আপনার স্ক্রিনে একটি ইনকামিং কল আসবে।", color: "#8b5cf6" },
+              { n: "০৩", t: "ডায়াল করে কনফার্ম করুন", d: "ডায়ালপ্যাডে সঠিক কী চেপে কনফার্ম বা ক্যানসেল করুন।", color: "#f59e0b" },
+            ].map(({ n, t, d, color }, i) => (
+              <div key={i} style={{ flex: "1 1 200px", maxWidth: 250, textAlign: "center", background: "rgba(255,255,255,0.03)", border: `1px solid ${color}20`, borderRadius: 18, padding: "24px 16px", transition: "border-color 0.2s" }}>
+                <div style={{ fontSize: 30, fontWeight: 900, color, opacity: 0.5, marginBottom: 10, letterSpacing: "0.05em" }}>{n}</div>
                 <h3 style={{ fontSize: 14, fontWeight: 700, margin: "0 0 8px", color: "#fff" }}>{t}</h3>
                 <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", margin: 0, lineHeight: 1.6 }}>{d}</p>
               </div>
@@ -934,14 +989,22 @@ export function AiVoicePage() {
           </div>
 
           {/* Demo Form */}
-          <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(0,212,200,0.18)", borderRadius: 20, padding: "28px 28px" }}>
-            <h3 style={{ fontSize: 17, fontWeight: 700, margin: "0 0 22px", color: "#00d4c8", display: "flex", alignItems: "center", gap: 8 }}>
-              <Package style={{ width: 18, height: 18 }} /> ডামি অর্ডার করুন
-            </h3>
+          <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(0,212,200,0.18)", borderRadius: 22, padding: "28px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 22 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(0,212,200,0.12)", border: "1px solid rgba(0,212,200,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Package style={{ width: 17, height: 17, color: "#00d4c8" }} />
+              </div>
+              <h3 style={{ fontSize: 17, fontWeight: 700, margin: 0, color: "#fff" }}>ডামি অর্ডার তৈরি করুন</h3>
+            </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-              {[{ label: "অর্ডার ID", key: "orderId" as keyof typeof form }, { label: "পরিমাণ (Amount)", key: "orderAmount" as keyof typeof form }, { label: "গ্রাহকের নাম", key: "customerName" as keyof typeof form }, { label: "ফোন নম্বর", key: "customerPhone" as keyof typeof form }].map(({ label, key }) => (
+              {[
+                { label: "অর্ডার ID", key: "orderId" as keyof typeof form },
+                { label: "পরিমাণ (Amount)", key: "orderAmount" as keyof typeof form },
+                { label: "গ্রাহকের নাম", key: "customerName" as keyof typeof form },
+                { label: "ফোন নম্বর", key: "customerPhone" as keyof typeof form },
+              ].map(({ label, key }) => (
                 <div key={key} style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                  <label style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", letterSpacing: "0.04em" }}>{label}</label>
+                  <label style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", letterSpacing: "0.04em", fontWeight: 600 }}>{label}</label>
                   <input value={form[key]} onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
                     style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 14px", color: "#fff", fontSize: 14, outline: "none", transition: "border-color 0.2s", width: "100%", boxSizing: "border-box" }}
                     onFocus={e => (e.currentTarget.style.borderColor = "rgba(0,212,200,0.5)")}
@@ -949,14 +1012,15 @@ export function AiVoicePage() {
                 </div>
               ))}
               <div style={{ gridColumn: "1/-1", display: "flex", flexDirection: "column", gap: 6 }}>
-                <label style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", letterSpacing: "0.04em" }}>অর্ডার বিবরণ</label>
+                <label style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", letterSpacing: "0.04em", fontWeight: 600 }}>অর্ডার বিবরণ</label>
                 <input value={form.orderDetails} onChange={e => setForm(f => ({ ...f, orderDetails: e.target.value }))}
                   style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 14px", color: "#fff", fontSize: 14, outline: "none", width: "100%", boxSizing: "border-box" }}
                   onFocus={e => (e.currentTarget.style.borderColor = "rgba(0,212,200,0.5)")}
                   onBlur={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")} />
               </div>
             </div>
-            <button onClick={createSession} style={{ marginTop: 22, width: "100%", padding: "16px 24px", background: "linear-gradient(135deg,#00d4c8,#00a89e)", border: "none", borderRadius: 14, color: "#000", fontSize: 17, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, boxShadow: "0 0 40px rgba(0,212,200,0.4)", transition: "transform 0.15s", letterSpacing: "0.02em" }}
+            <button onClick={createSession}
+              style={{ marginTop: 22, width: "100%", padding: "16px 24px", background: "linear-gradient(135deg,#00d4c8,#00a89e)", border: "none", borderRadius: 14, color: "#000", fontSize: 17, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, boxShadow: "0 0 40px rgba(0,212,200,0.4)", transition: "transform 0.15s", letterSpacing: "0.02em" }}
               onMouseEnter={e => (e.currentTarget.style.transform = "scale(1.02)")}
               onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)")}>
               <Phone style={{ width: 20, height: 20 }} /> ডেমো কল শুরু করুন <ArrowRight style={{ width: 18, height: 18 }} />
@@ -971,20 +1035,20 @@ export function AiVoicePage() {
             <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.2)", borderRadius: 20, padding: "5px 14px", marginBottom: 14, fontSize: 12, color: "#a78bfa", fontWeight: 600 }}>
               <Bot style={{ width: 12, height: 12 }} /> Programmable Voice Flows
             </div>
-            <h2 style={{ fontSize: 24, fontWeight: 800, margin: "0 0 10px" }}>ভয়েস অটোমেশন এডিট ও ডেমো</h2>
-            <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 14, maxWidth: 480, margin: "0 auto", lineHeight: 1.7 }}>আপনার বিজনেসের জন্য কাস্টম ভয়েস ফ্লো তৈরি করুন এবং সরাসরি ডেমো কল দিয়ে টেস্ট করুন।</p>
+            <h2 style={{ fontSize: 24, fontWeight: 800, margin: "0 0 10px" }}>ভয়েস অটোমেশন ফ্লো</h2>
+            <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 14, maxWidth: 480, margin: "0 auto", lineHeight: 1.7 }}>আপনার বিজনেসের জন্য কাস্টম ভয়েস ফ্লো তৈরি করুন এবং ডেমো কল দিয়ে টেস্ট করুন।</p>
           </div>
           <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(139,92,246,0.15)", borderRadius: 20, overflow: "hidden" }}>
             {[
-              { label: "ওয়েলকাম মেসেজ (Greeting)", badge: "Required", color: "#a78bfa", text: "Assalamoalikum, আপনি ঘরেবাজারবিডি.কম এ এক কেজি মধু অর্ডার করেছিলেন। যার মূল্য ১২০০ টাকা। অর্ডার কনফার্ম করতে ১ চাপুন, ক্যানসেল করতে ২ চাপুন।" },
-              { label: "Option 1: Confirm", color: "#00d4c8", text: "ধন্যবাদ। আপনার অর্ডারটি সফলভাবে কনফার্ম করা হয়েছে।" },
-              { label: "Option 2: Cancel", color: "#f87171", text: "দুঃখিত। আপনার অর্ডারটি বাতিল করা হয়েছে।" },
-              { label: "Option 3: Support", color: "#fbbf24", text: "আমাদের কাস্টমার কেয়ার প্রতিনিধি এই মুহূর্তে ব্যস্ত আছেন।" },
+              { label: "ওয়েলকাম মেসেজ", badge: "Required", color: "#a78bfa", text: "আস্সালামু আলাইকুম, আপনি ঘরেবাজারবিডি.কম-এ ১ কেজি মধু অর্ডার করেছিলেন যার মূল্য ১২০০ টাকা। কনফার্ম করতে ১ চাপুন, বাতিল করতে ২ চাপুন।" },
+              { label: "Option 1 — Confirm", badge: undefined, color: "#00d4c8", text: "ধন্যবাদ। আপনার অর্ডারটি সফলভাবে কনফার্ম করা হয়েছে।" },
+              { label: "Option 2 — Cancel", badge: undefined, color: "#f87171", text: "দুঃখিত। আপনার অর্ডারটি বাতিল করা হয়েছে।" },
+              { label: "Option 3 — Support", badge: undefined, color: "#fbbf24", text: "আমাদের কাস্টমার কেয়ার প্রতিনিধি এই মুহূর্তে ব্যস্ত আছেন।" },
             ].map(({ label, badge, color, text }, i) => (
-              <div key={i} style={{ padding: "18px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", gap: 14, alignItems: "flex-start" }}>
+              <div key={i} style={{ padding: "18px 24px", borderBottom: i < 3 ? "1px solid rgba(255,255,255,0.05)" : "none", display: "flex", gap: 14, alignItems: "flex-start" }}>
                 <div style={{ width: 36, height: 36, borderRadius: 10, background: `${color}18`, border: `1px solid ${color}30`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2, fontSize: 13, fontWeight: 800, color }}>{i + 1}</div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 7 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
                     <span style={{ fontSize: 13, fontWeight: 600, color }}>{label}</span>
                     {badge && <span style={{ fontSize: 10, background: `${color}18`, color, border: `1px solid ${color}30`, borderRadius: 4, padding: "2px 7px" }}>{badge}</span>}
                   </div>
@@ -993,7 +1057,8 @@ export function AiVoicePage() {
               </div>
             ))}
             <div style={{ padding: "20px 24px" }}>
-              <button onClick={createSession} style={{ width: "100%", padding: "14px 24px", background: "linear-gradient(135deg,#8b5cf6,#6d28d9)", border: "none", borderRadius: 12, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 0 30px rgba(139,92,246,0.3)", transition: "transform 0.15s" }}
+              <button onClick={createSession}
+                style={{ width: "100%", padding: "14px 24px", background: "linear-gradient(135deg,#8b5cf6,#6d28d9)", border: "none", borderRadius: 12, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 0 30px rgba(139,92,246,0.3)", transition: "transform 0.15s" }}
                 onMouseEnter={e => (e.currentTarget.style.transform = "scale(1.02)")}
                 onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)")}>
                 <Phone style={{ width: 18, height: 18 }} /> ডেমো কল শুরু করুন
