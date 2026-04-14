@@ -16,6 +16,21 @@ import { API } from "@/lib/apiUrl";
 
 const FRONTEND = typeof window !== "undefined" ? window.location.origin : "";
 
+/* Convert TTS audio URL to a path the browser can reach (via Vite proxy) */
+function toPlayableAudioUrl(url: string): string {
+  try {
+    const u = new URL(url);
+    return u.pathname; // → "/api/voice-calls/tts-cache/xxx.mp3"
+  } catch {
+    return url;
+  }
+}
+
+function playAudio(url: string) {
+  const audio = new Audio(toPlayableAudioUrl(url));
+  audio.play().catch(e => console.warn("[Audio] play failed:", e));
+}
+
 interface VoiceOption {
   key: string; label: string; action: string;
   color: "green" | "red" | "yellow" | "blue" | "purple";
