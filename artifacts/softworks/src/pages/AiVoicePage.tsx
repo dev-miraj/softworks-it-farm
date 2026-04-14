@@ -329,12 +329,25 @@ export function AiVoicePage() {
       setTimeout(() => {
         setCallState("menu");
         setAiPhase("speaking");
-        if (config) {
-          setAiText(config.welcomeText || "");
-          playAudio(config.welcomeAudioUrl, () => {
-            setAiText(config.announcementText || "");
-            setTimeout(() => playAudio(config.announcementAudioUrl, undefined, config.announcementText), 350);
-          }, config.welcomeText);
+        /* Always play — config is always set now (fallback guaranteed in createSession) */
+        const cfg = config;
+        if (cfg) {
+          const welcome = cfg.welcomeText || "আস্সালামুআলাইকুম! আমি সফটওয়ার্কস AI।";
+          const announce = cfg.announcementText || "অর্ডার কনফার্ম করতে ১ চাপুন, বাতিল করতে ২ চাপুন।";
+          setAiText(welcome);
+          playAudio(cfg.welcomeAudioUrl, () => {
+            if (announce) {
+              setAiText(announce);
+              setTimeout(() => playAudio(cfg.announcementAudioUrl, () => setAiPhase("listening"), announce), 350);
+            } else {
+              setAiPhase("listening");
+            }
+          }, welcome);
+        } else {
+          /* Ultimate fallback — no config at all */
+          const fallbackText = "আস্সালামুআলাইকুম! আমি সফটওয়ার্কস AI। অর্ডার কনফার্ম করতে ১ চাপুন, বাতিল করতে ২ চাপুন।";
+          setAiText(fallbackText);
+          speak(fallbackText, () => setAiPhase("listening"));
         }
       }, 1600);
     }, 1900);
@@ -369,7 +382,9 @@ export function AiVoicePage() {
     /* Guard: don't start if call has been ended */
     if (!liveActiveRef.current) return;
 
-    const SR = window.SpeechRecognition || (window as unknown as { webkitSpeechRecognition: typeof SpeechRecognition }).webkitSpeechRecognition;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const w = window as any;
+    const SR: new () => SpeechRecognition = w.SpeechRecognition || w.webkitSpeechRecognition;
     if (!SR) { alert("আপনার browser speech recognition সাপোর্ট করে না। Chrome ব্যবহার করুন।"); return; }
 
     const rec = new SR();
@@ -382,19 +397,21 @@ export function AiVoicePage() {
       setLiveState("user-speaking");
     };
 
-    rec.onresult = (e) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    rec.onresult = (e: any) => {
       if (!liveActiveRef.current) return;
-      const t = Array.from(e.results).map(r => r[0].transcript).join("");
+      const t = Array.from(e.results as ArrayLike<SpeechRecognitionResult>).map(r => r[0].transcript).join("");
       setLiveTranscript(t);
     };
 
     rec.onend = () => {
       /* CRITICAL: check guard FIRST before doing anything */
       if (!liveActiveRef.current) return;
-
+      /* Capture transcript synchronously via ref-like approach */
       setLiveTranscript(currentTranscript => {
         const userText = currentTranscript.trim();
         if (userText) {
+          /* Process user's speech */
           setLiveTranscript("");
           setChatLog(l => [...l, { role: "user", text: userText }]);
           setLiveState("processing");
@@ -418,15 +435,16 @@ export function AiVoicePage() {
           setLiveState("ai-speaking");
           setTimeout(() => startListening(), 500);
         }
-        return currentTranscript;
+        return currentTranscript; /* return same value — only used for side-effect read */
       });
     };
 
-    rec.onerror = (event) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    rec.onerror = (event: any) => {
       /* Guard: don't restart if user ended the call — this was the main bug */
       if (!liveActiveRef.current) return;
       /* Ignore "aborted" errors (caused by our own abort() calls) */
-      if ((event as SpeechRecognitionErrorEvent).error === "aborted") return;
+      if (event?.error === "aborted" || event?.error === "interrupted") return;
       setLiveState("ai-speaking");
       setTimeout(() => startListening(), 1000);
     };
