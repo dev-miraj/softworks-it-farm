@@ -3,10 +3,11 @@ import crypto from "node:crypto";
 import path from "node:path";
 import fs from "node:fs";
 import { db } from "../lib/db.js";
-import { voiceCallConfigsTable, voiceCallSessionsTable } from "@workspace/db";
+import { voiceCallConfigsTable, voiceCallSessionsTable, callLogsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import multer from "multer";
 import { openai, isAiEnabled } from "../lib/ai.js";
+import { emitToCall, emitToAll } from "../lib/socketManager.js";
 
 const router = Router();
 
@@ -46,6 +47,20 @@ async function getConfig() {
   return inserted;
 }
 
+async function logCallEvent(sessionId: number, token: string, event: string, extra?: {
+  keyPressed?: string; action?: string; stepIndex?: number; metadata?: unknown;
+}) {
+  try {
+    await db.insert(callLogsTable).values({
+      sessionId, token, event,
+      keyPressed: extra?.keyPressed,
+      action: extra?.action,
+      stepIndex: extra?.stepIndex,
+      metadata: extra?.metadata as any,
+    });
+  } catch { /* non-critical */ }
+}
+
 async function sendWebhook(session: typeof voiceCallSessionsTable.$inferSelect, action: string) {
   if (!session.ecommerceWebhookUrl) return null;
   try {
@@ -59,6 +74,7 @@ async function sendWebhook(session: typeof voiceCallSessionsTable.$inferSelect, 
         dtmfInput: session.dtmfInput,
         customerName: session.customerName,
         token: session.token,
+        callDurationSeconds: session.callDurationSeconds,
       }),
       signal: AbortSignal.timeout(10000),
     });
@@ -255,6 +271,12 @@ router.post("/initiate", async (req, res) => {
       })
       .returning();
 
+    await logCallEvent(session.id, token, "session_created", {
+      metadata: { orderId, customerPhone, orderAmount },
+    });
+
+    emitToAll("call:new_session", { token, orderId, customerName, customerPhone, orderAmount });
+
     const frontendUrl = process.env["PUBLIC_FRONTEND_URL"] || "";
     const callUrl = `${frontendUrl}/call/${token}`;
 
@@ -282,6 +304,28 @@ router.get("/session/:token", async (req, res) => {
   }
 });
 
+router.post("/session/:token/connected", async (req, res) => {
+  try {
+    const [session] = await db
+      .select()
+      .from(voiceCallSessionsTable)
+      .where(eq(voiceCallSessionsTable.token, req.params.token));
+    if (!session) return res.status(404).json({ error: "Session not found" });
+
+    const now = new Date();
+    await db.update(voiceCallSessionsTable)
+      .set({ callStartedAt: now, status: "active", updatedAt: now })
+      .where(eq(voiceCallSessionsTable.token, req.params.token));
+
+    await logCallEvent(session.id, req.params.token, "call_connected");
+    emitToAll("call:connected", { token: req.params.token, orderId: session.orderId });
+
+    res.json({ ok: true });
+  } catch {
+    res.status(500).json({ error: "Failed to mark connected" });
+  }
+});
+
 router.post("/session/:token/respond", async (req, res) => {
   try {
     const { dtmf } = req.body as { dtmf: string };
@@ -299,11 +343,30 @@ router.post("/session/:token/respond", async (req, res) => {
     const matchedOption = options.find((o: any) => o.key === dtmf && o.enabled !== false);
     const action = matchedOption?.action || `key_${dtmf}`;
 
+    const now = new Date();
+    const startedAt = session.callStartedAt ? new Date(session.callStartedAt) : new Date(session.createdAt!);
+    const durationSeconds = Math.round((now.getTime() - startedAt.getTime()) / 1000);
+
     const [updated] = await db
       .update(voiceCallSessionsTable)
-      .set({ dtmfInput: dtmf, actionTaken: action, status: "completed", updatedAt: new Date() })
+      .set({
+        dtmfInput: dtmf, actionTaken: action, status: "completed",
+        callEndedAt: now, callDurationSeconds: durationSeconds,
+        updatedAt: now,
+      })
       .where(eq(voiceCallSessionsTable.token, req.params.token))
       .returning();
+
+    await logCallEvent(session.id, req.params.token, "key_pressed", {
+      keyPressed: dtmf, action, metadata: { durationSeconds },
+    });
+
+    emitToCall(req.params.token, "call:responded", {
+      token: req.params.token, dtmf, action, orderId: session.orderId, durationSeconds,
+    });
+    emitToAll("call:completed", {
+      token: req.params.token, action, orderId: session.orderId, customerName: session.customerName,
+    });
 
     const webhookResult = await sendWebhook(updated, action);
     if (webhookResult) {
@@ -316,6 +379,97 @@ router.post("/session/:token/respond", async (req, res) => {
   } catch (e) {
     console.error("Respond error:", e);
     res.status(500).json({ error: "Failed to process response" });
+  }
+});
+
+router.post("/session/:token/end", async (req, res) => {
+  try {
+    const [session] = await db
+      .select()
+      .from(voiceCallSessionsTable)
+      .where(eq(voiceCallSessionsTable.token, req.params.token));
+    if (!session) return res.status(404).json({ error: "Session not found" });
+
+    const now = new Date();
+    const startedAt = session.callStartedAt ? new Date(session.callStartedAt) : new Date(session.createdAt!);
+    const durationSeconds = Math.round((now.getTime() - startedAt.getTime()) / 1000);
+
+    await db.update(voiceCallSessionsTable)
+      .set({ callEndedAt: now, callDurationSeconds: durationSeconds, updatedAt: now })
+      .where(eq(voiceCallSessionsTable.token, req.params.token));
+
+    await logCallEvent(session.id, req.params.token, "call_ended", {
+      metadata: { durationSeconds, reason: req.body.reason || "user_ended" },
+    });
+    emitToCall(req.params.token, "call:ended", { token: req.params.token });
+
+    res.json({ ok: true, durationSeconds });
+  } catch {
+    res.status(500).json({ error: "Failed to end call" });
+  }
+});
+
+router.get("/logs/:token", async (req, res) => {
+  try {
+    const logs = await db
+      .select()
+      .from(callLogsTable)
+      .where(eq(callLogsTable.token, req.params.token))
+      .orderBy(callLogsTable.createdAt);
+    res.json(logs);
+  } catch {
+    res.status(500).json({ error: "Failed to get logs" });
+  }
+});
+
+router.get("/analytics", async (_req, res) => {
+  try {
+    const sessions = await db.select().from(voiceCallSessionsTable);
+    const logs = await db.select().from(callLogsTable);
+
+    const total = sessions.length;
+    const confirmed = sessions.filter(s => s.actionTaken === "confirmed").length;
+    const cancelled = sessions.filter(s => s.actionTaken === "cancelled").length;
+    const pending = sessions.filter(s => s.status === "pending").length;
+    const active = sessions.filter(s => s.status === "active").length;
+    const conversionRate = total > 0 ? Math.round((confirmed / total) * 100) : 0;
+
+    const withDuration = sessions.filter(s => s.callDurationSeconds != null && s.callDurationSeconds! > 0);
+    const avgDuration = withDuration.length > 0
+      ? Math.round(withDuration.reduce((sum, s) => sum + (s.callDurationSeconds || 0), 0) / withDuration.length)
+      : 0;
+
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const todayCount = sessions.filter(s => new Date(s.createdAt!) >= today).length;
+    const todayConfirmed = sessions.filter(s => new Date(s.createdAt!) >= today && s.actionTaken === "confirmed").length;
+
+    const keyPressLogs = logs.filter(l => l.event === "key_pressed");
+    const keyDistribution: Record<string, number> = {};
+    for (const log of keyPressLogs) {
+      if (log.keyPressed) keyDistribution[log.keyPressed] = (keyDistribution[log.keyPressed] || 0) + 1;
+    }
+
+    const last7Days = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(); d.setDate(d.getDate() - i); d.setHours(0, 0, 0, 0);
+      const end = new Date(d); end.setDate(end.getDate() + 1);
+      const daySessions = sessions.filter(s => {
+        const t = new Date(s.createdAt!);
+        return t >= d && t < end;
+      });
+      return {
+        date: d.toISOString().split("T")[0],
+        total: daySessions.length,
+        confirmed: daySessions.filter(s => s.actionTaken === "confirmed").length,
+        cancelled: daySessions.filter(s => s.actionTaken === "cancelled").length,
+      };
+    }).reverse();
+
+    res.json({
+      total, confirmed, cancelled, pending, active, conversionRate,
+      avgDuration, todayCount, todayConfirmed, keyDistribution, last7Days,
+    });
+  } catch {
+    res.status(500).json({ error: "Failed to get analytics" });
   }
 });
 
