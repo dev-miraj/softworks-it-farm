@@ -10,6 +10,7 @@ import { preprocessText } from "./preprocessor.js";
 import {
   buildSSML, resolveVoiceName, detectEmotion,
   type Emotion, type VoiceLanguage, type VoiceGender,
+  EMOTION_CONFIGS,
 } from "./emotionEngine.js";
 import {
   makeCacheKey, getCachedAudio, cacheAudio, getCacheDirUrl,

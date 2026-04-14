@@ -3,6 +3,7 @@
  * Converts raw text → clean, pronounceable speech text
  * Supports: Bangla, English, Banglish (mixed)
  */
+import crypto from "crypto";
 
 /* ─── Bangla digit map ─────────────────────────── */
 const BN_DIGITS: Record<string, string> = {
@@ -177,7 +178,6 @@ export function preprocessText(raw: string): PreprocessedText {
 
 /* ─── Cache-key generator ─── */
 export function textToKey(text: string, voiceName: string, emotion: string): string {
-  const crypto = require("crypto");
   const hash = crypto.createHash("md5").update(`${text}::${voiceName}::${emotion}`).digest("hex");
   return hash;
 }
