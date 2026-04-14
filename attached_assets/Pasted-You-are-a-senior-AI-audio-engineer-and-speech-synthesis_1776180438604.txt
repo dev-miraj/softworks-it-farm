@@ -1,0 +1,178 @@
+You are a senior AI audio engineer and speech synthesis expert.
+
+Your task is to build a **Human-Level AI Voice System (Text-to-Speech)** for a real-time calling platform.
+
+⚠️ IMPORTANT:
+
+* Voice must sound natural like a real human (NOT robotic)
+* Must support emotion, pauses, tone variation
+* Must work in real-time calling system
+* Should be self-hosted (no dependency on external APIs)
+
+---
+
+# 🎯 GOAL
+
+Convert text into ultra-realistic speech with:
+
+* Natural pronunciation
+* Emotion (happy, serious, polite)
+* Dynamic pauses
+* Context-aware speaking
+
+---
+
+# 🧠 SYSTEM DESIGN
+
+Build a multi-layer voice system:
+
+1. Text Preprocessing Engine
+2. Prosody & Emotion Engine
+3. Neural TTS Engine
+4. Audio Post-processing Engine
+5. Voice Profile System
+
+---
+
+# 🔤 1. TEXT PREPROCESSING (VERY IMPORTANT)
+
+Before TTS:
+
+* Fix grammar
+* Expand abbreviations
+* Normalize numbers
+
+Example:
+"Order ID 123, Tk 1500"
+→ "Your order number one two three. Total amount fifteen hundred taka."
+
+---
+
+# 🧠 2. PROSODY ENGINE (NATURAL FLOW)
+
+Add speech control:
+
+* Pauses:
+  , → short pause
+  . → long pause
+
+* Emphasis:
+  Important words louder/slower
+
+* Tone:
+  polite, urgent, friendly
+
+---
+
+# 🎭 3. EMOTION ENGINE
+
+Support emotions:
+
+* neutral
+* happy
+* polite
+* urgent
+* apology
+
+Example config:
+
+{
+"emotion": "polite",
+"speed": 0.95,
+"pitch": 1.05
+}
+
+---
+
+# 🔊 4. NEURAL TTS ENGINE
+
+Use open-source models:
+
+* Coqui TTS (recommended)
+* Piper TTS (fast)
+* VITS-based models
+
+Must support:
+
+* multi-speaker voices
+* high-quality audio (22kHz+)
+
+---
+
+# 🧑‍🎤 5. VOICE PROFILE SYSTEM
+
+Admin can select:
+
+* Male / Female
+* Accent
+* Emotion
+
+Example:
+
+{
+"voice": "female_1",
+"style": "friendly",
+"language": "bn-en"
+}
+
+---
+
+# 🎵 6. AUDIO POST-PROCESSING
+
+Improve output:
+
+* Noise reduction
+* Normalize volume
+* Add slight reverb (natural feel)
+* Remove robotic artifacts
+
+---
+
+# ⚡ 7. REAL-TIME OPTIMIZATION
+
+* Pre-generate common phrases
+* Cache audio files
+* Stream audio in chunks
+
+---
+
+# 🌐 8. MULTI-LANGUAGE SUPPORT
+
+* Bangla
+* English
+* Mixed (Banglish)
+
+---
+
+# 🧪 9. TESTING
+
+Ensure:
+
+* No robotic tone
+* Clear pronunciation
+* Natural pauses
+
+---
+
+# 🎯 FINAL RESULT
+
+Voice should sound like:
+
+* Real call center agent
+* Smooth, emotional, human-like
+* No robotic artifacts
+
+---
+
+# ✅ OUTPUT EXPECTATION
+
+Provide:
+
+1. TTS engine setup (Coqui/Piper)
+2. Text preprocessing logic
+3. Emotion + prosody system
+4. Voice config system
+5. Integration with calling system
+6. Real-time streaming strategy
+
+Build step-by-step.
