@@ -19,7 +19,14 @@ interface CallSession {
   webhookSent: boolean; webhookResponse: string | null;
   ecommerceWebhookUrl: string | null; ecommerceSiteUrl: string | null;
   products: Array<{ name: string; price: number; quantity: number; deliveryDays?: number }> | null;
+  adminNotes: string | null;
+  agentTransferAt: string | null;
   createdAt: string; expiresAt: string; updatedAt: string;
+}
+
+interface CallLog {
+  id: number; event: string; keyPressed: string | null; action: string | null;
+  metadata: unknown; createdAt: string;
 }
 
 interface Stats {
