@@ -31,6 +31,7 @@ import systemRouter from "./systemRoutes";
 import tenantsRouter from "./tenants";
 import adminSecurityRouter from "./adminSecurity";
 import adminUsersRouter from "./adminUsers";
+import paymentsRouter from "./payments";
 
 const router: IRouter = Router();
 
@@ -66,5 +67,6 @@ router.use(systemRouter);
 router.use(tenantsRouter);
 router.use(adminSecurityRouter);
 router.use(adminUsersRouter);
+router.use(paymentsRouter);
 
 export default router;

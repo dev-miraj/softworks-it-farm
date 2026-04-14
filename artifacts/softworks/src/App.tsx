@@ -48,6 +48,10 @@ import { VoiceCallsPage } from "@/pages/admin/VoiceCallsPage";
 import { VoiceCallConfigPage } from "@/pages/admin/VoiceCallConfigPage";
 import { VoiceCallApiDocsPage } from "@/pages/admin/VoiceCallApiDocsPage";
 import { VoiceAnalyticsPage } from "@/pages/admin/VoiceAnalyticsPage";
+import { FeatureFlagsAdminPage } from "@/pages/admin/FeatureFlagsAdminPage";
+import { SubscriptionsAdminPage } from "@/pages/admin/SubscriptionsAdminPage";
+import { TenantsAdminPage } from "@/pages/admin/TenantsAdminPage";
+import { SystemStatusPage } from "@/pages/admin/SystemStatusPage";
 import { CallPage } from "@/pages/CallPage";
 import { AiVoicePage } from "@/pages/AiVoicePage";
 import { CareersPage } from "@/pages/CareersPage";
@@ -150,6 +154,10 @@ function Router() {
       <Route path="/admin/voice-call-config"><AdminRoute component={VoiceCallConfigPage} /></Route>
       <Route path="/admin/voice-call-api-docs"><AdminRoute component={VoiceCallApiDocsPage} /></Route>
       <Route path="/admin/voice-analytics"><AdminRoute component={VoiceAnalyticsPage} /></Route>
+      <Route path="/admin/feature-flags"><AdminRoute component={FeatureFlagsAdminPage} /></Route>
+      <Route path="/admin/subscriptions"><AdminRoute component={SubscriptionsAdminPage} /></Route>
+      <Route path="/admin/tenants"><AdminRoute component={TenantsAdminPage} /></Route>
+      <Route path="/admin/system-status"><AdminRoute component={SystemStatusPage} /></Route>
       <Route path="/call/:token" component={CallPage} />
       <Route path="/ai-voice" component={AiVoicePage} />
 
