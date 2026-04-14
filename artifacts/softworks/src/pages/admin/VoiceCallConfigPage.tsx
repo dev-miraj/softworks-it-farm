@@ -460,12 +460,12 @@ export function VoiceCallConfigPage() {
     <AdminLayout>
       <div className="p-6 max-w-4xl">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center">
-            <Phone className="w-5 h-5 text-indigo-400" />
+          <div className="w-10 h-10 rounded-xl bg-teal-500/15 border border-teal-400/25 flex items-center justify-center">
+            <Phone className="w-5 h-5 text-teal-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Call Configuration</h1>
-            <p className="text-white/40 text-sm">Configure voices, key options, and messages</p>
+            <h1 className="text-2xl font-bold text-foreground">Call Configuration</h1>
+            <p className="text-muted-foreground text-sm">Configure voices, key options, and messages</p>
           </div>
         </div>
 

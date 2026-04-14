@@ -529,11 +529,11 @@ export function VoiceCallsPage() {
         {/* Header */}
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
-            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
               <PhoneIncoming className="w-6 h-6 text-teal-400" />
               Voice Call Sessions
             </h1>
-            <p className="text-white/40 text-sm mt-1">Auto-calling system for order confirmations</p>
+            <p className="text-muted-foreground text-sm mt-1">Auto-calling system for order confirmations</p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             {/* Auto-refresh toggle */}
