@@ -1,15 +1,21 @@
 import "dotenv/config";
+import { createServer } from "http";
 import { validateEnv } from "./lib/env.js";
 import { logger } from "./lib/logger.js";
 import { startWorker, stopWorker } from "./lib/queue.js";
 import { setupGracefulShutdown } from "./lib/gracefulShutdown.js";
 import { getPool } from "./lib/db.js";
+import { initSocket } from "./lib/socketManager.js";
 
 const config = validateEnv();
 
 import app from "./app.js";
 
-const server = app.listen(config.PORT, (err?: Error) => {
+const httpServer = createServer(app);
+
+initSocket(httpServer);
+
+const server = httpServer.listen(config.PORT, (err?: Error) => {
   if (err) {
     logger.error({ err }, "Error starting server");
     process.exit(1);
