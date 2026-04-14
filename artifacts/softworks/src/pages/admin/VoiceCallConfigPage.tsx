@@ -990,7 +990,7 @@ export function VoiceCallConfigPage() {
                       </p>
                       <p className="text-white/30 text-xs mt-0.5">{config.ttsEmotion} · {config.ttsLanguage}</p>
                     </div>
-                    <button onClick={() => setActiveTab("aivoice")}
+                    <button onClick={() => setActiveTab("voice")}
                       className="text-teal-400 text-xs border border-teal-500/30 px-3 py-1.5 rounded-lg hover:bg-teal-500/10 transition">
                       পরিবর্তন করুন →
                     </button>
