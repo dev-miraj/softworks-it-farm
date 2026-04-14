@@ -3,6 +3,7 @@ import { createServer } from "http";
 import { validateEnv } from "./lib/env.js";
 import { logger } from "./lib/logger.js";
 import { startWorker, stopWorker } from "./lib/queue.js";
+import { registerAllHandlers } from "./lib/jobHandlers.js";
 import { setupGracefulShutdown } from "./lib/gracefulShutdown.js";
 import { getPool } from "./lib/db.js";
 import { initSocket } from "./lib/socketManager.js";
@@ -23,6 +24,7 @@ const server = httpServer.listen(config.PORT, (err?: Error) => {
   logger.info({ port: config.PORT, env: config.NODE_ENV }, "Server listening");
 
   if (config.NODE_ENV !== "test") {
+    registerAllHandlers();
     startWorker();
   }
 });
