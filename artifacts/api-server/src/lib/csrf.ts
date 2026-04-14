@@ -71,6 +71,8 @@ const SKIP_PATHS = new Set([
   "/api/voice-calls/initiate",
   "/api/voice-calls/upload-audio",
   "/api/voice-calls/tts",
+  "/api/voice-calls/tts/preview",
+  "/api/voice-calls/tts/cache-stats",
   "/api/voice-calls/test-webhook",
   "/api/payments/sslcommerz/ipn",
   "/api/payments/stripe/webhook",

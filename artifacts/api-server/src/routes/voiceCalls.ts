@@ -142,35 +142,93 @@ router.get("/audio/:filename", (req, res) => {
   res.sendFile(filePath);
 });
 
+/* ── TTS CACHE SERVING ──────────────────────────── */
+router.get("/tts-cache/:key.mp3", (req, res) => {
+  try {
+    const { serveCachedFile } = require("../lib/tts/audioCache.js");
+    const buf: Buffer | null = serveCachedFile(req.params.key);
+    if (!buf) return res.status(404).json({ error: "Not found" });
+    res.setHeader("Content-Type", "audio/mpeg");
+    res.setHeader("Cache-Control", "public, max-age=86400");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.send(buf);
+  } catch {
+    res.status(500).json({ error: "Cache read error" });
+  }
+});
+
+/* ── NEURAL TTS ──────────────────────────────────── */
 router.post("/tts", async (req, res) => {
-  const { text, voice = "nova" } = req.body as { text: string; voice?: string };
+  const {
+    text,
+    voice,
+    gender,
+    emotion,
+    language,
+  } = req.body as {
+    text: string;
+    voice?: string;
+    gender?: string;
+    emotion?: string;
+    language?: string;
+  };
+
   if (!text?.trim()) return res.status(400).json({ error: "text is required" });
 
-  if (!isAiEnabled() || !openai) {
-    return res.json({ url: null, text, useBrowserTts: true, voice });
-  }
+  const base = getApiBase(req as any);
 
   try {
-    const validVoices = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"];
-    const selectedVoice = validVoices.includes(voice) ? voice : "nova";
+    const { synthesize } = await import("../lib/tts/synthesizer.js");
+    const cfg = await getConfig();
 
-    const mp3 = await openai.audio.speech.create({
-      model: "tts-1-hd",
-      voice: selectedVoice as "nova" | "alloy" | "echo" | "fable" | "onyx" | "shimmer",
-      input: text,
+    const result = await synthesize({
+      text,
+      voiceName: voice || cfg.ttsVoice || "bn-BD-NabanitaNeural",
+      gender: (gender || cfg.ttsGender || "female") as "female" | "male",
+      emotion: (emotion || cfg.ttsEmotion || "polite") as any,
+      language: (language || cfg.ttsLanguage || "bn-BD") as any,
+      baseUrl: base,
+      useCache: true,
     });
 
-    const filename = `tts-${Date.now()}-${crypto.randomBytes(4).toString("hex")}.mp3`;
-    const filePath = path.join(UPLOADS_DIR, filename);
-    const buffer = Buffer.from(await mp3.arrayBuffer());
-    fs.writeFileSync(filePath, buffer);
-
-    const base = getApiBase(req as any);
-    const url = `${base}/api/voice-calls/audio/${filename}`;
-    res.json({ url, filename, useBrowserTts: false });
+    return res.json({
+      url: result.url,
+      filename: result.filename,
+      useBrowserTts: result.useBrowserTts,
+      voice: result.voice,
+      emotion: result.emotion,
+      cached: result.cached,
+      processedText: result.processedText,
+      text,
+    });
   } catch (e) {
-    console.error("TTS error:", e);
-    res.json({ url: null, text, useBrowserTts: true, voice });
+    console.error("[TTS] Synthesis error:", e);
+    return res.json({ url: null, text, useBrowserTts: true, voice: voice || "bn-BD-NabanitaNeural" });
+  }
+});
+
+/* ── TTS PREPROCESS PREVIEW ─────────────────────── */
+router.post("/tts/preview", async (req, res) => {
+  const { text } = req.body as { text: string };
+  if (!text?.trim()) return res.status(400).json({ error: "text is required" });
+  try {
+    const { preprocessText } = await import("../lib/tts/preprocessor.js");
+    const { detectEmotion } = await import("../lib/tts/emotionEngine.js");
+    const result = preprocessText(text);
+    const emotion = detectEmotion(result.processed);
+    res.json({ ...result, detectedEmotion: emotion });
+  } catch (e) {
+    res.status(500).json({ error: "Preview failed" });
+  }
+});
+
+/* ── TTS CACHE STATS ─────────────────────────────── */
+router.get("/tts/cache-stats", async (_req, res) => {
+  try {
+    const { getCacheStats } = await import("../lib/tts/audioCache.js");
+    res.json(getCacheStats());
+  } catch {
+    res.status(500).json({ error: "Failed" });
   }
 });
 
@@ -188,7 +246,8 @@ router.put("/config", async (req, res) => {
     const cfg = await getConfig();
     const allowed = [
       "companyName", "logoUrl", "welcomeText", "announcementText",
-      "options", "ttsVoice", "sessionExpiryMinutes", "enabled",
+      "options", "ttsVoice", "ttsGender", "ttsEmotion", "ttsLanguage", "ttsStyle",
+      "sessionExpiryMinutes", "enabled",
     ] as const;
     const update: Record<string, unknown> = { updatedAt: new Date() };
     for (const k of allowed) {
