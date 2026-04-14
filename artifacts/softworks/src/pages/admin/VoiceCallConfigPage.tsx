@@ -158,14 +158,14 @@ function AudioRow({ label, desc, audioUrl, fieldKey, onUpdated, csrfFetch }: {
           <p className="text-white/40 text-xs mt-0.5">{desc}</p>
         </div>
         {audioUrl && (
-          <button onClick={() => new Audio(audioUrl).play()}
+          <button onClick={() => playAudio(audioUrl)}
             className="p-2 rounded-xl bg-indigo-500/20 hover:bg-indigo-500/30 transition shrink-0 ml-2 border border-indigo-400/20">
             <Play className="w-3.5 h-3.5 text-indigo-400" />
           </button>
         )}
       </div>
       {audioUrl ? (
-        <audio controls src={audioUrl} className="w-full h-9 rounded-lg" />
+        <audio controls src={toPlayableAudioUrl(audioUrl)} className="w-full h-9 rounded-lg" />
       ) : (
         <div className="border border-dashed border-white/15 rounded-xl py-4 text-center">
           <Volume2 className="w-5 h-5 text-white/15 mx-auto mb-1.5" />
@@ -571,7 +571,7 @@ function VoiceProfilePanel({
       });
       const d = await r.json();
       if (d.url) {
-        new Audio(d.url).play();
+        playAudio(d.url);
         toast({ title: "🔊 Neural Voice Playing", description: `Voice: ${d.voice} | Emotion: ${d.emotion} | Cached: ${d.cached}` });
       } else if (d.useBrowserTts) {
         const utt = new SpeechSynthesisUtterance(d.processedText || testText);
