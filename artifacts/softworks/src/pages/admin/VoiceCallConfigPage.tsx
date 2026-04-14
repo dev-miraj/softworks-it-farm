@@ -4,7 +4,8 @@ import {
   Phone, Upload, Save, Settings, Volume2, Link2, CheckCircle2, Copy,
   Loader2, Play, Plus, Trash2, Sparkles, Wand2, Mic, MicOff, Globe,
   Webhook, RefreshCw, Clock, BarChart3, AlertCircle, ChevronDown, ChevronUp,
-  ToggleLeft, ToggleRight, Info, Zap, Shield,
+  ToggleLeft, ToggleRight, Info, Zap, Shield, Bot, Music, Users,
+  FlaskConical, Activity, ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +26,7 @@ interface VoiceConfig {
   welcomeAudioUrl: string | null; welcomeText: string;
   announcementAudioUrl: string | null; announcementText: string;
   options: VoiceOption[]; ttsVoice: string;
+  ttsGender: string; ttsEmotion: string; ttsLanguage: string; ttsStyle: string;
   sessionExpiryMinutes: number; enabled: boolean;
   webhookSecret?: string;
 }
@@ -528,6 +530,10 @@ export function VoiceCallConfigPage() {
           announcementText: config.announcementText,
           options: config.options,
           ttsVoice: config.ttsVoice,
+          ttsGender: config.ttsGender,
+          ttsEmotion: config.ttsEmotion,
+          ttsLanguage: config.ttsLanguage,
+          ttsStyle: config.ttsStyle,
           sessionExpiryMinutes: config.sessionExpiryMinutes,
           enabled: config.enabled,
         }),
