@@ -234,6 +234,8 @@ export function AiVoicePage() {
   const [liveTranscript, setLiveTranscript] = useState("");
   const recognRef = useRef<SpeechRecognition | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  /* Guard flag — set false BEFORE abort() so handlers don't restart */
+  const liveActiveRef = useRef(false);
 
   function stopAudio() {
     audioRef.current?.pause(); audioRef.current = null;
@@ -336,63 +338,110 @@ export function AiVoicePage() {
 
   /* ─── Live Voice Call logic ─── */
   function startListening() {
+    /* Guard: don't start if call has been ended */
+    if (!liveActiveRef.current) return;
+
     const SR = window.SpeechRecognition || (window as unknown as { webkitSpeechRecognition: typeof SpeechRecognition }).webkitSpeechRecognition;
     if (!SR) { alert("আপনার browser speech recognition সাপোর্ট করে না। Chrome ব্যবহার করুন।"); return; }
+
     const rec = new SR();
     rec.lang = "bn-BD,bn,en-US";
     rec.interimResults = true;
     rec.continuous = false;
-    rec.onstart = () => setLiveState("user-speaking");
+
+    rec.onstart = () => {
+      if (!liveActiveRef.current) { try { rec.abort(); } catch {} return; }
+      setLiveState("user-speaking");
+    };
+
     rec.onresult = (e) => {
+      if (!liveActiveRef.current) return;
       const t = Array.from(e.results).map(r => r[0].transcript).join("");
       setLiveTranscript(t);
     };
+
     rec.onend = () => {
-      setLiveTranscript(t => {
-        if (t.trim()) {
-          const userText = t;
+      /* CRITICAL: check guard FIRST before doing anything */
+      if (!liveActiveRef.current) return;
+
+      setLiveTranscript(currentTranscript => {
+        const userText = currentTranscript.trim();
+        if (userText) {
           setLiveTranscript("");
           setChatLog(l => [...l, { role: "user", text: userText }]);
           setLiveState("processing");
           setTimeout(() => {
+            if (!liveActiveRef.current) return;
             const reply = getAiResponse(userText);
             setChatLog(l => [...l, { role: "ai", text: reply }]);
             setLiveState("ai-speaking");
             speak(reply, () => {
-              if (reply.includes("হাফেজ") || reply.includes("goodbye")) { setLiveState("done"); return; }
+              if (!liveActiveRef.current) return;
+              if (reply.includes("হাফেজ") || reply.includes("goodbye")) {
+                liveActiveRef.current = false;
+                setLiveState("done");
+                return;
+              }
               setTimeout(() => startListening(), 700);
             });
           }, 600);
         } else {
+          if (!liveActiveRef.current) return;
           setLiveState("ai-speaking");
-          startListening();
+          setTimeout(() => startListening(), 500);
         }
-        return t;
+        return currentTranscript;
       });
     };
-    rec.onerror = () => { setLiveState("ai-speaking"); setTimeout(() => startListening(), 1000); };
+
+    rec.onerror = (event) => {
+      /* Guard: don't restart if user ended the call — this was the main bug */
+      if (!liveActiveRef.current) return;
+      /* Ignore "aborted" errors (caused by our own abort() calls) */
+      if ((event as SpeechRecognitionErrorEvent).error === "aborted") return;
+      setLiveState("ai-speaking");
+      setTimeout(() => startListening(), 1000);
+    };
+
     recognRef.current = rec;
     rec.start();
   }
 
   function startLiveCall() {
+    liveActiveRef.current = true;
     setChatLog([]); setLiveTranscript("");
     setLiveState("connecting");
     setTimeout(() => {
+      if (!liveActiveRef.current) return;
       setLiveState("ai-speaking");
       setChatLog([{ role: "ai", text: AI_GREET }]);
-      speak(AI_GREET, () => { startListening(); });
+      speak(AI_GREET, () => {
+        if (liveActiveRef.current) startListening();
+      });
     }, 2000);
   }
 
   function endLiveCall(e?: React.MouseEvent | React.PointerEvent) {
     e?.stopPropagation();
     e?.preventDefault();
+    /* Set guard to false FIRST — this prevents onerror/onend from restarting */
+    liveActiveRef.current = false;
+    /* Stop speech synthesis */
     try { window.speechSynthesis?.cancel(); } catch {}
-    try { recognRef.current?.abort(); recognRef.current = null; } catch {}
+    /* Abort recognition — onerror will fire but guard check will prevent restart */
+    try {
+      const rec = recognRef.current;
+      recognRef.current = null;
+      rec?.abort();
+    } catch {}
+    /* Show done screen */
+    setLiveTranscript("");
+    setLiveState("done");
+  }
+
+  function closeLiveDone() {
     setLiveState("idle");
     setChatLog([]);
-    setLiveTranscript("");
   }
 
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [chatLog]);
@@ -402,7 +451,8 @@ export function AiVoicePage() {
   const confirmOpt = opts.find(o => o.action === "confirmed");
   const cancelOpt = opts.find(o => o.action === "cancelled");
   const isCallActive = !["idle", "creating"].includes(callState);
-  const liveActive = !["idle", "done"].includes(liveState);
+  /* "done" also shows overlay so user sees the success/ended screen */
+  const liveActive = liveState !== "idle";
 
   return (
     <>
