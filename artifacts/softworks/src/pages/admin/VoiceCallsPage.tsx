@@ -623,8 +623,9 @@ export function VoiceCallsPage() {
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1">
+        <div className="flex flex-col gap-3">
+          {/* Search */}
+          <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
             <Input
               placeholder="Search by order, name, phone..."
@@ -633,24 +634,27 @@ export function VoiceCallsPage() {
               className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-white/20"
             />
           </div>
-          {/* Status filter */}
-          <div className="flex gap-2">
-            {(["all", "confirmed", "cancelled", "pending"] as const).map(f => (
-              <button key={f} onClick={() => setFilter(f)}
-                className={`px-3 py-2 rounded-lg text-xs font-medium capitalize transition-all ${filter === f ? "bg-teal-500/20 text-teal-300 border border-teal-400/30" : "bg-white/5 text-white/40 border border-white/10 hover:bg-white/10"}`}>
-                {f} <span className="opacity-50">({filterCounts[f]})</span>
-              </button>
-            ))}
-          </div>
-          {/* Date filter */}
-          <div className="flex gap-1.5 items-center">
-            <Calendar className="w-3.5 h-3.5 text-white/30 flex-shrink-0" />
-            {(["today", "week", "all"] as const).map(d => (
-              <button key={d} onClick={() => setDateFilter(d)}
-                className={`px-2.5 py-2 rounded-lg text-xs font-medium transition-all ${dateFilter === d ? "bg-white/15 text-white border border-white/20" : "text-white/30 hover:text-white/50"}`}>
-                {d === "today" ? "Today" : d === "week" ? "7 Days" : "All"}
-              </button>
-            ))}
+          {/* Status + date filters on one row (scrollable on mobile) */}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex gap-1.5 overflow-x-auto pb-0.5 flex-1 min-w-0 scrollbar-none">
+              {(["all", "confirmed", "cancelled", "pending"] as const).map(f => (
+                <button key={f} onClick={() => setFilter(f)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-all whitespace-nowrap flex-shrink-0 ${filter === f ? "bg-teal-500/20 text-teal-300 border border-teal-400/30" : "bg-white/5 text-white/40 border border-white/10 hover:bg-white/10"}`}>
+                  {f === "all" ? "All" : f.charAt(0).toUpperCase() + f.slice(1)}{" "}
+                  <span className="opacity-60">({filterCounts[f]})</span>
+                </button>
+              ))}
+            </div>
+            {/* Date filter */}
+            <div className="flex gap-1 items-center flex-shrink-0">
+              <Calendar className="w-3.5 h-3.5 text-white/30 flex-shrink-0" />
+              {(["today", "week", "all"] as const).map(d => (
+                <button key={d} onClick={() => setDateFilter(d)}
+                  className={`px-2 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${dateFilter === d ? "bg-white/15 text-white border border-white/20" : "text-white/30 hover:text-white/50"}`}>
+                  {d === "today" ? "Today" : d === "week" ? "7d" : "All"}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -669,7 +673,7 @@ export function VoiceCallsPage() {
           </div>
         )}
 
-        {/* Sessions table */}
+        {/* Sessions list */}
         <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center py-20">
@@ -685,8 +689,9 @@ export function VoiceCallsPage() {
             </div>
           ) : (
             <div className="divide-y divide-white/5">
-              {/* Header */}
-              <div className="grid grid-cols-[auto_1fr_1fr_1fr_auto_auto] gap-4 px-5 py-3 text-white/25 text-xs uppercase tracking-wider">
+
+              {/* ── Desktop table header (hidden on mobile) ── */}
+              <div className="hidden md:grid md:grid-cols-[auto_1fr_auto_auto_auto_auto] gap-4 px-5 py-3 text-white/25 text-xs uppercase tracking-wider">
                 <input type="checkbox"
                   checked={selectedIds.size > 0 && selectedIds.size === filtered.length}
                   onChange={toggleSelectAll}
@@ -697,61 +702,103 @@ export function VoiceCallsPage() {
                 <div>Created</div>
                 <div>Actions</div>
               </div>
+
               {filtered.map(s => {
                 const callUrl = `${FRONTEND}/call/${s.token}`;
                 const isExp = new Date() > new Date(s.expiresAt);
                 return (
                   <div key={s.id}
-                    className={`grid grid-cols-[auto_1fr_1fr_1fr_auto_auto] gap-4 px-5 py-4 items-center hover:bg-white/3 transition-colors cursor-pointer ${selectedIds.has(s.id) ? "bg-teal-500/5" : ""}`}
+                    className={`transition-colors cursor-pointer ${selectedIds.has(s.id) ? "bg-teal-500/5" : "hover:bg-white/[0.03]"}`}
                     onClick={e => {
                       if ((e.target as HTMLElement).closest("button, a, input")) return;
                       setSelectedSession(s);
                     }}>
-                    <input type="checkbox"
-                      checked={selectedIds.has(s.id)}
-                      onChange={() => toggleSelect(s.id)}
-                      onClick={e => e.stopPropagation()}
-                      className="w-4 h-4 rounded accent-teal-500 cursor-pointer" />
-                    <div className="min-w-0">
-                      <p className="text-white font-medium text-sm truncate">#{s.orderId}</p>
-                      {s.customerName && <p className="text-white/40 text-xs truncate">{s.customerName}</p>}
-                      {s.customerPhone && <p className="text-white/30 text-xs font-mono">{s.customerPhone}</p>}
+
+                    {/* ── Desktop row ── */}
+                    <div className="hidden md:grid md:grid-cols-[auto_1fr_auto_auto_auto_auto] gap-4 px-5 py-4 items-center">
+                      <input type="checkbox"
+                        checked={selectedIds.has(s.id)}
+                        onChange={() => toggleSelect(s.id)}
+                        onClick={e => e.stopPropagation()}
+                        className="w-4 h-4 rounded accent-teal-500 cursor-pointer" />
+                      <div className="min-w-0">
+                        <p className="text-white font-medium text-sm truncate">#{s.orderId}</p>
+                        {s.customerName && <p className="text-white/40 text-xs truncate">{s.customerName}</p>}
+                        {s.customerPhone && <p className="text-white/30 text-xs font-mono">{s.customerPhone}</p>}
+                      </div>
+                      <div className="text-right">
+                        <p className="text-white/70 text-sm whitespace-nowrap">{s.orderAmount || "—"}</p>
+                        {s.webhookSent && <span className="text-[10px] text-emerald-400/60">webhook ✓</span>}
+                      </div>
+                      <div>
+                        <StatusBadge status={s.status} action={s.actionTaken} expiresAt={s.expiresAt} />
+                      </div>
+                      <div className="text-white/30 text-xs whitespace-nowrap">
+                        {new Date(s.createdAt).toLocaleDateString()}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button onClick={e => { e.stopPropagation(); setSelectedSession(s); }}
+                          className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/40 hover:text-teal-300 transition-all" title="View details">
+                          <Info className="w-3.5 h-3.5" />
+                        </button>
+                        <button onClick={e => { e.stopPropagation(); copyLink(s.token); }}
+                          className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/40 hover:text-white transition-all" title="Copy link">
+                          <Copy className="w-3.5 h-3.5" />
+                        </button>
+                        <a href={callUrl} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()}
+                          className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/40 hover:text-teal-300 transition-all" title="Open call">
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+                        <button onClick={e => { e.stopPropagation(); deleteSession(s.id); }}
+                          className="p-1.5 rounded-lg bg-white/5 hover:bg-red-500/20 text-white/20 hover:text-red-300 transition-all" title="Delete">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-white/70 text-sm">{s.orderAmount || "—"}</p>
-                      {s.webhookSent && (
-                        <span className="text-[10px] text-emerald-400/60 flex items-center gap-0.5">
-                          <Webhook className="w-2.5 h-2.5" /> sent
-                        </span>
-                      )}
+
+                    {/* ── Mobile card row ── */}
+                    <div className="md:hidden px-4 py-3.5">
+                      {/* Top row: checkbox + order id + status */}
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <div className="flex items-start gap-2.5">
+                          <input type="checkbox"
+                            checked={selectedIds.has(s.id)}
+                            onChange={() => toggleSelect(s.id)}
+                            onClick={e => e.stopPropagation()}
+                            className="w-4 h-4 rounded accent-teal-500 cursor-pointer mt-0.5 flex-shrink-0" />
+                          <div>
+                            <p className="text-white font-semibold text-sm">#{s.orderId}</p>
+                            {s.customerName && <p className="text-white/50 text-xs mt-0.5">{s.customerName}</p>}
+                            {s.customerPhone && <p className="text-white/30 text-xs font-mono">{s.customerPhone}</p>}
+                          </div>
+                        </div>
+                        <StatusBadge status={s.status} action={s.actionTaken} expiresAt={s.expiresAt} />
+                      </div>
+
+                      {/* Bottom row: amount + date + actions */}
+                      <div className="flex items-center justify-between pl-6">
+                        <div className="flex items-center gap-3">
+                          <span className="text-teal-300 font-medium text-sm">{s.orderAmount || "—"}</span>
+                          <span className="text-white/25 text-xs">{new Date(s.createdAt).toLocaleDateString()}</span>
+                          {s.webhookSent && <span className="text-[10px] text-emerald-400/60">webhook ✓</span>}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <button onClick={e => { e.stopPropagation(); setSelectedSession(s); }}
+                            className="p-1.5 rounded-lg bg-white/5 active:bg-white/15 text-white/40" title="Details">
+                            <Info className="w-3.5 h-3.5" />
+                          </button>
+                          <button onClick={e => { e.stopPropagation(); copyLink(s.token); }}
+                            className="p-1.5 rounded-lg bg-white/5 active:bg-white/15 text-white/40" title="Copy">
+                            <Copy className="w-3.5 h-3.5" />
+                          </button>
+                          <button onClick={e => { e.stopPropagation(); deleteSession(s.id); }}
+                            className="p-1.5 rounded-lg bg-white/5 active:bg-red-500/20 text-white/20" title="Delete">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <StatusBadge status={s.status} action={s.actionTaken} expiresAt={s.expiresAt} />
-                      {isExp && s.status === "pending" && (
-                        <span className="ml-1 text-[10px] text-white/20">expired</span>
-                      )}
-                    </div>
-                    <div className="text-white/30 text-xs whitespace-nowrap">
-                      {new Date(s.createdAt).toLocaleDateString()}
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <button onClick={e => { e.stopPropagation(); setSelectedSession(s); }}
-                        className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/40 hover:text-teal-300 transition-all" title="View details">
-                        <Info className="w-3.5 h-3.5" />
-                      </button>
-                      <button onClick={e => { e.stopPropagation(); copyLink(s.token); }}
-                        className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/40 hover:text-white transition-all" title="Copy call link">
-                        <Copy className="w-3.5 h-3.5" />
-                      </button>
-                      <a href={callUrl} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()}
-                        className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/40 hover:text-teal-300 transition-all" title="Open call">
-                        <ExternalLink className="w-3.5 h-3.5" />
-                      </a>
-                      <button onClick={e => { e.stopPropagation(); deleteSession(s.id); }}
-                        className="p-1.5 rounded-lg bg-white/5 hover:bg-red-500/20 text-white/20 hover:text-red-300 transition-all" title="Delete">
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
+
                   </div>
                 );
               })}
@@ -762,9 +809,9 @@ export function VoiceCallsPage() {
         <div className="flex items-center justify-between">
           <p className="text-white/20 text-xs">
             {filtered.length} of {sessions.length} sessions
-            {autoRefresh && <span className="ml-2 text-teal-400/50">● auto-refreshing every 30s</span>}
+            {autoRefresh && <span className="ml-2 text-teal-400/50">● auto-refreshing</span>}
           </p>
-          <p className="text-white/15 text-xs">Click any row to view full details</p>
+          <p className="text-white/15 text-xs hidden md:block">Click any row to view details</p>
         </div>
       </div>
     </AdminLayout>

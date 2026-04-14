@@ -493,7 +493,7 @@ export function VoiceCallConfigPage() {
                       <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${config.enabled ? "left-5" : "left-0.5"}`} />
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="text-white/40 text-xs mb-1.5 block">Company Name</label>
                       <Input value={config.companyName || ""} onChange={e => setConfig({ ...config, companyName: e.target.value })}
@@ -540,7 +540,7 @@ export function VoiceCallConfigPage() {
                 <div className="bg-indigo-500/10 border border-indigo-400/20 rounded-xl px-4 py-3 text-sm text-indigo-300">
                   🔊 <strong>Browser TTS active</strong> — Text-to-speech works using the browser's built-in voice engine. No API key needed. Upload custom audio files for higher quality.
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <AudioRow label="Welcome Audio" desc="Plays when call starts" audioUrl={config.welcomeAudioUrl} fieldKey="welcome" configId={config.id}
                     onUpdated={url => setConfig({ ...config, welcomeAudioUrl: url })} />
                   <AudioRow label="Announcement Audio" desc="Plays after welcome (menu instructions)" audioUrl={config.announcementAudioUrl} fieldKey="announcement" configId={config.id}
@@ -589,7 +589,7 @@ export function VoiceCallConfigPage() {
 
                     {editingOption === idx && (
                       <div className="space-y-3 pt-3 border-t border-white/10">
-                        <div className="grid grid-cols-3 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                           <div>
                             <label className="text-white/40 text-xs mb-1 block">Key</label>
                             <Input value={opt.key} onChange={e => updateOption(idx, { key: e.target.value })}
