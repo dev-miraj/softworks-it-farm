@@ -110,7 +110,7 @@ export async function synthesize(req: TtsRequest): Promise<TtsResult> {
   async function doSynthesize(ssml: string): Promise<Buffer> {
     const { MsEdgeTTS: EdgeTTS, OUTPUT_FORMAT: FMT } = await getEdgeTTS();
     const tts = new EdgeTTS();
-    await tts.setMetadata(resolvedVoice, FMT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
+    await tts.setMetadata(resolvedVoice, FMT.AUDIO_24KHZ_96KBITRATE_MONO_MP3);
     const result = tts.rawToStream(ssml);
     return streamToBuffer(result.audioStream as Readable);
   }
