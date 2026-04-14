@@ -44,12 +44,16 @@ import { useListLeaveRequests, useListLeads } from "@workspace/api-client-react"
 const sidebarSections = [
   {
     title: "Overview",
+    color: "text-slate-400",
+    dot: "bg-slate-400",
     links: [
       { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
     ],
   },
   {
     title: "Site Content",
+    color: "text-blue-400",
+    dot: "bg-blue-400",
     links: [
       { href: "/admin/services", label: "Services", icon: Briefcase },
       { href: "/admin/portfolio", label: "Portfolio", icon: FolderOpen },
@@ -62,6 +66,8 @@ const sidebarSections = [
   },
   {
     title: "CRM & Billing",
+    color: "text-amber-400",
+    dot: "bg-amber-400",
     links: [
       { href: "/admin/leads", label: "Leads", icon: Inbox, badgeKey: "leads" },
       { href: "/admin/clients", label: "Clients", icon: UserPlus },
@@ -72,6 +78,8 @@ const sidebarSections = [
   },
   {
     title: "HR System",
+    color: "text-emerald-400",
+    dot: "bg-emerald-400",
     links: [
       { href: "/admin/employees", label: "Employees", icon: Users },
       { href: "/admin/attendance", label: "Attendance", icon: Clock },
@@ -82,6 +90,8 @@ const sidebarSections = [
   },
   {
     title: "License System",
+    color: "text-violet-400",
+    dot: "bg-violet-400",
     links: [
       { href: "/admin/license-dashboard", label: "License Dashboard", icon: Shield },
       { href: "/admin/licenses", label: "License Manager", icon: KeyRound },
@@ -94,12 +104,16 @@ const sidebarSections = [
   },
   {
     title: "AI Tools",
+    color: "text-primary",
+    dot: "bg-primary",
     links: [
       { href: "/admin/ai-chat", label: "AI Assistant", icon: Sparkles },
     ],
   },
   {
     title: "Auto Calling",
+    color: "text-teal-400",
+    dot: "bg-teal-400",
     links: [
       { href: "/admin/voice-calls", label: "Call Sessions", icon: PhoneIncoming },
       { href: "/admin/voice-call-config", label: "Call Config", icon: PhoneCall },
@@ -108,6 +122,8 @@ const sidebarSections = [
   },
   {
     title: "Settings",
+    color: "text-slate-400",
+    dot: "bg-slate-400",
     links: [
       { href: "/admin/settings", label: "Site Settings", icon: Settings },
       { href: "/admin/admin-users", label: "Admin Users", icon: Database },
@@ -139,6 +155,10 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       ? location === "/admin"
       : location.startsWith(href);
 
+  const activeSection = sidebarSections.find(s =>
+    s.links.some(l => isActive(l.href))
+  );
+
   const SidebarContent = () => (
     <>
       {/* Logo */}
@@ -155,11 +175,14 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* Nav sections — scrollable */}
-      <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-1 min-h-0">
+      <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5 min-h-0">
         {sidebarSections.map((section) => (
           <div key={section.title} className="mb-1">
-            <div className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-[0.18em] px-3 py-2">
-              {section.title}
+            <div className="flex items-center gap-1.5 px-3 py-2">
+              <span className={`w-1.5 h-1.5 rounded-full ${section.dot} opacity-60 flex-shrink-0`} />
+              <span className={`text-[9px] font-bold uppercase tracking-[0.18em] ${section.color} opacity-70`}>
+                {section.title}
+              </span>
             </div>
             <div className="space-y-0.5">
               {section.links.map((link) => {
@@ -172,7 +195,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                     href={link.href}
                     className={`group flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-150 text-sm ${
                       active
-                        ? "bg-primary/12 text-primary"
+                        ? `bg-primary/12 text-primary`
                         : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
                     }`}
                     onClick={() => setIsSidebarOpen(false)}
@@ -256,6 +279,12 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             <span className="text-sm font-black text-primary tracking-tight">{siteName}</span>
           </Link>
           <div className="flex items-center gap-2">
+            {/* Active section label */}
+            {activeSection && (
+              <span className={`text-[10px] font-bold uppercase tracking-wider ${activeSection.color} opacity-70`}>
+                {activeSection.title}
+              </span>
+            )}
             {(pendingLeaves + newLeads) > 0 && (
               <span className="w-5 h-5 rounded-full bg-yellow-500/80 text-[10px] font-bold text-background flex items-center justify-center">
                 {pendingLeaves + newLeads}

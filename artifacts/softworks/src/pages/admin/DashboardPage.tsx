@@ -4,6 +4,8 @@ import {
   Users, Briefcase, Inbox, TrendingUp, DollarSign, Clock,
   CheckCircle, AlertCircle, Shield, KeyRound, Activity,
   ArrowRight, Bell, UserCheck, ChevronRight,
+  PhoneCall, PhoneIncoming, PhoneOff, Sparkles, BarChart2,
+  CheckCircle2, XCircle,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -22,6 +24,17 @@ function useLicenseStats() {
   });
 }
 
+function useVoiceCallStats() {
+  return useQuery({
+    queryKey: ["voice-call-stats"],
+    queryFn: async () => {
+      const r = await fetch(`${API}/api/voice-calls/stats`);
+      if (!r.ok) return null;
+      return r.json();
+    },
+  });
+}
+
 const statusColors: Record<string, string> = {
   new: "bg-blue-500/10 text-blue-400",
   contacted: "bg-yellow-500/10 text-yellow-400",
@@ -34,8 +47,8 @@ const quickLinks = [
   { href: "/admin/licenses", label: "Licenses", icon: KeyRound, color: "text-violet-400" },
   { href: "/admin/employees", label: "Employees", icon: Users, color: "text-emerald-400" },
   { href: "/admin/projects", label: "Projects", icon: Briefcase, color: "text-amber-400" },
-  { href: "/admin/leaves", label: "Leave Requests", icon: Clock, color: "text-orange-400" },
-  { href: "/admin/payroll", label: "Payroll", icon: DollarSign, color: "text-green-400" },
+  { href: "/admin/voice-calls", label: "Voice Calls", icon: PhoneIncoming, color: "text-teal-400" },
+  { href: "/admin/ai-chat", label: "AI Assistant", icon: Sparkles, color: "text-primary" },
 ];
 
 export function DashboardPage() {
@@ -44,6 +57,7 @@ export function DashboardPage() {
   const { data: projectSummary } = useGetProjectSummary();
   const { data: hrSummary } = useGetHrSummary();
   const { data: licStats } = useLicenseStats();
+  const { data: callStats } = useVoiceCallStats();
 
   const now = new Date();
   const greeting =
@@ -56,6 +70,8 @@ export function DashboardPage() {
     alerts.push({ label: "new leads this month", value: stats!.newLeadsThisMonth, href: "/admin/leads", color: "text-blue-400" });
   if ((licStats?.overdue ?? 0) > 0)
     alerts.push({ label: "overdue license payments", value: licStats!.overdue, href: "/admin/license-payments", color: "text-red-400" });
+  if ((callStats?.pending ?? 0) > 0)
+    alerts.push({ label: "pending voice call sessions", value: callStats!.pending, href: "/admin/voice-calls", color: "text-teal-400" });
 
   const statCards = [
     { icon: Users, label: "Clients", value: stats?.totalClients ?? 0, color: "text-primary", bg: "bg-primary/10", href: "/admin/clients" },
@@ -73,6 +89,20 @@ export function DashboardPage() {
     { icon: KeyRound, label: "Total Licenses", value: licStats?.totalLicenses ?? 0, color: "text-violet-400", bg: "bg-violet-400/10", href: "/admin/licenses" },
     { icon: Activity, label: "Activations", value: licStats?.totalActivations ?? 0, color: "text-blue-400", bg: "bg-blue-400/10", href: "/admin/license-activations" },
     { icon: DollarSign, label: "License Revenue", value: licStats ? `$${Number(licStats.totalRevenue ?? 0).toLocaleString()}` : "$0", color: "text-green-400", bg: "bg-green-400/10", href: "/admin/license-payments" },
+  ];
+
+  const voiceCallCards = [
+    { icon: PhoneCall, label: "Total Calls", value: callStats?.total ?? 0, color: "text-teal-400", bg: "bg-teal-400/10", href: "/admin/voice-calls" },
+    { icon: CheckCircle2, label: "Confirmed", value: callStats?.confirmed ?? 0, color: "text-emerald-400", bg: "bg-emerald-400/10", href: "/admin/voice-calls" },
+    { icon: XCircle, label: "Cancelled", value: callStats?.cancelled ?? 0, color: "text-red-400", bg: "bg-red-400/10", href: "/admin/voice-calls" },
+    {
+      icon: BarChart2,
+      label: "Conversion Rate",
+      value: callStats ? `${callStats.conversionRate ?? 0}%` : "0%",
+      color: "text-cyan-400",
+      bg: "bg-cyan-400/10",
+      href: "/admin/voice-calls",
+    },
   ];
 
   return (
@@ -144,8 +174,8 @@ export function DashboardPage() {
         <div className="flex items-center gap-2 mb-3">
           <Shield className="w-4 h-4 text-violet-400" />
           <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">License Management</h2>
-          <Link href="/admin/license-dashboard">
-            <span className="ml-auto text-xs text-primary flex items-center gap-1 hover:underline">
+          <Link href="/admin/license-dashboard" className="ml-auto">
+            <span className="text-xs text-primary flex items-center gap-1 hover:underline">
               View Dashboard <ArrowRight className="w-3 h-3" />
             </span>
           </Link>
@@ -166,6 +196,47 @@ export function DashboardPage() {
             );
           })}
         </div>
+      </div>
+
+      {/* AI Auto Calling Stats */}
+      <div className="mb-6">
+        <div className="flex items-center gap-2 mb-3">
+          <PhoneIncoming className="w-4 h-4 text-teal-400" />
+          <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">AI Auto Calling</h2>
+          <Link href="/admin/voice-calls" className="ml-auto">
+            <span className="text-xs text-teal-400 flex items-center gap-1 hover:underline">
+              Manage Calls <ArrowRight className="w-3 h-3" />
+            </span>
+          </Link>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {voiceCallCards.map((card) => {
+            const Icon = card.icon;
+            return (
+              <Link key={card.label} href={card.href}>
+                <div className="rounded-xl p-4 bg-card/60 border border-white/8 hover:border-teal-500/30 cursor-pointer hover:scale-[1.01] transition-all">
+                  <div className={`w-9 h-9 rounded-lg ${card.bg} flex items-center justify-center mb-3`}>
+                    <Icon className={`w-4 h-4 ${card.color}`} />
+                  </div>
+                  <div className={`text-2xl font-black ${card.color} mb-0.5`}>{card.value}</div>
+                  <div className="text-xs text-muted-foreground font-medium">{card.label}</div>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+        {/* Today's count banner */}
+        {callStats && (callStats.todayCount ?? 0) >= 0 && (
+          <div className="mt-2 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-500/5 border border-teal-400/15">
+            <PhoneCall className="w-3.5 h-3.5 text-teal-400 flex-shrink-0" />
+            <span className="text-xs text-teal-300">
+              <span className="font-bold">{callStats.todayCount}</span> calls initiated today
+            </span>
+            <Link href="/admin/voice-call-config" className="ml-auto">
+              <span className="text-xs text-teal-400/60 hover:text-teal-400 transition-colors">Configure →</span>
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* Bottom section */}
