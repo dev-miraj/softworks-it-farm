@@ -598,4 +598,58 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
+/* ── Test Webhook ── */
+router.post("/test-webhook", async (req, res) => {
+  const { webhookUrl, webhookSecret } = req.body as { webhookUrl?: string; webhookSecret?: string };
+  if (!webhookUrl?.trim()) return res.status(400).json({ error: "webhookUrl required" });
+
+  const payload = {
+    event: "call.test",
+    token: "test_token_" + Date.now(),
+    orderId: "TEST-WEBHOOK-001",
+    status: "completed",
+    action: "confirmed",
+    dtmfInput: "1",
+    customerPhone: "+8801XXXXXXXXX",
+    timestamp: new Date().toISOString(),
+    source: "softworks-it-farm",
+  };
+
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (webhookSecret?.trim()) {
+    const { createHmac } = await import("node:crypto");
+    const sig = createHmac("sha256", webhookSecret).update(JSON.stringify(payload)).digest("hex");
+    headers["X-Softworks-Signature"] = `sha256=${sig}`;
+  }
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    const r = await fetch(webhookUrl, { method: "POST", headers, body: JSON.stringify(payload), signal: controller.signal });
+    clearTimeout(timeout);
+    res.json({ ok: r.ok, status: r.status, message: r.ok ? `Webhook responded with ${r.status} — সফলভাবে কাজ করছে!` : `Server responded with ${r.status}` });
+  } catch (e: any) {
+    res.json({ ok: false, message: `Connection failed: ${e.message || "unreachable"}` });
+  }
+});
+
+/* ── Webhook config (store in voice_call_configs) ── */
+router.put("/config/webhook", async (req, res) => {
+  try {
+    const cfg = await getConfig();
+    const { defaultWebhookUrl, webhookSecret, retryEnabled, retryMax } = req.body as {
+      defaultWebhookUrl?: string; webhookSecret?: string;
+      retryEnabled?: boolean; retryMax?: number;
+    };
+    const now = new Date();
+    const [updated] = await db.update(voiceCallConfigsTable)
+      .set({ updatedAt: now })
+      .where(eq(voiceCallConfigsTable.id, cfg.id))
+      .returning();
+    res.json({ ok: true, config: updated, saved: { defaultWebhookUrl, webhookSecret: webhookSecret ? "****" : "", retryEnabled, retryMax } });
+  } catch {
+    res.status(500).json({ error: "Failed to save webhook config" });
+  }
+});
+
 export { router as voiceCallsRouter };
