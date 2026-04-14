@@ -22,7 +22,7 @@ interface Config {
   announcementAudioUrl: string | null; announcementText: string | null;
   options: VoiceOption[];
 }
-type CallState = "idle" | "creating" | "ringing" | "accepting" | "connected" | "menu" | "processing" | "done" | "error";
+type CallState = "idle" | "creating" | "ringing" | "menu" | "processing" | "done" | "error";
 type LiveState = "idle" | "connecting" | "ai-speaking" | "user-speaking" | "processing" | "done";
 interface ChatMsg { role: "ai" | "user"; text: string; }
 
@@ -323,34 +323,26 @@ export function AiVoicePage() {
 
   function acceptCall() {
     ringtone.stop();
-    setCallState("accepting");
-    setTimeout(() => {
-      setCallState("connected");
-      setTimeout(() => {
-        setCallState("menu");
-        setAiPhase("speaking");
-        /* Always play — config is always set now (fallback guaranteed in createSession) */
-        const cfg = config;
-        if (cfg) {
-          const welcome = cfg.welcomeText || "আস্সালামুআলাইকুম! আমি সফটওয়ার্কস AI।";
-          const announce = cfg.announcementText || "অর্ডার কনফার্ম করতে ১ চাপুন, বাতিল করতে ২ চাপুন।";
-          setAiText(welcome);
-          playAudio(cfg.welcomeAudioUrl, () => {
-            if (announce) {
-              setAiText(announce);
-              setTimeout(() => playAudio(cfg.announcementAudioUrl, () => setAiPhase("listening"), announce), 350);
-            } else {
-              setAiPhase("listening");
-            }
-          }, welcome);
+    setCallState("menu");
+    setAiPhase("speaking");
+    const cfg = config;
+    if (cfg) {
+      const welcome = cfg.welcomeText || "আস্সালামুআলাইকুম! আমি সফটওয়ার্কস AI।";
+      const announce = cfg.announcementText || "অর্ডার কনফার্ম করতে ১ চাপুন, বাতিল করতে ২ চাপুন।";
+      setAiText(welcome);
+      playAudio(cfg.welcomeAudioUrl, () => {
+        if (announce) {
+          setAiText(announce);
+          setTimeout(() => playAudio(cfg.announcementAudioUrl, () => setAiPhase("listening"), announce), 350);
         } else {
-          /* Ultimate fallback — no config at all */
-          const fallbackText = "আস্সালামুআলাইকুম! আমি সফটওয়ার্কস AI। অর্ডার কনফার্ম করতে ১ চাপুন, বাতিল করতে ২ চাপুন।";
-          setAiText(fallbackText);
-          speak(fallbackText, () => setAiPhase("listening"));
+          setAiPhase("listening");
         }
-      }, 1600);
-    }, 1900);
+      }, welcome);
+    } else {
+      const fallbackText = "আস্সালামুআলাইকুম! আমি সফটওয়ার্কস AI। অর্ডার কনফার্ম করতে ১ চাপুন, বাতিল করতে ২ চাপুন।";
+      setAiText(fallbackText);
+      speak(fallbackText, () => setAiPhase("listening"));
+    }
   }
 
   function rejectCall() { try { ringtone.stop(); stopAudio(); } catch {} resetCall(); }
@@ -530,9 +522,9 @@ export function AiVoicePage() {
             overflowY: "auto",
           }}>
             {/* Step badge */}
-            {(callState === "ringing" || callState === "accepting" || callState === "connected" || callState === "menu" || callState === "processing") && (
+            {(callState === "ringing" || callState === "menu" || callState === "processing") && (
               <div style={{ position: "fixed", top: 18, left: 18, zIndex: 1, background: "rgba(0,212,200,0.12)", border: "1px solid rgba(0,212,200,0.3)", borderRadius: 20, padding: "4px 13px", fontSize: 12, color: "#00d4c8", fontWeight: 700, letterSpacing: "0.06em" }}>
-                ⚡ {callState === "ringing" ? "ধাপ ১/৩" : callState === "accepting" || callState === "connected" ? "ধাপ ২/৩" : "ধাপ ৩/৩"}
+                ⚡ {callState === "ringing" ? "ধাপ ১/২" : "ধাপ ২/২"}
               </div>
             )}
             {/* Timer */}
@@ -574,34 +566,6 @@ export function AiVoicePage() {
                     </button>
                   </div>
                 </>
-              )}
-
-              {/* ── ACCEPTING (Yellow phone animation) ── */}
-              {callState === "accepting" && (
-                <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 28 }}>
-                  <div style={{ width: 96, height: 96, borderRadius: "50%", background: "radial-gradient(circle at 40% 35%, #fbbf24, #f59e0b)", boxShadow: "0 0 60px rgba(245,158,11,0.55)", display: "flex", alignItems: "center", justifyContent: "center", animation: "orbFloat 1.4s ease-in-out infinite" }}>
-                    <Phone style={{ width: 42, height: 42, color: "#fff" }} />
-                  </div>
-                  <div style={{ textAlign: "center" }}>
-                    <h2 style={{ fontSize: 26, fontWeight: 800, color: "#fff", margin: "0 0 10px" }}>কল কানেক্ট হচ্ছে...</h2>
-                    <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 14, lineHeight: 1.6 }}>রিং হচ্ছে, প্রতিনিধি কলটি রিসিভ করার জন্য তৈরি...</p>
-                  </div>
-                  <button onClick={endCall} onPointerDown={() => endCall()} style={{ background: "rgba(239,68,68,0.75)", border: "2px solid rgba(239,68,68,0.6)", borderRadius: 50, padding: "13px 36px", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, touchAction: "manipulation" }}>
-                    <PhoneOff style={{ width: 16, height: 16 }} /> কল শেষ করুন
-                  </button>
-                </div>
-              )}
-
-              {/* ── CONNECTED (brief) ── */}
-              {callState === "connected" && (
-                <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 24 }}>
-                  <RingAvatar ringing={false} />
-                  <div style={{ textAlign: "center" }}>
-                    <h2 style={{ fontSize: 24, fontWeight: 700, color: "#fff", margin: "0 0 6px" }}>SOFTWORKS AI</h2>
-                    <p style={{ color: "#00d4c8", fontSize: 12, fontWeight: 700, letterSpacing: "0.2em", margin: 0 }}>সংযুক্ত হচ্ছে...</p>
-                  </div>
-                  <Waveform active />
-                </div>
               )}
 
               {/* ── MENU (AI speaking + DTMF options) ── */}
