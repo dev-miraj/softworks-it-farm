@@ -98,6 +98,10 @@ export function buildSSML(text: string, emotion: Emotion, voiceName: string): st
   const cfg = EMOTION_CONFIGS[emotion] || EMOTION_CONFIGS.neutral;
   const { rate, pitch, volume } = cfg.prosody;
 
+  const lang = voiceName.startsWith("bn-") ? "bn-BD"
+    : voiceName.startsWith("en-") ? "en-US"
+    : "bn-BD";
+
   const cleanText = text
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -105,13 +109,7 @@ export function buildSSML(text: string, emotion: Emotion, voiceName: string): st
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&apos;");
 
-  return `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="https://www.w3.org/2001/mstts" xml:lang="bn-BD">
-  <voice name="${voiceName}">
-    <prosody rate="${rate}" pitch="${pitch}" volume="${volume}">
-      ${cleanText}
-    </prosody>
-  </voice>
-</speak>`;
+  return `<speak version="1.0" xml:lang="${lang}"><voice name="${voiceName}"><prosody rate="${rate}" pitch="${pitch}" volume="${volume}">${cleanText}</prosody></voice></speak>`;
 }
 
 /* ─── Get voice name for profile ─── */
